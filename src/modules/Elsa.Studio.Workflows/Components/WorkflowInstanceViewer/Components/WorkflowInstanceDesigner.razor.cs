@@ -24,6 +24,7 @@ using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Radzen;
 using Radzen.Blazor;
@@ -44,6 +45,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private readonly Dictionary<string, ICollection<ActivityExecutionRecordSummary>> _activityExecutionRecordsLookup = new();
     private readonly Dictionary<string, ActivityExecutionRecord> _lastActivityExecutionRecordLookup = new();
     private Timer? _elapsedTimer;
+    private volatile bool _disposed;
     private bool IsAlterationsEnabled { get; set; }
 
     /// The workflow instance.
@@ -82,7 +84,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
-    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = null!;
+    private IWorkflowInstanceObserver? _workflowInstanceObserver;
+
+    private IWorkflowInstanceObserver? WorkflowInstanceObserver
+    {
+        get => _workflowInstanceObserver;
+        set => _workflowInstanceObserver = value;
+    }
     private ICollection<ActivityExecutionRecordSummary> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecordSummary>();
     private ActivityExecutionRecord? LastActivityExecution { get; set; }
     private Timer? _refreshTimer;
@@ -204,29 +212,68 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         }
     }
 
-    private async Task CreateObserverAsync()
+    /// <summary>
+    /// Creates and publishes a new <see cref="WorkflowInstanceObserver"/>, unless the component is or
+    /// becomes disposed while the factory call is in flight. Internal so tests can invoke it directly
+    /// to pin the disposal race it guards against.
+    /// </summary>
+    internal async Task CreateObserverAsync()
     {
         if (_workflowInstance == null || _designer == null)
             return;
 
         await DisposeObserverAsync();
+
+        if (_disposed) return;
+
         var container = _designer.GetCurrentContainerActivityOrRoot();
         var observerContext = new WorkflowInstanceObserverContext
         {
             WorkflowInstanceId = _workflowInstance.Id,
             ContainerActivity = container,
         };
-        WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(observerContext);
-        WorkflowInstanceObserver.ActivityExecutionLogUpdated += OnActivityExecutionLogUpdated;
+        var observer = await WorkflowInstanceObserverFactory.CreateAsync(observerContext);
+
+        if (_disposed)
+        {
+            // DisposeAsync ran while the factory call above was in flight; dispose the observer we just
+            // created instead of publishing and subscribing it on a torn-down component.
+            await observer.DisposeAsync();
+            return;
+        }
+
+        observer.ActivityExecutionLogUpdated += OnActivityExecutionLogUpdated;
+
+        var previousObserver = Interlocked.Exchange(ref _workflowInstanceObserver, observer);
+
+        if (previousObserver != null)
+        {
+            previousObserver.ActivityExecutionLogUpdated -= OnActivityExecutionLogUpdated;
+            await previousObserver.DisposeAsync();
+        }
+
+        if (_disposed)
+        {
+            // DisposeAsync ran between the guard above and publishing the observer; detach and dispose
+            // it, guarding against DisposeObserverAsync having already detached it.
+            var disposedObserver = Interlocked.Exchange(ref _workflowInstanceObserver, null);
+
+            if (disposedObserver != null)
+            {
+                disposedObserver.ActivityExecutionLogUpdated -= OnActivityExecutionLogUpdated;
+                await disposedObserver.DisposeAsync();
+            }
+        }
     }
 
     private async Task DisposeObserverAsync()
     {
-        if (WorkflowInstanceObserver != null!)
+        var observer = Interlocked.Exchange(ref _workflowInstanceObserver, null);
+
+        if (observer != null)
         {
-            WorkflowInstanceObserver.ActivityExecutionLogUpdated -= OnActivityExecutionLogUpdated;
-            await WorkflowInstanceObserver.DisposeAsync();
-            WorkflowInstanceObserver = null;
+            observer.ActivityExecutionLogUpdated -= OnActivityExecutionLogUpdated;
+            await observer.DisposeAsync();
         }
     }
 
@@ -255,19 +302,99 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         }
     }
 
-    private void StartElapsedTimer()
+    /// <summary>
+    /// Starts the periodic elapsed-time timer, unless the component has already been disposed. Internal
+    /// so tests can invoke it directly to pin the disposal race it guards against.
+    /// </summary>
+    internal void StartElapsedTimer()
     {
-        if (_elapsedTimer == null)
-            _elapsedTimer = new(_ => InvokeAsync(StateHasChanged), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        if (_disposed) return;
+        if (_elapsedTimer != null) return;
+
+        async void Callback(object? _) => await ElapsedTimerTickAsync();
+
+        // Create the timer disabled so its callback cannot fire before the timer is published to
+        // _elapsedTimer; it is armed only after publication succeeds.
+        var timer = new Timer(Callback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
+        if (Interlocked.CompareExchange(ref _elapsedTimer, timer, null) is not null)
+        {
+            // Another caller already installed a timer; discard the one we just created.
+            timer.Dispose();
+            return;
+        }
+
+        if (_disposed)
+        {
+            // DisposeAsync ran between the guard above and publishing the timer; detach and dispose it.
+            var disposedTimer = Interlocked.Exchange(ref _elapsedTimer, null);
+            disposedTimer?.Dispose();
+            return;
+        }
+
+        try
+        {
+            timer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        }
+        catch (ObjectDisposedException)
+        {
+            // The timer was disposed concurrently (e.g. by DisposeAsync racing this publish); nothing to arm.
+        }
     }
+
+    /// <summary>
+    /// The body of the elapsed timer tick, extracted so tests can invoke it directly instead of
+    /// waiting for the real <see cref="Timer"/> to fire.
+    /// </summary>
+    internal async Task ElapsedTimerTickAsync()
+    {
+        await RunTimerTickAsync(NotifyStateChangedAsync, StopElapsedTimerAsync);
+    }
+
+    /// <summary>
+    /// Runs the body of a periodic timer tick, guarding it against disposal and a disconnected
+    /// circuit. Returns <c>false</c> when the component was already disposed or when <paramref name="work"/>
+    /// threw a circuit-gone exception (in which case <paramref name="stopTimer"/> stopped the timer);
+    /// returns <c>true</c> when <paramref name="work"/> completed normally. Exceptions that do not
+    /// signal a gone circuit propagate to the caller.
+    /// </summary>
+    private async Task<bool> RunTimerTickAsync(Func<Task> work, Func<Task> stopTimer)
+    {
+        if (_disposed) return false;
+
+        try
+        {
+            await work();
+        }
+        catch (Exception ex) when (IsCircuitGoneException(ex))
+        {
+            // The circuit has disconnected (e.g. the browser tab hosting this workflow instance was
+            // closed) while the tick was in flight. Stop the timer instead of letting the exception
+            // escape the timer callback and crash the process.
+            await stopTimer();
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Invokes <see cref="ComponentBase.StateHasChanged"/> on the renderer's dispatcher. Extracted as
+    /// a virtual seam so tests can simulate a circuit-gone exception surfacing from the render
+    /// pipeline without needing a real Blazor circuit.
+    /// </summary>
+    internal virtual Task NotifyStateChangedAsync() => InvokeAsync(StateHasChanged);
 
     private void StopElapsedTimer()
     {
-        if (_elapsedTimer != null)
-        {
-            _elapsedTimer?.Dispose();
-            _elapsedTimer = null;
-        }
+        var timer = Interlocked.Exchange(ref _elapsedTimer, null);
+        timer?.Dispose();
+    }
+
+    private Task StopElapsedTimerAsync()
+    {
+        StopElapsedTimer();
+        return Task.CompletedTask;
     }
 
     private async Task HandleActivitySelectedAsync(JsonObject activity)
@@ -342,29 +469,137 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         });
     }
 
-    private void RefreshActivityStatePeriodically(string activityExecutionRecordId)
+    /// <summary>
+    /// Starts the periodic activity-state refresh timer, unless the component has already been
+    /// disposed. Internal so tests can invoke it directly to pin the disposal race it guards against.
+    /// </summary>
+    internal void RefreshActivityStatePeriodically(string activityExecutionRecordId)
     {
-        async void Callback(object? _)
-        {
-            await RefreshSelectedItemAsync(activityExecutionRecordId);
+        if (_disposed) return;
 
-            if (LastActivityExecution == null || (LastActivityExecution.IsFused() && LastActivityExecution.Status != ActivityStatus.Running))
-                await StopRefreshActivityStatePeriodically();
-            else
-                _refreshTimer?.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+        async void Callback(object? _) => await RefreshTimerTickAsync(activityExecutionRecordId);
+
+        // Create the timer disabled so its callback cannot fire before the timer is published to
+        // _refreshTimer; it is armed only after publication succeeds. Ownership of the timer created
+        // here transfers to _refreshTimer via PublishRefreshTimer; it is disposed by the stop path
+        // (StopRefreshActivityStatePeriodically) or by DisposeAsync.
+        var timer = new Timer(Callback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
+        if (!PublishRefreshTimer(timer))
+        {
+            // PublishRefreshTimer already disposes the timer it detaches on this path; dispose it here
+            // too so static analysis can see the local is disposed on every path (a second Timer.Dispose()
+            // call is a safe no-op).
+            timer.Dispose();
+            return;
         }
 
-        _refreshTimer = new(Callback, null, TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+        try
+        {
+            timer.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+        }
+        catch (ObjectDisposedException)
+        {
+            // The timer was disposed concurrently (e.g. by DisposeAsync racing this publish); nothing to arm.
+        }
     }
 
+    /// <summary>
+    /// Publishes a newly created refresh timer to <see cref="_refreshTimer"/>, disposing any timer it
+    /// replaces, and detaches the published timer again if the component was disposed concurrently.
+    /// Returns <c>true</c> when <paramref name="timer"/> remains the published instance and should be
+    /// armed; <c>false</c> when it was detached again and must not be armed.
+    /// </summary>
+    private bool PublishRefreshTimer(Timer timer)
+    {
+        var previousTimer = Interlocked.Exchange(ref _refreshTimer, timer);
+        previousTimer?.Dispose();
+
+        if (_disposed)
+        {
+            // DisposeAsync ran between the guard above and publishing the timer; detach and dispose it.
+            var disposedTimer = Interlocked.Exchange(ref _refreshTimer, null);
+            disposedTimer?.Dispose();
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// The body of the periodic refresh timer tick, extracted so tests can invoke it directly instead
+    /// of waiting for the real <see cref="Timer"/> to fire.
+    /// </summary>
+    internal async Task RefreshTimerTickAsync(string activityExecutionRecordId)
+    {
+        var ticked = await RunTimerTickAsync(() => RefreshSelectedItemAsync(activityExecutionRecordId), StopRefreshTimerAsync);
+
+        if (!ticked) return;
+
+        if (_disposed) return;
+
+        if (LastActivityExecution == null || (LastActivityExecution.IsFused() && LastActivityExecution.Status != ActivityStatus.Running))
+        {
+            // Called from the tick itself: use the non-waiting stop so this callback does not await
+            // its own completion (Timer.DisposeAsync waits for in-flight callbacks to return).
+            StopRefreshTimer();
+        }
+        else
+        {
+            var timer = _refreshTimer;
+
+            if (timer == null) return;
+
+            try
+            {
+                timer.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
+            }
+            catch (ObjectDisposedException)
+            {
+                // The timer was disposed concurrently (e.g. by DisposeAsync racing this tick); nothing to rearm.
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stops the refresh timer without waiting for an in-flight callback to return. Use this from
+    /// within the timer's own callback (<see cref="RefreshTimerTickAsync"/>): <see cref="Timer.DisposeAsync"/>
+    /// only completes once active callbacks return, so awaiting it from the callback that is currently
+    /// executing would deadlock the callback on its own completion.
+    /// </summary>
+    private void StopRefreshTimer()
+    {
+        var timer = Interlocked.Exchange(ref _refreshTimer, null);
+        timer?.Dispose();
+    }
+
+    private Task StopRefreshTimerAsync()
+    {
+        StopRefreshTimer();
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Stops the refresh timer and drains any in-flight callback before returning. Use this only from
+    /// callers that are not themselves executing on the timer callback (e.g. <see cref="DisposeAsync"/>
+    /// or a non-timer caller), since <see cref="Timer.DisposeAsync"/> waits for active callbacks to
+    /// finish.
+    /// </summary>
     private async Task StopRefreshActivityStatePeriodically()
     {
-        if (_refreshTimer != null)
-        {
-            await _refreshTimer.DisposeAsync();
-            _refreshTimer = null;
-        }
+        var timer = Interlocked.Exchange(ref _refreshTimer, null);
+
+        if (timer is null) return;
+
+        await timer.DisposeAsync();
     }
+
+    /// <summary>
+    /// Determines whether the given exception signals that the Blazor circuit is gone (disconnected
+    /// or already disposed), in which case timer callbacks should stop quietly instead of throwing.
+    /// </summary>
+    private static bool IsCircuitGoneException(Exception ex) =>
+        ex is ObjectDisposedException or JSDisconnectedException or OperationCanceledException;
 
     private static ActivityStats Map(ActivityExecutionStats source)
     {
@@ -429,10 +664,16 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
+        _disposed = true;
         StopElapsedTimer();
-        await DisposeObserverAsync();
 
-        if (_refreshTimer != null)
-            await _refreshTimer.DisposeAsync();
+        try
+        {
+            await DisposeObserverAsync();
+        }
+        finally
+        {
+            await StopRefreshActivityStatePeriodically();
+        }
     }
 }
