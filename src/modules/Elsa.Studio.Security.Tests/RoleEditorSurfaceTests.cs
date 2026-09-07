@@ -79,6 +79,9 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
             Assert.Contains("role-editor-primary-action", actionButtons[1].ClassList);
             Assert.DoesNotContain("mud-breadcrumbs", cut.Markup);
             Assert.DoesNotContain("Direct grant", cut.Markup);
+            var details = cut.Find(".role-editor-details");
+            Assert.Equal("The role ID is read-only.", details.Children[1].TextContent.Trim());
+            Assert.Contains("role-editor-id-note", details.Children[1].ClassList);
             Assert.True(cut.Find("input[aria-label='workflows/definitions:update']").HasAttribute("checked"));
             var coveredPermission = cut.Find("input[aria-label='workflows/definitions:view']");
             Assert.True(coveredPermission.HasAttribute("checked"));

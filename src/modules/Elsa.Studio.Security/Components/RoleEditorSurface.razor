@@ -23,7 +23,8 @@
     .role-editor-commit-actions { align-items: center; display: flex; gap: .5rem; margin-left: auto; }
     .role-editor-primary-action.mud-button-text { color: var(--role-editor-primary-aa); }
     .role-editor-id { color: var(--mud-palette-text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
-    .role-editor-details { align-items: end; display: grid; gap: 1rem; grid-template-columns: minmax(16rem, 32rem) minmax(0, 1fr); }
+    .role-editor-details { align-items: start; display: grid; gap: .25rem 1rem; grid-template-columns: minmax(16rem, 32rem) minmax(0, 1fr); }
+    .role-editor-id-note { grid-column: 1; }
     .role-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
     .role-permissions-header { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; }
     .role-permissions-summary { color: var(--mud-palette-text-secondary); }
@@ -138,7 +139,7 @@ else
                                   aria-label="Role name" />
                     @if (!_isCreate)
                     {
-                        <MudText Typo="Typo.caption" Class="role-permissions-summary">The role ID is read-only.</MudText>
+                        <MudText Typo="Typo.caption" Class="role-editor-id-note role-permissions-summary">The role ID is read-only.</MudText>
                     }
                 </div>
             </MudForm>
