@@ -200,6 +200,62 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     [Theory]
     [InlineData(SubmitPath.Form)]
     [InlineData(SubmitPath.OkButton)]
+    public async Task CreateDialogClearsTheDuplicateNameMessageWhenTheNameFieldChanges(SubmitPath submitPath)
+    {
+        var dialog = await ShowWorkflowDialogAsync<CreateWorkflowDialog>();
+        var submitValidation = _workflowDefinitionService.EnqueueValidation();
+
+        var submitTask = Submit(submitPath);
+        await submitValidation.Started.Task.WaitAsync(Timeout);
+        submitValidation.Result.SetResult(false);
+        await submitTask;
+
+        _dialogProvider.WaitForAssertion(() => Assert.Contains(DuplicateNameMessage, _dialogProvider.Markup));
+
+        // Blazilla's own field-changed validation clears only its own message store, so the duplicate-name
+        // message the submit published to its dedicated store must be cleared independently.
+        var fieldChangeValidation = _workflowDefinitionService.EnqueueValidation();
+        await SetNameAsync("Another workflow");
+
+        _dialogProvider.WaitForAssertion(() => Assert.DoesNotContain(DuplicateNameMessage, _dialogProvider.Markup));
+        Assert.False(dialog.Result.IsCompleted);
+
+        fieldChangeValidation.Result.SetResult(true);
+    }
+
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
+    public async Task CreateDialogDoesNotShowADuplicateNameMessageWhenTheStaleSubmitCheckReportsADuplicateForANameTheUserHasSinceChanged(SubmitPath submitPath)
+    {
+        const string changedName = "Renamed workflow";
+        var dialog = await ShowWorkflowDialogAsync<CreateWorkflowDialog>();
+        var submitValidation = _workflowDefinitionService.EnqueueValidation();
+
+        var submitTask = Submit(submitPath);
+        await submitValidation.Started.Task.WaitAsync(Timeout);
+
+        // Changing the name while the submission's uniqueness check is still pending triggers Blazilla's
+        // own field-changed validation, which runs a second (unrelated) uniqueness check for the new value.
+        var fieldChangeValidation = _workflowDefinitionService.EnqueueValidation();
+        await SetNameAsync(changedName);
+        await fieldChangeValidation.Started.Task.WaitAsync(Timeout);
+        fieldChangeValidation.Result.SetResult(true);
+
+        // The submit's own check resolves after the name changed, reporting the superseded value as a
+        // duplicate. Because it no longer describes the current name, it must not be published as a
+        // duplicate-name message against the current field value.
+        submitValidation.Result.SetResult(false);
+        await submitTask;
+
+        Assert.Equal(0, _workflowDefinitionService.CreateCallCount);
+        Assert.False(dialog.Result.IsCompleted);
+        Assert.DoesNotContain(DuplicateNameMessage, _dialogProvider.Markup);
+    }
+
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
     public async Task CloneDialogDoesNotCloseWhenTheNameIsNotUnique(SubmitPath submitPath)
     {
         var dialog = await ShowWorkflowDialogAsync<CloneWorkflowDialog>();
@@ -305,6 +361,61 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
         fieldChangeValidation.Result.SetResult(true);
 
         Assert.False(dialog.Result.IsCompleted);
+    }
+
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
+    public async Task CloneDialogClearsTheDuplicateNameMessageWhenTheNameFieldChanges(SubmitPath submitPath)
+    {
+        var dialog = await ShowWorkflowDialogAsync<CloneWorkflowDialog>();
+        var submitValidation = _workflowDefinitionService.EnqueueValidation();
+
+        var submitTask = Submit(submitPath);
+        await submitValidation.Started.Task.WaitAsync(Timeout);
+        submitValidation.Result.SetResult(false);
+        await submitTask;
+
+        _dialogProvider.WaitForAssertion(() => Assert.Contains(DuplicateNameMessage, _dialogProvider.Markup));
+
+        // Blazilla's own field-changed validation clears only its own message store, so the duplicate-name
+        // message the submit published to its dedicated store must be cleared independently.
+        var fieldChangeValidation = _workflowDefinitionService.EnqueueValidation();
+        await SetNameAsync("Another clone");
+
+        _dialogProvider.WaitForAssertion(() => Assert.DoesNotContain(DuplicateNameMessage, _dialogProvider.Markup));
+        Assert.False(dialog.Result.IsCompleted);
+
+        fieldChangeValidation.Result.SetResult(true);
+    }
+
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
+    public async Task CloneDialogDoesNotShowADuplicateNameMessageWhenTheStaleSubmitCheckReportsADuplicateForANameTheUserHasSinceChanged(SubmitPath submitPath)
+    {
+        const string changedName = "Renamed clone";
+        var dialog = await ShowWorkflowDialogAsync<CloneWorkflowDialog>();
+        var submitValidation = _workflowDefinitionService.EnqueueValidation();
+
+        var submitTask = Submit(submitPath);
+        await submitValidation.Started.Task.WaitAsync(Timeout);
+
+        // Changing the name while the submission's uniqueness check is still pending triggers Blazilla's
+        // own field-changed validation, which runs a second (unrelated) uniqueness check for the new value.
+        var fieldChangeValidation = _workflowDefinitionService.EnqueueValidation();
+        await SetNameAsync(changedName);
+        await fieldChangeValidation.Started.Task.WaitAsync(Timeout);
+        fieldChangeValidation.Result.SetResult(true);
+
+        // The submit's own check resolves after the name changed, reporting the superseded value as a
+        // duplicate. Because it no longer describes the current name, it must not be published as a
+        // duplicate-name message against the current field value.
+        submitValidation.Result.SetResult(false);
+        await submitTask;
+
+        Assert.False(dialog.Result.IsCompleted);
+        Assert.DoesNotContain(DuplicateNameMessage, _dialogProvider.Markup);
     }
 
     [Theory]

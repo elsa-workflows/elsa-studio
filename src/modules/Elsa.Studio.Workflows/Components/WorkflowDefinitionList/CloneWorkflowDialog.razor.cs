@@ -11,12 +11,12 @@ namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 /// <summary>
 /// A dialog that allows the user to clone a workflow.
 /// </summary>
-public partial class CloneWorkflowDialog
+public partial class CloneWorkflowDialog : IDisposable
 {
     private readonly WorkflowMetadataModel _metadataModel = new();
     private EditContext _editContext = null!;
-    private ValidationMessageStore _validationMessages = null!;
     private WorkflowPropertiesModelValidator _validator = null!;
+    private WorkflowMetadataSubmitValidator _submitValidator = null!;
 
     /// <summary>
     /// The name of the workflow to create.
@@ -32,8 +32,12 @@ public partial class CloneWorkflowDialog
         _metadataModel.Name = WorkflowName;
         _metadataModel.Description = WorkflowDescription;
         _editContext = new(_metadataModel);
-        _validationMessages = new(_editContext);
         _validator = new(WorkflowDefinitionService, Localizer);
+
+        // Discard the previous instance's field-changed subscription before it is replaced, so it does not
+        // keep running against an edit context this component no longer uses.
+        _submitValidator?.Dispose();
+        _submitValidator = new(_validator, _metadataModel, _editContext);
     }
 
     private Task OnCancelClicked()
@@ -51,22 +55,19 @@ public partial class CloneWorkflowDialog
 
     private async Task ValidateAndSubmitAsync()
     {
-        // The bound name can change while the asynchronous uniqueness check is pending. Capture it up
-        // front and bail out if it no longer matches once validation completes, so a stale value is
-        // never submitted; the user's next submission will re-validate the current value.
-        var submittedName = _metadataModel.Name;
-
         // Validate directly against the component-owned validator rather than EditContext.ValidateAsync(),
         // whose shared, unversioned message store can be overwritten by Blazilla's own asynchronous
-        // field-change validation resolving after this check does.
-        var isValid = await WorkflowMetadataValidation.ValidateAndPublishAsync(_validator, _metadataModel, _editContext, _validationMessages);
+        // field-change validation resolving after this check does. The validator also discards a result
+        // that no longer describes the current name, so a bound-name change while the check was pending
+        // never submits a stale value; the user's next submission re-validates the current value.
+        var isValid = await _submitValidator.ValidateAndPublishAsync();
 
         if (!isValid)
             return;
 
-        if (!string.Equals(_metadataModel.Name, submittedName, StringComparison.Ordinal))
-            return;
-
         MudDialog.Close(_metadataModel);
     }
+
+    /// <inheritdoc />
+    public void Dispose() => _submitValidator?.Dispose();
 }
