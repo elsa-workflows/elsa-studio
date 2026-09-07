@@ -7,7 +7,6 @@ using Elsa.Studio.Secrets.Menu;
 using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Menu;
 using Elsa.Studio.Security.Models;
-using Elsa.Studio.Security.Services;
 using Elsa.Studio.Services;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
@@ -60,20 +59,56 @@ public class AdministrationNavigationTests
     }
 
     [Fact]
-    public async Task IdentityMenu_ExposesRolesWithoutTheUnfinishedUsersEntry()
+    public async Task IdentityMenu_ListsUsersBeforeRolesUsingStructuredAccess()
     {
         Assert.Equal("Elsa.Identity.ShellFeatures.Identity", Elsa.Studio.Security.Feature.RemoteFeatureName);
 
         var contributor = new IdentitySecurityMenuContributor(
             new EnabledRemoteFeatureProvider(),
-            new TestRoleAdministrationAccessService());
+            new TestUserAdministrationAccessService(canView: true),
+            new TestRoleAdministrationAccessService(canView: true));
 
         var items = (await contributor.GetMenuItemsAsync()).ToList();
 
-        var role = Assert.Single(items);
-        Assert.Equal("Roles", role.Text);
-        Assert.Equal("security/roles", role.Href);
-        Assert.Equal(20, role.Order);
+        Assert.Collection(items,
+            users =>
+            {
+                Assert.Equal("Users", users.Text);
+                Assert.Equal("security/users", users.Href);
+                Assert.Equal(10, users.Order);
+            },
+            roles =>
+            {
+                Assert.Equal("Roles", roles.Text);
+                Assert.Equal("security/roles", roles.Href);
+                Assert.Equal(20, roles.Order);
+            });
+    }
+
+    [Theory]
+    [InlineData(true, false, "Users")]
+    [InlineData(false, true, "Roles")]
+    public async Task IdentityMenu_GatesUsersAndRolesIndependently(bool canViewUsers, bool canViewRoles, string expected)
+    {
+        var contributor = new IdentitySecurityMenuContributor(
+            new EnabledRemoteFeatureProvider(),
+            new TestUserAdministrationAccessService(canViewUsers),
+            new TestRoleAdministrationAccessService(canViewRoles));
+
+        var item = Assert.Single(await contributor.GetMenuItemsAsync());
+
+        Assert.Equal(expected, item.Text);
+    }
+
+    [Fact]
+    public async Task IdentityMenu_HidesTheGroupWhenNoChildIsViewable()
+    {
+        var contributor = new IdentitySecurityMenuContributor(
+            new EnabledRemoteFeatureProvider(),
+            new TestUserAdministrationAccessService(canView: false),
+            new TestRoleAdministrationAccessService(canView: false));
+
+        Assert.Empty(await new SecurityMenu([contributor]).GetMenuItemsAsync());
     }
 
     private sealed class TestLocalizer : ILocalizer
@@ -95,15 +130,24 @@ public class AdministrationNavigationTests
         ]);
     }
 
-    private sealed class TestRoleAdministrationAccessService : IRoleAdministrationAccessService
+    private sealed class TestRoleAdministrationAccessService(bool canView) : IRoleAdministrationAccessService
     {
         public Task<RoleAdministrationAccess> GetAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(new RoleAdministrationAccess(
-                RoleAdministrationAccessState.Ready,
-                CanView: true,
-                CanCreate: false,
-                CanUpdate: false,
-                CanDelete: false));
+            Task.FromResult(canView
+                ? new RoleAdministrationAccess(RoleAdministrationAccessState.Ready, CanView: true, CanCreate: false, CanUpdate: false, CanDelete: false)
+                : RoleAdministrationAccess.Forbidden);
+
+        public void Invalidate()
+        {
+        }
+    }
+
+    private sealed class TestUserAdministrationAccessService(bool canView) : IUserAdministrationAccessService
+    {
+        public Task<UserAdministrationAccess> GetAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(canView
+                ? new UserAdministrationAccess(UserAdministrationAccessState.Ready, CanView: true, CanCreate: false, CanUpdate: false, CanDelete: false)
+                : UserAdministrationAccess.Forbidden);
 
         public void Invalidate()
         {

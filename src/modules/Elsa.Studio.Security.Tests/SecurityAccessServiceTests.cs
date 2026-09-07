@@ -212,6 +212,7 @@ internal sealed class TestMePermissionsApi(Func<CancellationToken, Task<CurrentC
 internal sealed class TestPermissionContext(Func<CancellationToken, Task<IdentityPermissionSnapshot>> handler) : IIdentityPermissionContext
 {
     public int Calls { get; private set; }
+    public int Invalidations { get; private set; }
 
     public Task<IdentityPermissionSnapshot> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -219,9 +220,7 @@ internal sealed class TestPermissionContext(Func<CancellationToken, Task<Identit
         return handler(cancellationToken);
     }
 
-    public void Invalidate()
-    {
-    }
+    public void Invalidate() => Invalidations++;
 }
 
 internal sealed class TestRemoteFeatureProvider : IRemoteFeatureProvider
@@ -249,4 +248,106 @@ internal sealed class TestRemoteFeatureProvider : IRemoteFeatureProvider
 
     public Task<IEnumerable<FeatureDescriptor>> ListAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IEnumerable<FeatureDescriptor>>([]);
+}
+
+public sealed class UserAdministrationAccessServiceTests
+{
+    [Fact]
+    public async Task GetAsync_WhenRemoteFeatureIsDisabled_FailsClosedAsUnavailable()
+    {
+        var permissions = new TestPermissionContext(_ => throw new InvalidOperationException("Must not load permissions."));
+        var service = new UserAdministrationAccessService(new TestRemoteFeatureProvider(false), permissions);
+
+        var access = await service.GetAsync();
+
+        Assert.Equal(UserAdministrationAccessState.Unavailable, access.State);
+        Assert.False(access.CanView);
+        Assert.Equal(0, permissions.Calls);
+    }
+
+    [Theory]
+    [InlineData(IdentityPermissionSnapshotState.Unavailable, UserAdministrationAccessState.Unavailable)]
+    [InlineData(IdentityPermissionSnapshotState.Forbidden, UserAdministrationAccessState.Forbidden)]
+    public async Task GetAsync_WhenThePermissionSnapshotIsNotReady_FailsClosed(IdentityPermissionSnapshotState snapshotState, UserAdministrationAccessState expected)
+    {
+        var snapshot = snapshotState == IdentityPermissionSnapshotState.Forbidden ? IdentityPermissionSnapshot.Forbidden : IdentityPermissionSnapshot.Unavailable;
+        var service = new UserAdministrationAccessService(new TestRemoteFeatureProvider(true), new TestPermissionContext(_ => Task.FromResult(snapshot)));
+
+        var access = await service.GetAsync();
+
+        Assert.Equal(expected, access.State);
+        Assert.False(access.CanView);
+        Assert.False(access.CanCreate);
+        Assert.False(access.CanUpdate);
+        Assert.False(access.CanDelete);
+    }
+
+    [Fact]
+    public async Task GetAsync_RequiresTheUsersViewGrantAndIgnoresRoleGrants()
+    {
+        var snapshot = new IdentityPermissionSnapshot(
+            IdentityPermissionSnapshotState.Ready,
+            new Dictionary<string, IReadOnlySet<string>>(StringComparer.Ordinal)
+            {
+                [IdentityPermissions.UsersResource] = new HashSet<string>([IdentityPermissions.Create, IdentityPermissions.Delete], StringComparer.Ordinal),
+                [IdentityPermissions.RolesResource] = new HashSet<string>([IdentityPermissions.View], StringComparer.Ordinal)
+            });
+        var service = new UserAdministrationAccessService(new TestRemoteFeatureProvider(true), new TestPermissionContext(_ => Task.FromResult(snapshot)));
+
+        var access = await service.GetAsync();
+
+        Assert.Equal(UserAdministrationAccessState.Forbidden, access.State);
+        Assert.False(access.CanView);
+        Assert.False(access.CanCreate);
+        Assert.False(access.CanDelete);
+    }
+
+    [Fact]
+    public async Task GetAsync_ReturnsReadOnlyCapabilitiesWhenOnlyViewIsGranted()
+    {
+        var access = await CreateService(IdentityPermissions.View).GetAsync();
+
+        Assert.Equal(UserAdministrationAccessState.Ready, access.State);
+        Assert.True(access.CanView);
+        Assert.False(access.CanCreate);
+        Assert.False(access.CanUpdate);
+        Assert.False(access.CanDelete);
+    }
+
+    [Theory]
+    [InlineData(IdentityPermissions.Create, true, false, false)]
+    [InlineData(IdentityPermissions.Update, false, true, false)]
+    [InlineData(IdentityPermissions.Delete, false, false, true)]
+    public async Task GetAsync_MapsCreateUpdateAndDeleteIndependently(string mutation, bool canCreate, bool canUpdate, bool canDelete)
+    {
+        var access = await CreateService(IdentityPermissions.View, mutation).GetAsync();
+
+        Assert.Equal(UserAdministrationAccessState.Ready, access.State);
+        Assert.True(access.CanView);
+        Assert.Equal(canCreate, access.CanCreate);
+        Assert.Equal(canUpdate, access.CanUpdate);
+        Assert.Equal(canDelete, access.CanDelete);
+    }
+
+    [Fact]
+    public void Invalidate_ClearsTheSharedPermissionSnapshot()
+    {
+        var permissions = new TestPermissionContext(_ => Task.FromResult(IdentityPermissionSnapshot.Forbidden));
+        var service = new UserAdministrationAccessService(new TestRemoteFeatureProvider(true), permissions);
+
+        service.Invalidate();
+
+        Assert.Equal(1, permissions.Invalidations);
+    }
+
+    private static UserAdministrationAccessService CreateService(params string[] verbs)
+    {
+        var snapshot = new IdentityPermissionSnapshot(
+            IdentityPermissionSnapshotState.Ready,
+            new Dictionary<string, IReadOnlySet<string>>(StringComparer.Ordinal)
+            {
+                [IdentityPermissions.UsersResource] = new HashSet<string>(verbs, StringComparer.Ordinal)
+            });
+        return new UserAdministrationAccessService(new TestRemoteFeatureProvider(true), new TestPermissionContext(_ => Task.FromResult(snapshot)));
+    }
 }
