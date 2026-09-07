@@ -106,7 +106,7 @@
                 <MudStack Spacing="1" Class="role-reach-examples">
                     @foreach (var permission in RolePermissionAuthoring.GetReachedPermissions(pattern, Reach).Take(5))
                     {
-                        <MudText Typo="Typo.caption" Class="role-code">@permission · Covered, not stored</MudText>
+                        <MudText Typo="Typo.caption" Class="role-code">@permission</MudText>
                     }
                     <MudText Typo="Typo.caption">Reach is calculated for this wildcard only.</MudText>
                 </MudStack>

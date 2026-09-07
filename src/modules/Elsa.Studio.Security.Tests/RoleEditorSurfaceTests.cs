@@ -444,6 +444,28 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void AdvancedGrantCoverageListsPermissionIdentifiersWithoutRepeatingStorageState()
+    {
+        var cut = Render<RoleAdvancedGrantCard>(parameters => parameters
+            .Add(x => x.Grant, "*")
+            .Add(x => x.Reach, new PermissionReachResponse
+            {
+                Covers = ["ai/capabilities", "ai/chat"],
+                Count = 2
+            }));
+
+        cut.Find("button[aria-label='Show current coverage for *']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("ai/capabilities:*", cut.Markup);
+            Assert.Contains("ai/chat:*", cut.Markup);
+            Assert.Contains("Reach is calculated for this wildcard only", cut.Markup);
+            Assert.DoesNotContain("Covered, not stored", cut.Markup);
+        });
+    }
+
+    [Fact]
     public void AdvancedGrantEditRejectsInvalidAndDuplicateValuesAndCanBeCancelled()
     {
         Register(new StubRolesApi(), new StubPermissionsApi());
