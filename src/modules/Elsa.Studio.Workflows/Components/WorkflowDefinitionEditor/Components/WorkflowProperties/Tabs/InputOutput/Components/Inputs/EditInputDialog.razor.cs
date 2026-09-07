@@ -21,6 +21,7 @@ public partial class EditInputDialog
     private readonly InputDefinitionModel _model = new();
     private EditContext _editContext = default!;
     private InputModelValidator _validator = default!;
+    private bool _initialized;
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();
     private ICollection<VariableTypeDescriptor> _variableTypes = new List<VariableTypeDescriptor>();
     private ICollection<UIHintDescriptor> _uiHints = new List<UIHintDescriptor>();
@@ -43,6 +44,7 @@ public partial class EditInputDialog
         _variableTypes = (await VariableTypeService.GetVariableTypesAsync()).ToList();
         _uiHints = (await GetUIHintsAsync()).ToList();
         _groupedVariableTypes = _variableTypes.GroupBy(x => x.Category).ToList();
+        _initialized = true;
     }
 
     /// <inheritdoc />
@@ -116,6 +118,9 @@ public partial class EditInputDialog
 
     private async Task OnSubmitClicked()
     {
+        if (!_initialized)
+            return;
+
         if (!await _editContext.ValidateAsync())
             return;
 
@@ -124,6 +129,9 @@ public partial class EditInputDialog
 
     private Task OnValidSubmit()
     {
+        if (!_initialized)
+            return Task.CompletedTask;
+
         var input = Input ?? new InputDefinition();
 
         input.Name = _model.Name;

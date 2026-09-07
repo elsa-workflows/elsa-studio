@@ -167,6 +167,39 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     [Theory]
     [InlineData(SubmitPath.Form)]
     [InlineData(SubmitPath.OkButton)]
+    public async Task CreateDialogDoesNotCreateAWorkflowWhenAStaleFieldCheckResolvesAfterTheSubmitCheckReportsADuplicate(SubmitPath submitPath)
+    {
+        const string duplicateName = "Duplicate workflow";
+        var dialog = await ShowWorkflowDialogAsync<CreateWorkflowDialog>();
+
+        // A field change starts its own (unrelated) uniqueness check for the name.
+        var fieldChangeValidation = _workflowDefinitionService.EnqueueValidation();
+        await SetNameAsync(duplicateName);
+        await fieldChangeValidation.Started.Task.WaitAsync(Timeout);
+
+        // Submitting the same name starts a second, component-owned uniqueness check.
+        var submitValidation = _workflowDefinitionService.EnqueueValidation();
+        var submitTask = Submit(submitPath);
+        await submitValidation.Started.Task.WaitAsync(Timeout);
+
+        // The submit's own check reports the name as a duplicate first.
+        submitValidation.Result.SetResult(false);
+        await submitTask;
+
+        Assert.Equal(0, _workflowDefinitionService.CreateCallCount);
+        Assert.False(dialog.Result.IsCompleted);
+
+        // The stale field-change check resolves afterwards with an outdated "unique" answer. It must not
+        // resurrect a submission that the component already rejected.
+        fieldChangeValidation.Result.SetResult(true);
+
+        Assert.Equal(0, _workflowDefinitionService.CreateCallCount);
+        Assert.False(dialog.Result.IsCompleted);
+    }
+
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
     public async Task CloneDialogDoesNotCloseWhenTheNameIsNotUnique(SubmitPath submitPath)
     {
         var dialog = await ShowWorkflowDialogAsync<CloneWorkflowDialog>();
@@ -246,6 +279,37 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     [Theory]
     [InlineData(SubmitPath.Form)]
     [InlineData(SubmitPath.OkButton)]
+    public async Task CloneDialogDoesNotCloseWhenAStaleFieldCheckResolvesAfterTheSubmitCheckReportsADuplicate(SubmitPath submitPath)
+    {
+        const string duplicateName = "Duplicate clone";
+        var dialog = await ShowWorkflowDialogAsync<CloneWorkflowDialog>();
+
+        // A field change starts its own (unrelated) uniqueness check for the name.
+        var fieldChangeValidation = _workflowDefinitionService.EnqueueValidation();
+        await SetNameAsync(duplicateName);
+        await fieldChangeValidation.Started.Task.WaitAsync(Timeout);
+
+        // Submitting the same name starts a second, component-owned uniqueness check.
+        var submitValidation = _workflowDefinitionService.EnqueueValidation();
+        var submitTask = Submit(submitPath);
+        await submitValidation.Started.Task.WaitAsync(Timeout);
+
+        // The submit's own check reports the name as a duplicate first.
+        submitValidation.Result.SetResult(false);
+        await submitTask;
+
+        Assert.False(dialog.Result.IsCompleted);
+
+        // The stale field-change check resolves afterwards with an outdated "unique" answer. It must not
+        // resurrect a submission that the component already rejected.
+        fieldChangeValidation.Result.SetResult(true);
+
+        Assert.False(dialog.Result.IsCompleted);
+    }
+
+    [Theory]
+    [InlineData(SubmitPath.Form)]
+    [InlineData(SubmitPath.OkButton)]
     public async Task InputDialogDoesNotCloseWhenTheNameIsEmpty(SubmitPath submitPath)
     {
         var dialog = await ShowInputDialogAsync();
@@ -271,6 +335,42 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
         Assert.False(result?.Canceled);
         Assert.Equal("Input1", Assert.IsType<InputDefinition>(result?.Data).Name);
         Assert.DoesNotContain("Please enter a name for the input.", _dialogProvider.Markup);
+    }
+
+    [Fact]
+    public async Task InputDialogDoesNotSubmitBeforeDescriptorLookupsHaveCompleted()
+    {
+        var storageDriverGate = new TaskCompletionSource<bool>();
+        var variableTypeGate = new TaskCompletionSource<bool>();
+        _storageDriverService.Gate = storageDriverGate;
+        _variableTypeService.Gate = variableTypeGate;
+
+        var dialog = await ShowDialogAsync<EditInputDialog>(
+            new DialogParameters<EditInputDialog> { { x => x.WorkflowDefinition, new WorkflowDefinition() } });
+
+        // The Ok button stays disabled until the descriptor lookups (storage drivers, variable types, UI
+        // hints) complete and the model is populated.
+        Assert.Contains("disabled", OkButton().OuterHtml);
+
+        // A non-empty name satisfies the synchronous "required" rule, so submitting via the form (e.g.
+        // pressing Enter) would reach OnValidSubmit while the descriptor-dependent fields are still unset.
+        await SetNameAsync("MyInput");
+        await Submit(SubmitPath.Form);
+
+        Assert.False(dialog.Result.IsCompleted);
+
+        storageDriverGate.SetResult(true);
+        variableTypeGate.SetResult(true);
+
+        _dialogProvider.WaitForAssertion(() => Assert.Equal("Input1", NameField().Find("input").GetAttribute("value")));
+        Assert.DoesNotContain("disabled", OkButton().OuterHtml);
+
+        await Submit(SubmitPath.Form);
+
+        var result = await dialog.Result.WaitAsync(Timeout);
+
+        Assert.False(result?.Canceled);
+        Assert.Equal("Input1", Assert.IsType<InputDefinition>(result?.Data).Name);
     }
 
     [Fact]
@@ -335,7 +435,7 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     private Task Submit(SubmitPath submitPath) => _dialogProvider.InvokeAsync(() => submitPath switch
     {
         SubmitPath.Form => _dialogProvider.Find("form").SubmitAsync(),
-        SubmitPath.OkButton => _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Ok").ClickAsync(new MouseEventArgs()),
+        SubmitPath.OkButton => OkButton().ClickAsync(new MouseEventArgs()),
         _ => throw new ArgumentOutOfRangeException(nameof(submitPath), submitPath, null)
     });
 
@@ -359,6 +459,8 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
 
     private IRenderedComponent<MudTextField<string>> NameField() => _dialogProvider.FindComponents<MudTextField<string>>()[0];
 
+    private AngleSharp.Dom.IElement OkButton() => _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Ok");
+
     /// <summary>
     /// Yields before returning so that the input and output dialogs render once with their default field
     /// values still unset, reproducing the delay the tests wait out before interacting with the form.
@@ -369,10 +471,21 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     {
         public int CallCount { get; private set; }
 
+        /// <summary>
+        /// When set, held instead of the default single yield, so a test can control exactly when the
+        /// lookup completes.
+        /// </summary>
+        public TaskCompletionSource<bool>? Gate { get; set; }
+
         public async Task<IEnumerable<StorageDriverDescriptor>> GetStorageDriversAsync(CancellationToken cancellationToken = default)
         {
             CallCount++;
-            await Task.Yield();
+
+            if (Gate is not null)
+                await Gate.Task;
+            else
+                await Task.Yield();
+
             return [new("Workflow", "Workflow", 0, false)];
         }
     }
@@ -382,10 +495,18 @@ public sealed class WorkflowDialogValidationTests : BunitContext, IAsyncLifetime
     {
         public int CallCount { get; private set; }
 
+        /// <inheritdoc cref="DeferredStorageDriverService.Gate"/>
+        public TaskCompletionSource<bool>? Gate { get; set; }
+
         public async Task<IEnumerable<VariableTypeDescriptor>> GetVariableTypesAsync(CancellationToken cancellationToken = default)
         {
             CallCount++;
-            await Task.Yield();
+
+            if (Gate is not null)
+                await Gate.Task;
+            else
+                await Task.Yield();
+
             return [new("System.String", "String", "Text", null)];
         }
     }

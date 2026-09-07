@@ -15,15 +15,16 @@ public partial class CloneWorkflowDialog
 {
     private readonly WorkflowMetadataModel _metadataModel = new();
     private EditContext _editContext = null!;
+    private ValidationMessageStore _validationMessages = null!;
     private WorkflowPropertiesModelValidator _validator = null!;
-   
+
     /// <summary>
     /// The name of the workflow to create.
     /// </summary>
     [Parameter] public string WorkflowName { get; set; } = null!;
     [Parameter] public string? WorkflowDescription { get; set; }
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
-    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;    
+    [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -31,6 +32,7 @@ public partial class CloneWorkflowDialog
         _metadataModel.Name = WorkflowName;
         _metadataModel.Description = WorkflowDescription;
         _editContext = new(_metadataModel);
+        _validationMessages = new(_editContext);
         _validator = new(WorkflowDefinitionService, Localizer);
     }
 
@@ -54,7 +56,12 @@ public partial class CloneWorkflowDialog
         // never submitted; the user's next submission will re-validate the current value.
         var submittedName = _metadataModel.Name;
 
-        if (!await _editContext.ValidateAsync())
+        // Validate directly against the component-owned validator rather than EditContext.ValidateAsync(),
+        // whose shared, unversioned message store can be overwritten by Blazilla's own asynchronous
+        // field-change validation resolving after this check does.
+        var isValid = await WorkflowMetadataValidation.ValidateAndPublishAsync(_validator, _metadataModel, _editContext, _validationMessages);
+
+        if (!isValid)
             return;
 
         if (!string.Equals(_metadataModel.Name, submittedName, StringComparison.Ordinal))

@@ -46,6 +46,6 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="OnCancelClicked">@Localizer["Cancel"]</MudButton>
-        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">@Localizer["Ok"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="OnSubmitClicked" Disabled="@(!_initialized)">@Localizer["Ok"]</MudButton>
     </DialogActions>
 </MudDialog>
