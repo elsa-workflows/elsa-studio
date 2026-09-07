@@ -29,9 +29,12 @@
     .role-permissions-summary { color: var(--mud-palette-text-secondary); }
     .role-permissions-tabs .mud-tab-active { color: var(--role-editor-primary-aa) !important; }
     .role-permissions-tabs .mud-tab-slider { background-color: var(--role-editor-primary-aa) !important; }
+    .role-permission-tools { align-items: end; display: grid; gap: .75rem; grid-template-columns: minmax(0, 1fr) auto; }
+    .role-global-permission-action { min-width: 7rem; }
     .role-category-title { align-items: center; display: flex; gap: .75rem; justify-content: space-between; min-width: 0; width: 100%; }
     .role-category-title-copy { align-items: baseline; display: flex; flex-wrap: wrap; gap: .35rem .75rem; min-width: 0; }
     .role-category-summary { color: var(--mud-palette-text-secondary); font-size: .75rem; }
+    .role-category-permission-action { white-space: nowrap; }
     .role-resource-list { border-top: 1px solid var(--mud-palette-lines-default); }
     .role-resource-row { align-items: start; border-bottom: 1px solid var(--mud-palette-lines-default); display: grid; gap: .5rem 1rem; grid-template-columns: minmax(14rem, 1fr) minmax(20rem, 1.4fr); padding: .5rem .75rem; }
     .role-resource-copy { min-width: 0; }
@@ -50,6 +53,8 @@
     }
 
     @@media (max-width: 599.98px) {
+        .role-permission-tools { grid-template-columns: 1fr; }
+        .role-global-permission-action { width: 100%; }
         .role-permissions-tabs .mud-tabs-scroll-button { display: none; }
         .role-permissions-tabs .mud-tabs-tabbar-content .mud-tabs-tabbar-wrapper { transform: none !important; width: 100%; }
         .role-permissions-tabs .mud-tabs-tabbar-wrapper > .mud-tooltip-root { flex: 1 1 50%; min-width: 0; width: 50%; }
@@ -152,8 +157,22 @@ else
             <MudTabs Border="false" Elevation="0" Class="role-permissions-tabs" ActivePanelIndex="@_activeTab" ActivePanelIndexChanged="OnTabChanged" KeepPanelsAlive="true">
                 <MudTabPanel Text="Exact permissions">
                     <MudStack Spacing="2" Class="pt-2">
-                        <MudText Typo="Typo.body2">Select concrete permissions. Category actions add exact grants only and never create a wildcard.</MudText>
-                        <MudTextField T="string" Label="Filter permissions" Placeholder="Search by name, ID, or permission" Value="@_search" ValueChanged="OnSearchChanged" Immediate="true" Clearable="true" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" />
+                        <MudText Typo="Typo.body2">Select concrete permissions. Bulk actions affect the permissions currently shown and never create a wildcard.</MudText>
+                        <div class="role-permission-tools">
+                            <MudTextField T="string" Label="Filter permissions" Placeholder="Search by name, ID, or permission" Value="@_search" ValueChanged="OnSearchChanged" Immediate="true" Clearable="true" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" />
+                            @if (!IsReadOnly)
+                            {
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           Class="role-global-permission-action"
+                                           Disabled="@(!CanToggleExactPermissions(FilteredResources))"
+                                           OnClick="@(() => ToggleExactPermissions(FilteredResources))"
+                                           aria-label="@(BulkActionAriaLabel(FilteredResources, null))">
+                                    @BulkActionLabel(FilteredResources)
+                                </MudButton>
+                            }
+                        </div>
                         <MudExpansionPanels MultiExpansion="true" Elevation="0">
                             @foreach (var category in Categories)
                             {
@@ -174,7 +193,14 @@ else
                                             <div @onclick:stopPropagation="true">
                                                 @if (!IsReadOnly)
                                                 {
-                                                    <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => SelectCategory(categoryResources))">Select all</MudButton>
+                                                    <MudButton Variant="Variant.Text"
+                                                               Size="Size.Small"
+                                                               Class="role-category-permission-action"
+                                                               Disabled="@(!CanToggleExactPermissions(resources))"
+                                                               OnClick="@(() => ToggleExactPermissions(resources))"
+                                                               aria-label="@(BulkActionAriaLabel(resources, category))">
+                                                        @BulkActionLabel(resources)
+                                                    </MudButton>
                                                 }
                                             </div>
                                         </div>
@@ -350,6 +376,7 @@ else
         .Select(x => string.IsNullOrWhiteSpace(x.Category) ? "Other" : x.Category)
         .Distinct(StringComparer.Ordinal)
         .OrderBy(x => x, StringComparer.Ordinal);
+    private IEnumerable<PermissionResourceDescriptor> FilteredResources => _catalog.Resources.Where(MatchesSearch);
     private int DirectCount => _direct.Count;
     private int CoveredCount => _catalog.Resources.Sum(x => x.SupportedVerbs.Count(verb => FindCoveringWildcard(x.Resource, verb) != null && !IsDirect($"{x.Resource}:{verb}")));
     protected override async Task OnParametersSetAsync()
@@ -528,15 +555,56 @@ else
             RolePermissionAuthoring.IsValidPattern(pattern) &&
             RolePermissionAuthoring.Matches(pattern, resource, verb));
 
-    private void SelectCategory(IEnumerable<PermissionResourceDescriptor> resources)
+    private IReadOnlyList<string> GetToggleableExactPermissions(IEnumerable<PermissionResourceDescriptor> resources) =>
+        RolePermissionAuthoring.GetConcreteGrants(resources)
+            .Where(permission => !IsCovered(permission))
+            .ToArray();
+
+    private bool IsCovered(string permission) =>
+        RolePermissionAuthoring.TryParse(permission, out var pattern) && FindCoveringWildcard(pattern.Resource, pattern.Verb) != null;
+
+    private bool CanToggleExactPermissions(IEnumerable<PermissionResourceDescriptor> resources) =>
+        GetToggleableExactPermissions(resources).Count > 0;
+
+    private bool AreAllExactPermissionsSelected(IEnumerable<PermissionResourceDescriptor> resources)
+    {
+        var permissions = GetToggleableExactPermissions(resources);
+        return permissions.Count > 0 && permissions.All(IsDirect);
+    }
+
+    private string BulkActionLabel(IEnumerable<PermissionResourceDescriptor> resources)
+    {
+        var action = AreAllExactPermissionsSelected(resources) ? "Clear" : "Select";
+        return string.IsNullOrWhiteSpace(_search) ? $"{action} all" : $"{action} matches";
+    }
+
+    private string BulkActionAriaLabel(IEnumerable<PermissionResourceDescriptor> resources, string? category)
+    {
+        var action = AreAllExactPermissionsSelected(resources) ? "Clear" : "Select";
+        var qualifier = string.IsNullOrWhiteSpace(_search) ? "all" : "all matching";
+        var scope = category is null ? "exact permissions" : $"permissions in {category}";
+        return $"{action} {qualifier} {scope}";
+    }
+
+    private void ToggleExactPermissions(IEnumerable<PermissionResourceDescriptor> resources)
     {
         if (IsReadOnly)
             return;
 
-        var additions = RolePermissionAuthoring.GetConcreteGrants(resources)
-            .Where(x => RolePermissionAuthoring.TryParse(x, out var pattern) && FindCoveringWildcard(pattern.Resource, pattern.Verb) == null);
-        foreach (var permission in additions)
-            _direct.Add(permission);
+        var permissions = GetToggleableExactPermissions(resources);
+        if (permissions.Count == 0)
+            return;
+
+        if (permissions.All(IsDirect))
+        {
+            foreach (var permission in permissions)
+                _direct.Remove(permission);
+        }
+        else
+        {
+            foreach (var permission in permissions)
+                _direct.Add(permission);
+        }
     }
 
     private void SetDirectGrant(string permission, bool selected)

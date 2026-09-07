@@ -246,6 +246,121 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void GlobalBulkActionSelectsAndClearsEveryExactPermission()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi { Response = CreateBulkPermissionCatalog() });
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("button[aria-label='Select all exact permissions']")));
+
+        cut.Find("input[aria-label='ai/chat:execute']").Change(true);
+        cut.Find("button[aria-label='Select all exact permissions']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.All(cut.FindAll(".role-verb-option input"), checkbox => Assert.True(checkbox.HasAttribute("checked")));
+            Assert.NotNull(cut.Find("button[aria-label='Clear all exact permissions']"));
+        });
+
+        cut.Find("button[aria-label='Clear all exact permissions']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.All(cut.FindAll(".role-verb-option input"), checkbox => Assert.False(checkbox.HasAttribute("checked")));
+            Assert.NotNull(cut.Find("button[aria-label='Select all exact permissions']"));
+        });
+    }
+
+    [Fact]
+    public void CategoryBulkActionOnlyTogglesPermissionsInThatCategory()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi { Response = CreateBulkPermissionCatalog() });
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("button[aria-label='Select all permissions in Workflows']")));
+
+        cut.Find("button[aria-label='Select all permissions in Workflows']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.True(cut.Find("input[aria-label='workflows/definitions:view']").HasAttribute("checked"));
+            Assert.True(cut.Find("input[aria-label='workflows/definitions:write']").HasAttribute("checked"));
+            Assert.False(cut.Find("input[aria-label='ai/chat:execute']").HasAttribute("checked"));
+            Assert.NotNull(cut.Find("button[aria-label='Clear all permissions in Workflows']"));
+        });
+
+        cut.Find("button[aria-label='Clear all permissions in Workflows']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.False(cut.Find("input[aria-label='workflows/definitions:view']").HasAttribute("checked"));
+            Assert.False(cut.Find("input[aria-label='workflows/definitions:write']").HasAttribute("checked"));
+        });
+    }
+
+    [Fact]
+    public void BulkActionOnlyChangesPermissionsMatchingTheCurrentFilter()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi { Response = CreateBulkPermissionCatalog() });
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("button[aria-label='Select all exact permissions']")));
+
+        cut.Find("input[placeholder='Search by name, ID, or permission']").Input("AI chat");
+        cut.Find("button[aria-label='Select all matching exact permissions']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.True(cut.Find("input[aria-label='ai/chat:execute']").HasAttribute("checked"));
+            Assert.Empty(cut.FindAll("input[aria-label='workflows/definitions:view']"));
+            Assert.NotNull(cut.Find("button[aria-label='Clear all matching exact permissions']"));
+        });
+
+        cut.Find("input[placeholder='Search by name, ID, or permission']").Input(string.Empty);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.True(cut.Find("input[aria-label='ai/chat:execute']").HasAttribute("checked"));
+            Assert.False(cut.Find("input[aria-label='workflows/definitions:view']").HasAttribute("checked"));
+            Assert.False(cut.Find("input[aria-label='workflows/definitions:write']").HasAttribute("checked"));
+        });
+    }
+
+    [Fact]
+    public void BulkSelectionDoesNotMaterializePermissionsCoveredByAnAdvancedGrant()
+    {
+        var roles = CreateRoleFixture(
+            ["workflows/*:view"],
+            ["workflows/*:view", "workflows/definitions:write"]);
+        Register(roles, CreateWorkflowPermissionCatalogApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "operators")
+            .Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.Contains("Covered by workflows/*:view", cut.Markup));
+
+        cut.Find("button[aria-label='Select all exact permissions']").Click();
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.UpdateCalls));
+        Assert.Equal(["workflows/*:view", "workflows/definitions:write"], roles.LastUpdate!.Permissions);
+    }
+
+    [Fact]
+    public void BulkClearPreservesPreExistingExactPermissionsCoveredByAnAdvancedGrant()
+    {
+        var roles = CreateRoleFixture(
+            ["workflows/*:view", "workflows/definitions:view", "workflows/definitions:write"],
+            ["workflows/*:view", "workflows/definitions:view"]);
+        Register(roles, CreateWorkflowPermissionCatalogApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "operators")
+            .Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("button[aria-label='Clear all exact permissions']")));
+
+        cut.Find("button[aria-label='Clear all exact permissions']").Click();
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.UpdateCalls));
+        Assert.Equal(["workflows/*:view", "workflows/definitions:view"], roles.LastUpdate!.Permissions);
+    }
+
+    [Fact]
     public void EditDeleteAction_OpensTheSameSharedDeletionDialog()
     {
         var roles = new StubRolesApi
@@ -367,6 +482,61 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<IRoleDeletionService>(new StubRoleDeletionService());
         Render<MudPopoverProvider>();
     }
+
+    private static PermissionCatalogResponse CreateBulkPermissionCatalog() =>
+        new()
+        {
+            Resources =
+            [
+                new PermissionResourceDescriptor
+                {
+                    Resource = "ai/chat",
+                    DisplayName = "AI chat",
+                    Category = "AI",
+                    SupportedVerbs = ["execute"]
+                },
+                new PermissionResourceDescriptor
+                {
+                    Resource = "workflows/definitions",
+                    DisplayName = "Workflow definitions",
+                    Category = "Workflows",
+                    SupportedVerbs = ["view", "write"]
+                }
+            ]
+        };
+
+    private static StubRolesApi CreateRoleFixture(string[] permissions, string[] updatedPermissions) =>
+        new()
+        {
+            Response = new ListRolesResponse
+            {
+                Roles = [new RoleSummary { Id = "operators", Name = "Operators", Permissions = permissions }]
+            },
+            Updated = new UpdateRoleResponse
+            {
+                Id = "operators",
+                Name = "Operators",
+                Permissions = updatedPermissions
+            }
+        };
+
+    private static StubPermissionsApi CreateWorkflowPermissionCatalogApi() =>
+        new()
+        {
+            Response = new PermissionCatalogResponse
+            {
+                Resources =
+                [
+                    new PermissionResourceDescriptor
+                    {
+                        Resource = "workflows/definitions",
+                        DisplayName = "Workflow definitions",
+                        Category = "Workflows",
+                        SupportedVerbs = ["view", "write"]
+                    }
+                ]
+            }
+        };
 
     private static RoleAdministrationAccess ReadyAccess =>
         new(RoleAdministrationAccessState.Ready, CanView: true, CanCreate: true, CanUpdate: true, CanDelete: false);

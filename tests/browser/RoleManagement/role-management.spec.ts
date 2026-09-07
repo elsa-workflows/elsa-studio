@@ -303,6 +303,32 @@ test.describe('role management against a real Core host', () => {
     await assertCleanRuntime(diagnostics);
   });
 
+  test('exact permissions support global and category bulk selection', async ({ page, config, diagnostics }, testInfo) => {
+    await signIn(page, config.admin);
+    await page.goto('/security/roles/new');
+
+    const viewportWidth = page.viewportSize()?.width ?? 0;
+    const globalSelect = page.getByRole('button', { name: 'Select all exact permissions', exact: true });
+    await expect(globalSelect).toBeVisible();
+    await expectInsideViewport(globalSelect, viewportWidth);
+
+    await globalSelect.click();
+    await expect(page.getByRole('button', { name: 'Clear all exact permissions', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Clear all permissions in Workflows', exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Clear all exact permissions', exact: true }).click();
+    await expect(globalSelect).toBeVisible();
+
+    const workflowSelect = page.getByRole('button', { name: 'Select all permissions in Workflows', exact: true });
+    await workflowSelect.click();
+    await expect(page.getByRole('button', { name: 'Clear all permissions in Workflows', exact: true })).toBeVisible();
+    await expect(globalSelect).toBeVisible();
+
+    await expectNoBlockingAccessibilityViolations(page);
+    await captureEvidence(page, testInfo, 'role-editor-bulk-permissions');
+    await assertCleanRuntime(diagnostics);
+  });
+
   test('mobile role editor and deletion remediation controls stay within the viewport', async ({ page, config, diagnostics }, testInfo) => {
     const viewportWidth = page.viewportSize()?.width ?? 0;
     test.skip(viewportWidth >= 600, 'This regression proof targets the phone layout.');
