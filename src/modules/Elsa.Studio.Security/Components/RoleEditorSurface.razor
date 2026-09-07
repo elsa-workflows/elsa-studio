@@ -231,7 +231,7 @@ else
                                                         var direct = IsDirect(permission);
                                                         var covering = FindCoveringWildcard(resource.Resource, verb);
                                                         <div class="role-verb-option">
-                                                            <MudCheckBox T="bool" Label="@verb" Dense="true" Value="@direct" ValueChanged="@((bool value) => SetDirectGrant(permission, value))" Disabled="@(IsReadOnly || (!direct && covering != null))" Color="Color.Primary" aria-label="@permission" />
+                                                            <MudCheckBox T="bool" Label="@verb" Dense="true" Value="@(direct || covering != null)" ValueChanged="@((bool value) => SetDirectGrant(permission, value))" Disabled="@(IsReadOnly || (!direct && covering != null))" Color="Color.Primary" aria-label="@permission" />
                                                             @if (!direct && covering != null)
                                                             {
                                                                 <MudTooltip Text="Effective access only — not stored twice.">

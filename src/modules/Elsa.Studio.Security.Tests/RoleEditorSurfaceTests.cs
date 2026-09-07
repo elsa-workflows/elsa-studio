@@ -80,6 +80,9 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
             Assert.DoesNotContain("mud-breadcrumbs", cut.Markup);
             Assert.DoesNotContain("Direct grant", cut.Markup);
             Assert.True(cut.Find("input[aria-label='workflows/definitions:update']").HasAttribute("checked"));
+            var coveredPermission = cut.Find("input[aria-label='workflows/definitions:view']");
+            Assert.True(coveredPermission.HasAttribute("checked"));
+            Assert.True(coveredPermission.HasAttribute("disabled"));
             Assert.Contains("Covered by workflows/*:view", cut.Markup);
             Assert.Contains("role-covered-grant", cut.Markup);
             Assert.Contains("Unverified · verified:false", cut.Markup);
@@ -332,7 +335,13 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         var cut = Render<RoleEditorSurface>(parameters => parameters
             .Add(x => x.RoleId, "operators")
             .Add(x => x.Access, ReadyAccess));
-        cut.WaitForAssertion(() => Assert.Contains("Covered by workflows/*:view", cut.Markup));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Covered by workflows/*:view", cut.Markup);
+            var coveredPermission = cut.Find("input[aria-label='workflows/definitions:view']");
+            Assert.True(coveredPermission.HasAttribute("checked"));
+            Assert.True(coveredPermission.HasAttribute("disabled"));
+        });
 
         cut.Find("button[aria-label='Select all exact permissions']").Click();
         cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
@@ -351,7 +360,13 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         var cut = Render<RoleEditorSurface>(parameters => parameters
             .Add(x => x.RoleId, "operators")
             .Add(x => x.Access, ReadyAccess));
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("button[aria-label='Clear all exact permissions']")));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.NotNull(cut.Find("button[aria-label='Clear all exact permissions']"));
+            var directCoveredPermission = cut.Find("input[aria-label='workflows/definitions:view']");
+            Assert.True(directCoveredPermission.HasAttribute("checked"));
+            Assert.False(directCoveredPermission.HasAttribute("disabled"));
+        });
 
         cut.Find("button[aria-label='Clear all exact permissions']").Click();
         cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
