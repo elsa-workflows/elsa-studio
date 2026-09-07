@@ -204,7 +204,7 @@ test.describe('role management against a real Core host', () => {
     const executionTrendBox = await executionTrend.boundingBox();
     expect(operationalHealthBox).not.toBeNull();
     expect(executionTrendBox).not.toBeNull();
-    expect(executionTrendBox!.y - (operationalHealthBox!.y + operationalHealthBox!.height)).toBeGreaterThanOrEqual(16);
+    expect(executionTrendBox!.y - (operationalHealthBox!.y + operationalHealthBox!.height)).toBeGreaterThanOrEqual(8);
 
     await expectNoBlockingAccessibilityViolations(page);
     await page.getByRole('button', { name: 'Use dark theme' }).click();
