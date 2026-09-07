@@ -1,4 +1,4 @@
-using Blazored.FluentValidation;
+using Blazilla;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -20,7 +20,6 @@ public partial class EditOutputDialog
     private readonly OutputDefinitionModel _model = new();
     private EditContext _editContext = null!;
     private OutputModelValidator _validator = null!;
-    private FluentValidationValidator _fluentValidationValidator = null!;
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();
     private ICollection<VariableTypeDescriptor> _variableTypes = new List<VariableTypeDescriptor>();
     private ICollection<IGrouping<string, VariableTypeDescriptor>> _groupedVariableTypes = new List<IGrouping<string, VariableTypeDescriptor>>();
@@ -87,7 +86,7 @@ public partial class EditOutputDialog
 
     private async Task OnSubmitClicked()
     {
-        if (!await _fluentValidationValidator.ValidateAsync())
+        if (!await _editContext.ValidateAsync())
             return;
 
         await OnValidSubmit();

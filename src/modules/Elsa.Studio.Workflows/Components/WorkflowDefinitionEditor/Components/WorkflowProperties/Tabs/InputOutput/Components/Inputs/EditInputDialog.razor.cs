@@ -1,4 +1,4 @@
-using Blazored.FluentValidation;
+using Blazilla;
 using Elsa.Api.Client.Resources.StorageDrivers.Models;
 using Elsa.Api.Client.Resources.VariableTypes.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -21,7 +21,6 @@ public partial class EditInputDialog
     private readonly InputDefinitionModel _model = new();
     private EditContext _editContext = default!;
     private InputModelValidator _validator = default!;
-    private FluentValidationValidator _fluentValidationValidator = default!;
     private ICollection<StorageDriverDescriptor> _storageDriverDescriptors = new List<StorageDriverDescriptor>();
     private ICollection<VariableTypeDescriptor> _variableTypes = new List<VariableTypeDescriptor>();
     private ICollection<UIHintDescriptor> _uiHints = new List<UIHintDescriptor>();
@@ -114,7 +113,7 @@ public partial class EditInputDialog
 
     private async Task OnSubmitClicked()
     {
-        if (!await _fluentValidationValidator.ValidateAsync())
+        if (!await _editContext.ValidateAsync())
             return;
 
         await OnValidSubmit();

@@ -1,4 +1,4 @@
-using Blazored.FluentValidation;
+using Blazilla;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Labels.Client;
 using Elsa.Studio.Labels.Models;
@@ -14,7 +14,6 @@ public partial class CreateLabelDialog
 {
     private readonly LabelInputModel _inputModel = new() { Name = string.Empty };
     private EditContext _editContext = null!;
-    private FluentValidationValidator _fluentValidationValidator = null!;
     private LabelInputModelValidator _validator = null!;
     
     /// The default name of the agent to create.
@@ -40,7 +39,7 @@ public partial class CreateLabelDialog
 
     private async Task OnSubmitClicked()
     {
-        if(!await _fluentValidationValidator.ValidateAsync())
+        if(!await _editContext.ValidateAsync())
             return;
 
         await OnValidSubmit();

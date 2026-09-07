@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.FluentValidation"/>
+        <PackageReference Include="Blazilla"/>
         <PackageReference Include="Blazored.LocalStorage"/>
         <PackageReference Include="CodeBeam.MudBlazor.Extensions"/>
         <PackageReference Include="FluentValidation"/>

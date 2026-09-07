@@ -231,6 +231,58 @@ public sealed class WorkflowDefinitionMetadataTests : BunitContext, IAsyncLifeti
     }
 
     [Fact]
+    public async Task FormSubmissionDoesNotCommitAnEmptyName()
+    {
+        var definition = CreateDefinition();
+        var callbackValues = new List<(string? Name, string? Description)>();
+        var cut = RenderMetadata(definition, callbackValues);
+        var nameInput = cut.FindComponents<MudTextField<string>>()[0].Find("input");
+
+        await nameInput.InputAsync(string.Empty);
+        var validation = _workflowDefinitionService.EnqueueValidation();
+        var submitTask = cut.Find("form").SubmitAsync();
+        await validation.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        validation.Result.SetResult(true);
+        await submitTask;
+
+        Assert.Equal("initial name", definition.Name);
+        Assert.Empty(callbackValues);
+        Assert.Contains("Please enter a name for the workflow.", cut.Markup);
+    }
+
+    [Fact]
+    public async Task AParentRerenderAfterACommitKeepsTheFormValidating()
+    {
+        var definition = CreateDefinition();
+        var callbackValues = new List<(string? Name, string? Description)>();
+        var cut = RenderMetadata(definition, callbackValues);
+
+        await cut.FindComponents<MudTextField<string>>()[0].Find("input").InputAsync("committed name");
+        var commit = _workflowDefinitionService.EnqueueValidation();
+        var blurTask = cut.FindComponents<MudTextField<string>>()[0].Find("input").BlurAsync();
+        await commit.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        commit.Result.SetResult(true);
+        await blurTask;
+
+        Assert.Single(callbackValues);
+
+        // The parent rerenders this component while handling WorkflowDefinitionUpdated, which must not
+        // disturb the form's EditContext or the validation wiring hanging off it.
+        cut.Render(parameters => parameters.Add(x => x.WorkflowDefinition, definition));
+
+        await cut.FindComponents<MudTextField<string>>()[0].Find("input").InputAsync(string.Empty);
+        var rejected = _workflowDefinitionService.EnqueueValidation();
+        var submitTask = cut.Find("form").SubmitAsync();
+        await rejected.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        rejected.Result.SetResult(true);
+        await submitTask;
+
+        Assert.Equal("committed name", definition.Name);
+        Assert.Single(callbackValues);
+        Assert.Contains("Please enter a name for the workflow.", cut.Markup);
+    }
+
+    [Fact]
     public async Task FormSubmissionDoesNotCommitANameChangedWhileItsValidationIsPending()
     {
         var definition = CreateDefinition();

@@ -1,4 +1,4 @@
-using Blazored.FluentValidation;
+using Blazilla;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
@@ -20,7 +20,6 @@ public partial class CreateWorkflowDialog
     private string? _selectedRootActivityTemplateKey;
     private EditContext _editContext = null!;
     private WorkflowPropertiesModelValidator _validator = null!;
-    private FluentValidationValidator _fluentValidationValidator = null!;
    
     /// <summary>
     /// The name of the workflow to create.
@@ -46,16 +45,18 @@ public partial class CreateWorkflowDialog
         return Task.CompletedTask;
     }
 
-    private async Task OnSubmitClicked()
+    private Task OnSubmitClicked() => ValidateAndSubmitAsync();
+
+    // Blazilla runs the async uniqueness rule outside the synchronous validation pass, so the form is
+    // routed through OnSubmit: OnValidSubmit would fire before that rule completed and could create a
+    // workflow whose name turns out to be taken.
+    private Task OnSubmit(EditContext _) => ValidateAndSubmitAsync();
+
+    private async Task ValidateAndSubmitAsync()
     {
-        if(!await _fluentValidationValidator.ValidateAsync())
+        if (!await _editContext.ValidateAsync())
             return;
 
-        await OnValidSubmit();
-    }
-
-    private async Task OnValidSubmit()
-    {
         var result = await WorkflowDefinitionService.CreateNewDefinitionAsync(_metadataModel.Name!, _metadataModel.Description!, _selectedRootActivityTemplateKey);
         MudDialog.Close(result);
     }
