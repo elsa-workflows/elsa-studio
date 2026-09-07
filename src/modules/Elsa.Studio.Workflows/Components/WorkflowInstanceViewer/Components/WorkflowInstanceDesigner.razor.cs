@@ -486,7 +486,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         var timer = new Timer(Callback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
         if (!PublishRefreshTimer(timer))
+        {
+            // PublishRefreshTimer already disposes the timer it detaches on this path; dispose it here
+            // too so static analysis can see the local is disposed on every path (a second Timer.Dispose()
+            // call is a safe no-op).
+            timer.Dispose();
             return;
+        }
 
         try
         {
@@ -526,7 +532,7 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     /// </summary>
     internal async Task RefreshTimerTickAsync(string activityExecutionRecordId)
     {
-        var ticked = await RunTimerTickAsync(() => RefreshSelectedItemAsync(activityExecutionRecordId), StopRefreshActivityStatePeriodically);
+        var ticked = await RunTimerTickAsync(() => RefreshSelectedItemAsync(activityExecutionRecordId), StopRefreshTimerAsync);
 
         if (!ticked) return;
 
@@ -534,7 +540,9 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
 
         if (LastActivityExecution == null || (LastActivityExecution.IsFused() && LastActivityExecution.Status != ActivityStatus.Running))
         {
-            await StopRefreshActivityStatePeriodically();
+            // Called from the tick itself: use the non-waiting stop so this callback does not await
+            // its own completion (Timer.DisposeAsync waits for in-flight callbacks to return).
+            StopRefreshTimer();
         }
         else
         {
@@ -553,6 +561,30 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Stops the refresh timer without waiting for an in-flight callback to return. Use this from
+    /// within the timer's own callback (<see cref="RefreshTimerTickAsync"/>): <see cref="Timer.DisposeAsync"/>
+    /// only completes once active callbacks return, so awaiting it from the callback that is currently
+    /// executing would deadlock the callback on its own completion.
+    /// </summary>
+    private void StopRefreshTimer()
+    {
+        var timer = Interlocked.Exchange(ref _refreshTimer, null);
+        timer?.Dispose();
+    }
+
+    private Task StopRefreshTimerAsync()
+    {
+        StopRefreshTimer();
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Stops the refresh timer and drains any in-flight callback before returning. Use this only from
+    /// callers that are not themselves executing on the timer callback (e.g. <see cref="DisposeAsync"/>
+    /// or a non-timer caller), since <see cref="Timer.DisposeAsync"/> waits for active callbacks to
+    /// finish.
+    /// </summary>
     private async Task StopRefreshActivityStatePeriodically()
     {
         var timer = Interlocked.Exchange(ref _refreshTimer, null);

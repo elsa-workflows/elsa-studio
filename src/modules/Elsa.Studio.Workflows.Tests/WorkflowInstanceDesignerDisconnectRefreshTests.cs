@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Nodes;
 using Bunit;
@@ -242,6 +243,63 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         Assert.Null(firstDisposeException);
         Assert.Null(GetRefreshTimer(cut.Instance));
         Assert.Null(GetElapsedTimer(cut.Instance));
+    }
+
+    /// <summary>
+    /// Pins that stopping the refresh timer from within its own tick (the path used by
+    /// <see cref="WorkflowInstanceDesigner.RefreshTimerTickAsync"/>'s terminal-state branch and by
+    /// <see cref="RunTimerTickAsync"/>'s stop delegate) does not wait for an in-flight callback to
+    /// return (see https://github.com/elsa-workflows/elsa-studio/issues/743).
+    /// <see cref="Timer.DisposeAsync"/> only completes once any callback currently executing on the
+    /// timer has returned, regardless of which thread calls it, so awaiting it from the callback that
+    /// is itself executing would deadlock. This test keeps the timer's own callback blocked (simulating
+    /// it still being "in flight") and invokes the private, non-waiting stop method directly -
+    /// deliberately bypassing the render pipeline (<c>InvokeAsync</c>/<c>StateHasChanged</c>) so the
+    /// assertion is not confounded by ThreadPool contention between the blocked callback and the
+    /// renderer's dispatcher. Against an implementation that used the draining, <c>DisposeAsync</c>-based
+    /// stop from this path instead, the call below would block until the callback released.
+    /// </summary>
+    [Fact]
+    public void StoppingRefreshTimerFromTickPathDoesNotWaitForInFlightCallback()
+    {
+        var startTimeout = TimeSpan.FromSeconds(5);
+        var assertionBound = TimeSpan.FromMilliseconds(500);
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var cut = RenderDesigner(activityExecutionService);
+
+        using var started = new ManualResetEventSlim(false);
+        using var release = new ManualResetEventSlim(false);
+        using var refreshTimer = new Timer(_ =>
+        {
+            started.Set();
+
+            // Block for longer than the assertion bound below (but still bounded, so this thread is
+            // not tied up indefinitely if the assertion below fails), keeping the callback genuinely
+            // "in flight" for the whole window the assertion is checking.
+            release.Wait(TimeSpan.FromSeconds(10));
+        }, null, Timeout.Infinite, Timeout.Infinite);
+
+        SetRefreshTimer(cut.Instance, refreshTimer);
+
+        // Fire the timer's own callback and wait for it to actually start running, so a genuine
+        // callback is in flight on the timer while the stop call below tries to stop it.
+        refreshTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+        Assert.True(started.Wait(startTimeout), "The refresh timer callback did not start in time.");
+
+        try
+        {
+            var stopMethod = typeof(WorkflowInstanceDesigner).GetMethod("StopRefreshTimer", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var stopwatch = Stopwatch.StartNew();
+
+            stopMethod.Invoke(cut.Instance, null);
+
+            Assert.True(stopwatch.Elapsed < assertionBound, $"Stopping the timer from the tick path took {stopwatch.Elapsed}, which suggests it waited for the blocked callback.");
+            Assert.Null(GetRefreshTimer(cut.Instance));
+        }
+        finally
+        {
+            release.Set();
+        }
     }
 
     [Fact]
