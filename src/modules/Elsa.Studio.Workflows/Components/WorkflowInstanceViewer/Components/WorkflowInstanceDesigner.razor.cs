@@ -84,7 +84,13 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private JournalEntry? SelectedWorkflowExecutionLogRecord { get; set; }
-    private IWorkflowInstanceObserver? WorkflowInstanceObserver { get; set; } = null!;
+    private IWorkflowInstanceObserver? _workflowInstanceObserver;
+
+    private IWorkflowInstanceObserver? WorkflowInstanceObserver
+    {
+        get => _workflowInstanceObserver;
+        set => _workflowInstanceObserver = value;
+    }
     private ICollection<ActivityExecutionRecordSummary> SelectedActivityExecutions { get; set; } = new List<ActivityExecutionRecordSummary>();
     private ActivityExecutionRecord? LastActivityExecution { get; set; }
     private Timer? _refreshTimer;
@@ -206,29 +212,68 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
         }
     }
 
-    private async Task CreateObserverAsync()
+    /// <summary>
+    /// Creates and publishes a new <see cref="WorkflowInstanceObserver"/>, unless the component is or
+    /// becomes disposed while the factory call is in flight. Internal so tests can invoke it directly
+    /// to pin the disposal race it guards against.
+    /// </summary>
+    internal async Task CreateObserverAsync()
     {
         if (_workflowInstance == null || _designer == null)
             return;
 
         await DisposeObserverAsync();
+
+        if (_disposed) return;
+
         var container = _designer.GetCurrentContainerActivityOrRoot();
         var observerContext = new WorkflowInstanceObserverContext
         {
             WorkflowInstanceId = _workflowInstance.Id,
             ContainerActivity = container,
         };
-        WorkflowInstanceObserver = await WorkflowInstanceObserverFactory.CreateAsync(observerContext);
-        WorkflowInstanceObserver.ActivityExecutionLogUpdated += OnActivityExecutionLogUpdated;
+        var observer = await WorkflowInstanceObserverFactory.CreateAsync(observerContext);
+
+        if (_disposed)
+        {
+            // DisposeAsync ran while the factory call above was in flight; dispose the observer we just
+            // created instead of publishing and subscribing it on a torn-down component.
+            await observer.DisposeAsync();
+            return;
+        }
+
+        observer.ActivityExecutionLogUpdated += OnActivityExecutionLogUpdated;
+
+        var previousObserver = Interlocked.Exchange(ref _workflowInstanceObserver, observer);
+
+        if (previousObserver != null)
+        {
+            previousObserver.ActivityExecutionLogUpdated -= OnActivityExecutionLogUpdated;
+            await previousObserver.DisposeAsync();
+        }
+
+        if (_disposed)
+        {
+            // DisposeAsync ran between the guard above and publishing the observer; detach and dispose
+            // it, guarding against DisposeObserverAsync having already detached it.
+            var disposedObserver = Interlocked.Exchange(ref _workflowInstanceObserver, null);
+
+            if (disposedObserver != null)
+            {
+                disposedObserver.ActivityExecutionLogUpdated -= OnActivityExecutionLogUpdated;
+                await disposedObserver.DisposeAsync();
+            }
+        }
     }
 
     private async Task DisposeObserverAsync()
     {
-        if (WorkflowInstanceObserver != null!)
+        var observer = Interlocked.Exchange(ref _workflowInstanceObserver, null);
+
+        if (observer != null)
         {
-            WorkflowInstanceObserver.ActivityExecutionLogUpdated -= OnActivityExecutionLogUpdated;
-            await WorkflowInstanceObserver.DisposeAsync();
-            WorkflowInstanceObserver = null;
+            observer.ActivityExecutionLogUpdated -= OnActivityExecutionLogUpdated;
+            await observer.DisposeAsync();
         }
     }
 

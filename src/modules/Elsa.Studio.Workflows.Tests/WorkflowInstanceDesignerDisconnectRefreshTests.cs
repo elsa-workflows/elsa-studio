@@ -12,6 +12,8 @@ using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Models;
+using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
@@ -336,9 +338,74 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
         }
     }
 
-    private IRenderedComponent<TestWorkflowInstanceDesigner> RenderDesigner(IActivityExecutionService activityExecutionService)
+    /// <summary>
+    /// Pins that a <see cref="WorkflowInstanceObserver"/> created by a factory call that was still in
+    /// flight when <c>DisposeAsync</c> ran is disposed immediately instead of being published and
+    /// subscribed on the torn-down component (see
+    /// https://github.com/elsa-workflows/elsa-studio/issues/743).
+    /// </summary>
+    [Fact]
+    public async Task CreateObserverAsyncDisposesObserverCreatedAfterDisposal()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var factory = new GatedWorkflowInstanceObserverFactory();
+        var cut = RenderDesigner(activityExecutionService, factory);
+        SetDesigner(cut.Instance, new JsonObject());
+
+        var createTask = cut.Instance.CreateObserverAsync();
+        Assert.True(factory.CreateAsyncEntered.Wait(TimeSpan.FromSeconds(5)), "The factory was not called in time.");
+
+        await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+
+        var observer = new CountingWorkflowInstanceObserver();
+        factory.Release(observer);
+
+        await createTask;
+
+        Assert.Null(GetWorkflowInstanceObserver(cut.Instance));
+        Assert.Equal(1, observer.DisposeCallCount);
+        Assert.Equal(0, observer.SubscribeCount);
+    }
+
+    /// <summary>
+    /// Keeps the live-circuit path exercised: when the component is not disposed, a created observer
+    /// is still published to <see cref="WorkflowInstanceObserver"/> and subscribed to.
+    /// </summary>
+    [Fact]
+    public async Task CreateObserverAsyncOnLiveComponentPublishesAndSubscribesObserver()
+    {
+        var activityExecutionService = new RecordingActivityExecutionService();
+        var factory = new GatedWorkflowInstanceObserverFactory();
+        var cut = RenderDesigner(activityExecutionService, factory);
+        SetDesigner(cut.Instance, new JsonObject());
+
+        var observer = new CountingWorkflowInstanceObserver();
+        var createTask = cut.Instance.CreateObserverAsync();
+        Assert.True(factory.CreateAsyncEntered.Wait(TimeSpan.FromSeconds(5)), "The factory was not called in time.");
+        factory.Release(observer);
+
+        await createTask;
+
+        try
+        {
+            Assert.Same(observer, GetWorkflowInstanceObserver(cut.Instance));
+            Assert.Equal(1, observer.SubscribeCount);
+            Assert.Equal(0, observer.DisposeCallCount);
+        }
+        finally
+        {
+            await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+        }
+    }
+
+    private IRenderedComponent<TestWorkflowInstanceDesigner> RenderDesigner(
+        IActivityExecutionService activityExecutionService,
+        IWorkflowInstanceObserverFactory? observerFactory = null)
     {
         Services.AddSingleton(activityExecutionService);
+
+        if (observerFactory != null)
+            Services.AddSingleton(observerFactory);
 
         var workflowInstance = new WorkflowInstance
         {
@@ -392,10 +459,88 @@ public sealed class WorkflowInstanceDesignerDisconnectRefreshTests : BunitContex
     private static FieldInfo GetTimerField(string fieldName) =>
         typeof(WorkflowInstanceDesigner).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    private static void SetWorkflowInstanceObserver(WorkflowInstanceDesigner instance, IWorkflowInstanceObserver observer)
+    private static void SetWorkflowInstanceObserver(WorkflowInstanceDesigner instance, IWorkflowInstanceObserver observer) =>
+        GetWorkflowInstanceObserverProperty().SetValue(instance, observer);
+
+    private static IWorkflowInstanceObserver? GetWorkflowInstanceObserver(WorkflowInstanceDesigner instance) =>
+        (IWorkflowInstanceObserver?)GetWorkflowInstanceObserverProperty().GetValue(instance);
+
+    private static PropertyInfo GetWorkflowInstanceObserverProperty() =>
+        typeof(WorkflowInstanceDesigner).GetProperty("WorkflowInstanceObserver", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+    /// <summary>
+    /// Attaches a bare <see cref="DiagramDesignerWrapper"/> (not rendered through bUnit, so its own
+    /// injected dependencies are never touched) to <c>_designer</c>, with its <c>Activity</c> parameter
+    /// set via reflection to avoid setting a component parameter outside of its render pipeline.
+    /// </summary>
+    private static void SetDesigner(WorkflowInstanceDesigner instance, JsonObject activity)
     {
-        var property = typeof(WorkflowInstanceDesigner).GetProperty("WorkflowInstanceObserver", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        property.SetValue(instance, observer);
+        var designer = new DiagramDesignerWrapper();
+        var activityProperty = typeof(DiagramDesignerWrapper).GetProperty(nameof(DiagramDesignerWrapper.Activity))!;
+        activityProperty.SetValue(designer, activity);
+
+        var field = typeof(WorkflowInstanceDesigner).GetField("_designer", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        field.SetValue(instance, designer);
+    }
+
+    /// <summary>
+    /// An <see cref="IWorkflowInstanceObserverFactory"/> whose <see cref="CreateAsync(WorkflowInstanceObserverContext)"/>
+    /// blocks until <see cref="Release"/> is called, used to pin the window during which
+    /// <c>WorkflowInstanceDesigner.CreateObserverAsync</c> is awaiting the factory when disposal runs.
+    /// </summary>
+    private sealed class GatedWorkflowInstanceObserverFactory : IWorkflowInstanceObserverFactory
+    {
+        private readonly TaskCompletionSource<IWorkflowInstanceObserver> _gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        /// Signaled once <see cref="CreateAsync(WorkflowInstanceObserverContext)"/> has been called.
+        public ManualResetEventSlim CreateAsyncEntered { get; } = new(false);
+
+        public Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId) => throw new NotSupportedException();
+
+        public Task<IWorkflowInstanceObserver> CreateAsync(WorkflowInstanceObserverContext context)
+        {
+            CreateAsyncEntered.Set();
+            return _gate.Task;
+        }
+
+        /// Unblocks the pending <see cref="CreateAsync(WorkflowInstanceObserverContext)"/> call with the given observer.
+        public void Release(IWorkflowInstanceObserver observer) => _gate.SetResult(observer);
+    }
+
+    /// <summary>
+    /// An <see cref="IWorkflowInstanceObserver"/> that counts subscriptions and disposals, used to pin
+    /// that an observer created after disposal is disposed without being subscribed, while an observer
+    /// created on a live component is both subscribed and left undisposed.
+    /// </summary>
+    private sealed class CountingWorkflowInstanceObserver : IWorkflowInstanceObserver
+    {
+        public int DisposeCallCount { get; private set; }
+        public int SubscribeCount { get; private set; }
+        public int UnsubscribeCount { get; private set; }
+
+        public event Func<Elsa.Api.Client.RealTime.Messages.WorkflowExecutionLogUpdatedMessage, Task>? WorkflowJournalUpdated
+        {
+            add { }
+            remove { }
+        }
+
+        public event Func<Elsa.Api.Client.RealTime.Messages.ActivityExecutionLogUpdatedMessage, Task>? ActivityExecutionLogUpdated
+        {
+            add => SubscribeCount++;
+            remove => UnsubscribeCount++;
+        }
+
+        public event Func<Elsa.Api.Client.RealTime.Messages.WorkflowInstanceUpdatedMessage, Task>? WorkflowInstanceUpdated
+        {
+            add { }
+            remove { }
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            DisposeCallCount++;
+            return ValueTask.CompletedTask;
+        }
     }
 
     /// <summary>
