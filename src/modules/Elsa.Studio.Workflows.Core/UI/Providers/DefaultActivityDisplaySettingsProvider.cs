@@ -1,3 +1,4 @@
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using JetBrains.Annotations;
@@ -40,6 +41,9 @@ public class DefaultActivityDisplaySettingsProvider : IActivityDisplaySettingsPr
         // Email
         ["Elsa.SendEmail"] = new(DefaultActivityColors.Email, Icons.Material.Outlined.Email),
         
+        // BPMN
+        [BpmnProcessConstants.ActivityTypeName] = new(DefaultActivityColors.Bpmn, Icons.Material.Outlined.Schema),
+
         // Flowchart
         ["Elsa.Flowchart"] = new(DefaultActivityColors.Flowchart, ElsaStudioIcons.Tabler.GitFork),
         ["Elsa.FlowNode"] = new(DefaultActivityColors.Flowchart, ElsaStudioIcons.Tabler.Hexagon),
