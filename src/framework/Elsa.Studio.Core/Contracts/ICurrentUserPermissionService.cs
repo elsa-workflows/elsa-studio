@@ -1,7 +1,7 @@
 namespace Elsa.Studio.Contracts;
 
 /// <summary>
-/// Reads the current user's permission claims for client-side affordance checks.
+/// Reads the current user's permission claims or effective permission source for client-side affordance checks.
 /// Server-side authorization remains the source of truth.
 /// </summary>
 public interface ICurrentUserPermissionService

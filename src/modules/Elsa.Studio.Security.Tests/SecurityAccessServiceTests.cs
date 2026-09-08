@@ -163,6 +163,25 @@ public sealed class IdentityPermissionContextTests
         Assert.Equal(2, calls);
     }
 
+    [Fact]
+    public async Task Dispose_WhenPermissionLoadIsActive_CancelsBeforeDisposingTheLoadLock()
+    {
+        var requestStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var api = new TestMePermissionsApi(async cancellationToken =>
+        {
+            requestStarted.SetResult();
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            return new CurrentCallerPermissionsResponse();
+        });
+        var context = CreateContext(api);
+
+        var load = context.GetAsync();
+        await requestStarted.Task;
+        context.Dispose();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => load);
+    }
+
     private static ApiException CreateApiException(HttpStatusCode statusCode) =>
         ApiException.Create(
             new HttpRequestMessage(HttpMethod.Get, "https://elsa.example/identity/me/permissions"),

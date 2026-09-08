@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Components.Authorization;
 namespace Elsa.Studio.Services;
 
 /// <summary>
-/// Reads Elsa's authoritative <c>permissions</c> claims to tailor Studio affordances.
+/// Reads Elsa's <c>permissions</c> claims, or an optional effective-permission source, to tailor Studio affordances.
+/// Server-side authorization remains the source of truth.
 /// </summary>
-public sealed class CurrentUserPermissionService(AuthenticationStateProvider? authenticationStateProvider = null) : ICurrentUserPermissionService
+public sealed class CurrentUserPermissionService(
+    AuthenticationStateProvider? authenticationStateProvider = null,
+    ICurrentUserPermissionSource? effectivePermissionSource = null) : ICurrentUserPermissionService
 {
     private const string PermissionClaimType = "permissions";
 
@@ -19,7 +22,10 @@ public sealed class CurrentUserPermissionService(AuthenticationStateProvider? au
         if (!TryParse(permission, out var required))
             return false;
 
-        var grants = await ListAsync(cancellationToken);
+        var grants = await GetGrantsAsync(cancellationToken);
+        if (grants is null)
+            return false;
+
         return grants.Any(grant => TryParse(grant, out var parsedGrant) && Satisfies(parsedGrant, required));
     }
 
@@ -30,8 +36,25 @@ public sealed class CurrentUserPermissionService(AuthenticationStateProvider? au
         if (authenticationStateProvider is null)
             return new HashSet<string>(StringComparer.Ordinal);
 
-        var user = (await authenticationStateProvider.GetAuthenticationStateAsync()).User;
-        return user.FindAll(PermissionClaimType).Select(x => x.Value).ToHashSet(StringComparer.Ordinal);
+        return await GetGrantsAsync(cancellationToken) ?? new HashSet<string>(StringComparer.Ordinal);
+    }
+
+    private async ValueTask<IReadOnlySet<string>?> GetGrantsAsync(CancellationToken cancellationToken)
+    {
+        var user = (await authenticationStateProvider!.GetAuthenticationStateAsync()).User;
+        var claims = user.FindAll(PermissionClaimType).Select(x => x.Value).ToHashSet(StringComparer.Ordinal);
+
+        // Claims are authoritative when present. This preserves the existing claim-based behavior and prevents an
+        // effective-permission source from broadening a principal that explicitly carries a narrower grant set.
+        if (claims.Count > 0)
+            return claims;
+
+        if (user.Identity?.IsAuthenticated != true || effectivePermissionSource is null)
+            return null;
+
+        // OIDC principals may carry no Elsa claims because their backend access token is authorized separately.
+        // An unavailable source is represented by null and fails closed for authenticated users.
+        return await effectivePermissionSource.GetAsync(cancellationToken);
     }
 
     private static bool TryParse(string? value, out PermissionParts permission)

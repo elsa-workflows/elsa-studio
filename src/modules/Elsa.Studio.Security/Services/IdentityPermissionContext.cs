@@ -19,9 +19,13 @@ public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDis
     private readonly ILogger<IdentityPermissionContext> _logger;
     private readonly AuthenticationStateProvider? _authenticationStateProvider;
     private readonly object _stateSync = new();
+    private readonly CancellationTokenSource _lifetime = new();
     private IdentityPermissionSnapshot? _snapshot;
     private CancellationTokenSource? _activeLoadCancellation;
     private long _authenticationGeneration;
+    private int _activeOperations;
+    private bool _disposed;
+    private bool _resourcesDisposed;
 
     public IdentityPermissionContext(
         IBackendApiClientProvider apiClientProvider,
@@ -37,85 +41,116 @@ public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDis
 
     public async Task<IdentityPermissionSnapshot> GetAsync(CancellationToken cancellationToken = default)
     {
-        while (true)
+        lock (_stateSync)
         {
-            var generation = Volatile.Read(ref _authenticationGeneration);
-            lock (_stateSync)
-            {
-                if (_snapshot != null && generation == _authenticationGeneration)
-                    return _snapshot;
-            }
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            _activeOperations++;
+        }
 
-            await _loadLock.WaitAsync(cancellationToken);
-            CancellationTokenSource? loadCancellation = null;
+        using var operationCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token);
 
-            try
+        try
+        {
+            while (true)
             {
+                var generation = Volatile.Read(ref _authenticationGeneration);
                 lock (_stateSync)
                 {
-                    generation = _authenticationGeneration;
-                    if (_snapshot != null)
+                    if (_snapshot != null && generation == _authenticationGeneration)
                         return _snapshot;
-
-                    loadCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    _activeLoadCancellation = loadCancellation;
                 }
 
-                IdentityPermissionSnapshot snapshot;
+                await _loadLock.WaitAsync(operationCancellation.Token);
+                CancellationTokenSource? loadCancellation = null;
+
                 try
                 {
-                    var api = await _apiClientProvider.GetApiAsync<IMePermissionsApi>(loadCancellation.Token);
-                    var response = await api.GetAsync(loadCancellation.Token);
-                    var grants = response.Grants
-                        .GroupBy(x => x.Resource, StringComparer.Ordinal)
-                        .ToDictionary(
-                            group => group.Key,
-                            group => (IReadOnlySet<string>)group
-                                .SelectMany(x => x.Verbs)
-                                .ToHashSet(StringComparer.Ordinal),
-                            StringComparer.Ordinal);
+                    lock (_stateSync)
+                    {
+                        generation = _authenticationGeneration;
+                        if (_snapshot != null)
+                            return _snapshot;
 
-                    snapshot = new IdentityPermissionSnapshot(IdentityPermissionSnapshotState.Ready, grants);
-                }
-                catch (ApiException exception) when (exception.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-                {
-                    snapshot = IdentityPermissionSnapshot.Forbidden;
-                }
-                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && generation != Volatile.Read(ref _authenticationGeneration))
-                {
-                    continue;
-                }
-                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-                {
-                    _logger.LogWarning("Loading the current Identity permissions timed out");
-                    snapshot = IdentityPermissionSnapshot.Unavailable;
-                }
-                catch (Exception exception) when (exception is not OperationCanceledException)
-                {
-                    _logger.LogWarning(exception, "Loading the current Identity permissions failed");
-                    snapshot = IdentityPermissionSnapshot.Unavailable;
-                }
+                        loadCancellation = CancellationTokenSource.CreateLinkedTokenSource(operationCancellation.Token);
+                        _activeLoadCancellation = loadCancellation;
+                    }
 
-                lock (_stateSync)
-                {
-                    if (generation != _authenticationGeneration)
+                    IdentityPermissionSnapshot snapshot;
+                    try
+                    {
+                        var api = await _apiClientProvider.GetApiAsync<IMePermissionsApi>(loadCancellation.Token);
+                        var response = await api.GetAsync(loadCancellation.Token);
+                        var grants = response.Grants
+                            .GroupBy(x => x.Resource, StringComparer.Ordinal)
+                            .ToDictionary(
+                                group => group.Key,
+                                group => (IReadOnlySet<string>)group
+                                    .SelectMany(x => x.Verbs)
+                                    .ToHashSet(StringComparer.Ordinal),
+                                StringComparer.Ordinal);
+
+                        snapshot = new IdentityPermissionSnapshot(IdentityPermissionSnapshotState.Ready, grants);
+                    }
+                    catch (ApiException exception) when (exception.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                    {
+                        snapshot = IdentityPermissionSnapshot.Forbidden;
+                    }
+                    catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && generation != Volatile.Read(ref _authenticationGeneration))
+                    {
                         continue;
+                    }
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogWarning("Loading the current Identity permissions timed out");
+                        snapshot = IdentityPermissionSnapshot.Unavailable;
+                    }
+                    catch (Exception exception) when (exception is not OperationCanceledException)
+                    {
+                        _logger.LogWarning(exception, "Loading the current Identity permissions failed");
+                        snapshot = IdentityPermissionSnapshot.Unavailable;
+                    }
 
-                    _snapshot = snapshot;
-                    return snapshot;
+                    lock (_stateSync)
+                    {
+                        if (generation != _authenticationGeneration)
+                            continue;
+
+                        _snapshot = snapshot;
+                        return snapshot;
+                    }
                 }
-            }
-            finally
-            {
-                lock (_stateSync)
+                finally
                 {
-                    if (ReferenceEquals(_activeLoadCancellation, loadCancellation))
-                        _activeLoadCancellation = null;
-                }
+                    lock (_stateSync)
+                    {
+                        if (ReferenceEquals(_activeLoadCancellation, loadCancellation))
+                            _activeLoadCancellation = null;
+                    }
 
-                loadCancellation?.Dispose();
-                _loadLock.Release();
+                    loadCancellation?.Dispose();
+                    _loadLock.Release();
+                }
             }
+        }
+        finally
+        {
+            var disposeResources = false;
+            lock (_stateSync)
+            {
+                _activeOperations--;
+                if (_disposed && _activeOperations == 0 && !_resourcesDisposed)
+                {
+                    _resourcesDisposed = true;
+                    disposeResources = true;
+                }
+            }
+
+            if (disposeResources)
+                DisposeResources();
         }
     }
 
@@ -123,6 +158,9 @@ public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDis
     {
         lock (_stateSync)
         {
+            if (_disposed)
+                return;
+
             _authenticationGeneration++;
             _snapshot = null;
             _activeLoadCancellation?.Cancel();
@@ -135,6 +173,31 @@ public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDis
     {
         if (_authenticationStateProvider is not null)
             _authenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+
+        var disposeResources = false;
+        lock (_stateSync)
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            _lifetime.Cancel();
+            _activeLoadCancellation?.Cancel();
+
+            if (_activeOperations == 0)
+            {
+                _resourcesDisposed = true;
+                disposeResources = true;
+            }
+        }
+
+        if (disposeResources)
+            DisposeResources();
+    }
+
+    private void DisposeResources()
+    {
         _loadLock.Dispose();
+        _lifetime.Dispose();
     }
 }

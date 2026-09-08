@@ -45,6 +45,53 @@ public class MenuPermissionTests
     }
 
     [Fact]
+    public async Task CurrentUserPermissionService_WhenAuthorizationIsDisabled_AllowsPermissionsWithoutEffectiveSource()
+    {
+        var service = new CurrentUserPermissionService(
+            authenticationStateProvider: null,
+            effectivePermissionSource: new StaticPermissionSource());
+
+        Assert.True(await service.HasAsync("workflows/definitions:view"));
+    }
+
+    [Fact]
+    public async Task CurrentUserPermissionService_FallsBackToEffectivePermissionsForAuthenticatedPrincipalWithoutClaims()
+    {
+        var source = new StaticPermissionSource("workflows/definitions:view");
+        var service = new CurrentUserPermissionService(new TestAuthenticationStateProvider(), source);
+
+        Assert.True(await service.HasAsync("workflows/definitions:view"));
+        Assert.Equal(["workflows/definitions:view"], await service.ListAsync());
+    }
+
+    [Fact]
+    public async Task CurrentUserPermissionService_FailsClosedWhenEffectivePermissionsAreUnavailable()
+    {
+        var service = new CurrentUserPermissionService(new TestAuthenticationStateProvider(), new StaticPermissionSource());
+
+        Assert.False(await service.HasAsync("workflows/definitions:view"));
+        Assert.Empty(await service.ListAsync());
+    }
+
+    [Fact]
+    public async Task CurrentUserPermissionService_ClaimsTakePrecedenceOverEffectivePermissionSource()
+    {
+        var source = new StaticPermissionSource("workflows/definitions:view");
+        var service = new CurrentUserPermissionService(new TestAuthenticationStateProvider("dashboard:view"), source);
+
+        Assert.False(await service.HasAsync("workflows/definitions:view"));
+        Assert.Equal(["dashboard:view"], await service.ListAsync());
+    }
+
+    [Fact]
+    public async Task CurrentUserPermissionService_DoesNotGrantPermissionsToUnauthenticatedPrincipal()
+    {
+        var service = new CurrentUserPermissionService(new UnauthenticatedStateProvider());
+
+        Assert.False(await service.HasAsync("workflows/definitions:view"));
+    }
+
+    [Fact]
     public async Task DefaultMenuService_FiltersProtectedChildrenAndKeepsAccessibleSiblings()
     {
         var protectedChild = new MenuItem
@@ -168,6 +215,16 @@ public class MenuPermissionTests
             ValueTask.FromResult<IReadOnlySet<string>>(_permissions);
     }
 
+    private sealed class StaticPermissionSource(params string[] permissions) : ICurrentUserPermissionSource
+    {
+        private readonly IReadOnlySet<string>? _permissions = permissions.Length == 0
+            ? null
+            : permissions.ToHashSet(StringComparer.Ordinal);
+
+        public ValueTask<IReadOnlySet<string>?> GetAsync(CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(_permissions);
+    }
+
     private sealed class TestAuthenticationStateProvider(params string[] permissions) : AuthenticationStateProvider
     {
         public override Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -176,5 +233,11 @@ public class MenuPermissionTests
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "Test"));
             return Task.FromResult(new AuthenticationState(principal));
         }
+    }
+
+    private sealed class UnauthenticatedStateProvider : AuthenticationStateProvider
+    {
+        public override Task<AuthenticationState> GetAuthenticationStateAsync() =>
+            Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
     }
 }
