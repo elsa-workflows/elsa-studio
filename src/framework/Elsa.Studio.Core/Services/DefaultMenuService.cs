@@ -51,12 +51,22 @@ public class DefaultMenuService : IMenuService
                 continue;
 
             var hadChildren = item.SubMenuItems.Count > 0;
-            item.SubMenuItems = (await FilterAsync(item.SubMenuItems, cancellationToken)).ToList();
+            var visibleChildren = (await FilterAsync(item.SubMenuItems, cancellationToken)).ToList();
 
-            if (hadChildren && item.SubMenuItems.Count == 0 && string.IsNullOrWhiteSpace(item.Href))
+            if (hadChildren && visibleChildren.Count == 0 && string.IsNullOrWhiteSpace(item.Href))
                 continue;
 
-            visibleItems.Add(item);
+            visibleItems.Add(new MenuItem
+            {
+                RequiredPermission = item.RequiredPermission,
+                Icon = item.Icon,
+                Href = item.Href,
+                Match = item.Match,
+                Text = item.Text,
+                Order = item.Order,
+                SubMenuItems = visibleChildren,
+                GroupName = item.GroupName
+            });
         }
 
         return visibleItems;

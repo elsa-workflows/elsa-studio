@@ -6,13 +6,16 @@ namespace Elsa.Studio.Services;
 /// <summary>
 /// Reads Elsa's authoritative <c>permissions</c> claims to tailor Studio affordances.
 /// </summary>
-public sealed class CurrentUserPermissionService(AuthenticationStateProvider authenticationStateProvider) : ICurrentUserPermissionService
+public sealed class CurrentUserPermissionService(AuthenticationStateProvider? authenticationStateProvider = null) : ICurrentUserPermissionService
 {
     private const string PermissionClaimType = "permissions";
 
     /// <inheritdoc />
     public async ValueTask<bool> HasAsync(string permission, CancellationToken cancellationToken = default)
     {
+        if (authenticationStateProvider is null)
+            return true;
+
         if (!TryParse(permission, out var required))
             return false;
 
@@ -24,6 +27,9 @@ public sealed class CurrentUserPermissionService(AuthenticationStateProvider aut
     public async ValueTask<IReadOnlySet<string>> ListAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (authenticationStateProvider is null)
+            return new HashSet<string>(StringComparer.Ordinal);
+
         var user = (await authenticationStateProvider.GetAuthenticationStateAsync()).User;
         return user.FindAll(PermissionClaimType).Select(x => x.Value).ToHashSet(StringComparer.Ordinal);
     }

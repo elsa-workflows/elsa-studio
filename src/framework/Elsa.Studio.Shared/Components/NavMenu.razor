@@ -1,10 +1,11 @@
 ﻿@using Elsa.Studio.Contracts
 @using Elsa.Studio.Models
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Logging
 @implements IDisposable
 @inject IMenuService MenuService;
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IServiceProvider ServiceProvider
 @inject ILogger<NavMenu> Logger
 
 <MudNavMenu Color="Color.Primary" Margin="Margin.Dense" Class="studio-nav">
@@ -31,12 +32,16 @@
     private readonly CancellationTokenSource _lifetime = new();
     private readonly object _refreshSync = new();
     private CancellationTokenSource? _refreshCancellation;
+    private AuthenticationStateProvider? _authenticationStateProvider;
     private long _authenticationGeneration;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        _authenticationStateProvider = ServiceProvider.GetService<AuthenticationStateProvider>();
+        if (_authenticationStateProvider is not null)
+            _authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
         var generation = Volatile.Read(ref _authenticationGeneration);
         var menu = await LoadMenuAsync(_lifetime.Token);
 
@@ -122,7 +127,9 @@
 
     public void Dispose()
     {
-        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        if (_authenticationStateProvider is not null)
+            _authenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+
         _lifetime.Cancel();
         lock (_refreshSync)
         {
