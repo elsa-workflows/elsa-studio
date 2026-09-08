@@ -74,11 +74,29 @@ jobs:
             8.x
             9.x
             10.x
-      - name: Build workflow designer client assets
+      - name: Restore Bpmn.Model
+        # Only Bpmn.Model's own schema/bpmn-payload.schema.json is needed here (see
+        # ClientLib/scripts/generate-bpmn-types.js), but restoring the one project that downloads it
+        # is cheap and keeps this from depending on solution-wide restore order.
+        run: dotnet restore src/modules/Elsa.Studio.Workflows.Designer/Elsa.Studio.Workflows.Designer.csproj
+      - name: Install workflow designer client dependencies
+        working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
+        run: npm install --force
+      - name: Verify generated BPMN types are up to date
+        # This must run before "Build workflow designer client assets": that step's `npm run build`
+        # regenerates src/bpmn/types.generated.ts as a side effect (via `npm run generate:bpmn-types`)
+        # and overwrites it on disk, so running the check afterwards would diff the regenerated file
+        # against itself and could never fail. There is no PR-time build in this repository (PR
+        # checks are CodeQL, GitGuardian and CLA only); this is the only place regenerating
+        # types.generated.ts against the Bpmn.Model schema and diffing it against what is committed
+        # actually runs.
         working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
         run: |
-          npm install --force
-          npm run build
+          npm run check:generated
+          npm test
+      - name: Build workflow designer client assets
+        working-directory: ./src/modules/Elsa.Studio.Workflows.Designer/ClientLib
+        run: npm run build
       - name: Build DOM interop client assets
         working-directory: ./src/framework/Elsa.Studio.DomInterop/ClientLib
         run: |
