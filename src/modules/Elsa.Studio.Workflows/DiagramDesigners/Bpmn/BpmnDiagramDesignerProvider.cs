@@ -4,6 +4,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.UI.Contracts;
 using JetBrains.Annotations;
@@ -29,7 +30,7 @@ public class BpmnDiagramDesignerProvider(
     public double Priority => 10;
 
     /// <inheritdoc />
-    public bool GetSupportsActivity(JsonObject activity) => activity.GetTypeName() == "Elsa.BpmnProcess";
+    public bool GetSupportsActivity(JsonObject activity) => activity.GetTypeName() == BpmnProcessConstants.ActivityTypeName;
 
     /// <inheritdoc />
     public IDiagramDesigner GetEditor() => new BpmnDiagramDesigner(localizer, designerOptions, dialogService, bpmnInterchangeService, files, userMessageService);

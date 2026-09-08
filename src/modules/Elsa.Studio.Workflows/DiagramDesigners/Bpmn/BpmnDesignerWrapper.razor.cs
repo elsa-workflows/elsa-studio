@@ -47,6 +47,22 @@ public partial class BpmnDesignerWrapper
     private bool UseReactFlow => DesignerOptions.Value.UseReactFlow;
 
     /// <summary>
+    /// Whether the scope being displayed has nothing to draw: no <c>process</c> payload at all, or one that declares
+    /// no elements. That is what a <c>BpmnProcess</c> added from the toolbox looks like, and what a scope whose
+    /// import produced nothing looks like.
+    /// </summary>
+    /// <remarks>
+    /// Read from the <see cref="Activity"/> parameter rather than from the field <see cref="LoadBpmnAsync"/> writes,
+    /// so the notice is decided by the same render pass that would otherwise mount the canvas. The wrapper is
+    /// re-created per displayed segment (<c>BpmnDiagramDesigner.DisplayDesigner</c> keys it on the designer
+    /// instance), so the parameter is always the scope currently being shown.
+    /// </remarks>
+    private bool IsEmptyScope => GetElementCount(Activity) == 0;
+
+    private static int GetElementCount(JsonObject? activity) =>
+        activity?["process"] is JsonObject process && process["elements"] is JsonArray elements ? elements.Count : 0;
+
+    /// <summary>
     /// Loads the specified root activity into the designer.
     /// </summary>
     public async Task LoadBpmnAsync(JsonObject activity, string? sourceXml, IDictionary<string, ActivityStats>? activityStats)

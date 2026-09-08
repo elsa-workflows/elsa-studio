@@ -5,6 +5,10 @@
     {
         <MudAlert Severity="Severity.Info">@Localizer["BPMN is not yet available on the React Flow canvas."]</MudAlert>
     }
+    else if (IsEmptyScope)
+    {
+        <MudAlert Severity="Severity.Info">@Localizer["This BPMN scope has no content yet. Import a BPMN document to create a process, or wait for BPMN editing."]</MudAlert>
+    }
     else
     {
         <BpmnDesigner @ref="@Designer" Activity="@Activity" SourceXml="@SourceXml" ActivityStats="@ActivityStats"
