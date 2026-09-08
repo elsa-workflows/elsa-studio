@@ -25,9 +25,9 @@ public partial class BpmnImportFindingsDialog
 
     private IReadOnlyList<IssueGroup> Groups => new[]
     {
-        new IssueGroup(Localizer["Dropped"], Color.Error, IssuesOfSeverity("Dropped")),
-        new IssueGroup(Localizer["Degraded"], Color.Warning, IssuesOfSeverity("Degraded")),
-        new IssueGroup(Localizer["Info"], Color.Info, IssuesOfSeverity("Info"))
+        new IssueGroup(Localizer["Dropped"], Color.Error, IssuesOfSeverity(BpmnImportIssueSeverity.Dropped)),
+        new IssueGroup(Localizer["Degraded"], Color.Warning, IssuesOfSeverity(BpmnImportIssueSeverity.Degraded)),
+        new IssueGroup(Localizer["Info"], Color.Info, IssuesOfSeverity(BpmnImportIssueSeverity.Info))
     }.Where(group => group.Issues.Count > 0).ToList();
 
     /// <inheritdoc />

@@ -53,15 +53,74 @@ public class BpmnImportUiService(
         var importResult = await bpmnInterchangeService.ImportAsync(content, file.Name, definitionId, name: null, processId.ProcessId, cancellationToken);
 
         if (!importResult.IsSuccess)
-            return Failed(file.Name, importResult.Failure!);
+        {
+            var failure = importResult.Failure!;
+            var message = string.Join(" ", failure.Errors.Select(error => error.ErrorMessage));
+            var refusal = BpmnCapabilityRefusal.TryParse(message);
+
+            if (refusal != null)
+            {
+                await ShowRefusalDialogAsync(refusal);
+                return new()
+                {
+                    FileName = file.Name,
+                    Failure = new(message, WorkflowImportFailureType.CapabilityRefusal)
+                };
+            }
+
+            return Failed(file.Name, failure);
+        }
 
         var workflowDefinition = await workflowDefinitionService.FindByDefinitionIdAsync(importResult.Success!.DefinitionId, VersionOptions.Latest, cancellationToken);
+
+        if (workflowDefinition == null)
+        {
+            return new()
+            {
+                FileName = file.Name,
+                Failure = new(localizer["The document was imported, but the resulting workflow definition could not be loaded."], WorkflowImportFailureType.Exception)
+            };
+        }
 
         return new()
         {
             FileName = file.Name,
             WorkflowDefinition = workflowDefinition
         };
+    }
+
+    /// <inheritdoc />
+    public async Task<BpmnImportBatch> ImportBpmnFilesAsync(IReadOnlyList<IBrowserFile> files, string? definitionId, CancellationToken cancellationToken = default)
+    {
+        var bpmnFiles = files.Where(IsBpmnFile).ToList();
+        var otherFiles = files.Where(file => !IsBpmnFile(file)).ToList();
+
+        var results = new List<WorkflowImportResult>();
+
+        foreach (var bpmnFile in bpmnFiles)
+        {
+            var result = await ImportFileAsync(bpmnFile, definitionId, cancellationToken);
+            if (result != null)
+                results.Add(result);
+        }
+
+        return new(results, otherFiles);
+    }
+
+    private async Task ShowRefusalDialogAsync(BpmnCapabilityRefusal refusal)
+    {
+        var parameters = new DialogParameters<BpmnImportRefusalDialog> { { x => x.Refusal, refusal } };
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            Position = DialogPosition.Center,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseButton = true
+        };
+
+        var dialog = await dialogService.ShowAsync<BpmnImportRefusalDialog>(localizer["Import refused"], parameters, options);
+        await dialog.Result;
     }
 
     private async Task<(bool Cancelled, string? ProcessId)> ShowFindingsDialogAsync(BpmnImportAnalysisModel analysis)

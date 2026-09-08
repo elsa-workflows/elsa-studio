@@ -411,14 +411,16 @@ public partial class WorkflowDefinitionList
         if (result == null)
             return;
 
-        if (result.IsSuccess)
+        if (result.IsSuccess && result.WorkflowDefinition is { } workflowDefinition)
         {
             UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow imported successfully."], Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
-            await EditAsync(result.WorkflowDefinition!.DefinitionId);
+            await EditAsync(workflowDefinition.DefinitionId);
         }
-        else
+        else if (result.Failure is { } failure && failure.FailureType != WorkflowImportFailureType.CapabilityRefusal)
         {
-            UserMessageService.ShowSnackbarTextMessage(Localizer["Failed to import BPMN document. Reason: {0}", result.Failure!.ErrorMessage], Severity.Error, options =>
+            // A capability refusal was already reported in its own dialog by BpmnImportUiService; a snackbar here
+            // would just repeat it.
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Failed to import BPMN document. Reason: {0}", failure.ErrorMessage], Severity.Error, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
                 options.VisibleStateDuration = 10000;
@@ -433,30 +435,33 @@ public partial class WorkflowDefinitionList
         // A .bpmn file dropped on the generic (JSON/ZIP) picker cannot be parsed as either, so it is routed through
         // the same interactive BPMN import flow the dedicated "Import BPMN" button uses instead of silently
         // producing zero results.
-        var bpmnFiles = files.Where(BpmnImportUiService.IsBpmnFile).ToList();
-        var otherFiles = files.Where(file => !BpmnImportUiService.IsBpmnFile(file)).ToList();
+        var bpmnBatch = await BpmnImportUiService.ImportBpmnFilesAsync(files, definitionId: null);
 
-        var results = new List<WorkflowImportResult>();
+        var results = new List<WorkflowImportResult>(bpmnBatch.Results);
 
-        if (otherFiles.Count > 0)
-            results.AddRange(await WorkflowDefinitionImporter.ImportFilesAsync(otherFiles));
+        if (bpmnBatch.OtherFiles.Count > 0)
+            results.AddRange(await WorkflowDefinitionImporter.ImportFilesAsync(bpmnBatch.OtherFiles));
 
-        foreach (var bpmnFile in bpmnFiles)
+        // A capability refusal was already reported in its own dialog by BpmnImportUiService; excluding it here
+        // keeps the summary snackbar limited to the failures it did not already explain.
+        var reportableResults = results.Where(x => x.Failure?.FailureType != WorkflowImportFailureType.CapabilityRefusal).ToList();
+
+        if (results.Count > 0 && reportableResults.Count == 0)
         {
-            var bpmnResult = await BpmnImportUiService.ImportFileAsync(bpmnFile, definitionId: null);
-            if (bpmnResult != null)
-                results.Add(bpmnResult);
+            // Every result was a capability refusal, each already explained in its own dialog; nothing left to summarize.
+            Reload();
+            return;
         }
 
-        var successfulResultCount = results.Count(x => x.IsSuccess);
-        var failedResultCount = results.Count(x => !x.IsSuccess);
+        var successfulResultCount = reportableResults.Count(x => x.IsSuccess);
+        var failedResultCount = reportableResults.Count(x => !x.IsSuccess);
         var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";
         var failedWorkflowsTerm = failedResultCount == 1 ? Localizer["workflow"] : Localizer["workflows"];
-        var reasons = string.Join(", ", results.Where(x => x.Failure != null).Select(x => x.Failure!.ErrorMessage));
-        var message = results.Count == 0 ? Localizer["No workflows found to import."] :
+        var reasons = string.Join(", ", reportableResults.Where(x => x.Failure != null).Select(x => x.Failure!.ErrorMessage));
+        var message = reportableResults.Count == 0 ? Localizer["No workflows found to import."] :
             successfulResultCount > 0 && failedResultCount == 0 ? Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] :
             successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}. Reason: {2}", failedResultCount, failedWorkflowsTerm, reasons] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}. Reasons: {2}", failedResultCount, failedWorkflowsTerm, reasons];
-        var severity = results.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
+        var severity = reportableResults.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
         UserMessageService.ShowSnackbarTextMessage(message, severity, options =>
         {
             options.SnackbarVariant = Variant.Filled;

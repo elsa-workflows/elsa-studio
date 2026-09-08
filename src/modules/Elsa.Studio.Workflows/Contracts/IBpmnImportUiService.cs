@@ -26,4 +26,15 @@ public interface IBpmnImportUiService
     /// was imported.
     /// </returns>
     Task<WorkflowImportResult?> ImportFileAsync(IBrowserFile file, string? definitionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Splits <paramref name="files"/> into <c>.bpmn</c> files and everything else, then runs <see cref="ImportFileAsync"/>
+    /// on each <c>.bpmn</c> file in turn. Shared by every entry point that accepts a mixed file selection, so the
+    /// split-then-import-then-merge sequence is written once.
+    /// </summary>
+    /// <param name="files">The selected files, of any kind.</param>
+    /// <param name="definitionId">The workflow definition to update, or <see langword="null"/> to create a new one.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The BPMN import results and the files that were not <c>.bpmn</c>, for the caller to import itself.</returns>
+    Task<BpmnImportBatch> ImportBpmnFilesAsync(IReadOnlyList<IBrowserFile> files, string? definitionId, CancellationToken cancellationToken = default);
 }

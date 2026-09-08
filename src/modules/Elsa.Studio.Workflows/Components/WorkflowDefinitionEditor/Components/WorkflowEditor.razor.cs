@@ -699,35 +699,34 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
         // A .bpmn file cannot be parsed as JSON, so it is routed through the same interactive BPMN import flow the
         // definitions list uses, updating the definition currently open here rather than creating a new one.
-        var bpmnFiles = files.Where(BpmnImportUiService.IsBpmnFile).ToList();
-        var otherFiles = files.Where(file => !BpmnImportUiService.IsBpmnFile(file)).ToList();
+        var bpmnBatch = await BpmnImportUiService.ImportBpmnFilesAsync(files, options.DefinitionId);
 
-        var importResults = new List<WorkflowImportResult>();
+        var importResults = new List<WorkflowImportResult>(bpmnBatch.Results);
 
-        if (otherFiles.Count > 0)
-            importResults.AddRange(await WorkflowDefinitionImporter.ImportFilesAsync(otherFiles, options));
+        if (bpmnBatch.OtherFiles.Count > 0)
+            importResults.AddRange(await WorkflowDefinitionImporter.ImportFilesAsync(bpmnBatch.OtherFiles, options));
 
-        foreach (var bpmnFile in bpmnFiles)
-        {
-            var bpmnResult = await BpmnImportUiService.ImportFileAsync(bpmnFile, options.DefinitionId);
+        foreach (var bpmnResult in bpmnBatch.Results.Where(x => x.IsSuccess))
+            if (bpmnResult.WorkflowDefinition is { } workflowDefinition)
+                await SetImportedWorkflowDefinitionAsync(workflowDefinition);
 
-            if (bpmnResult == null)
-                continue;
-
-            importResults.Add(bpmnResult);
-
-            if (bpmnResult.IsSuccess)
-                await SetImportedWorkflowDefinitionAsync(bpmnResult.WorkflowDefinition!);
-        }
-
-        var failedImports = importResults.Where(x => !x.IsSuccess).ToList();
-        var successfulImports = importResults.Where(x => x.IsSuccess).ToList();
+        // A capability refusal was already reported in its own dialog by BpmnImportUiService; excluding it here
+        // keeps the summary snackbar limited to the failures it did not already explain.
+        var reportableResults = importResults.Where(x => x.Failure?.FailureType != WorkflowImportFailureType.CapabilityRefusal).ToList();
+        var failedImports = reportableResults.Where(x => !x.IsSuccess).ToList();
+        var successfulImports = reportableResults.Where(x => x.IsSuccess).ToList();
 
         IsProgressing = false;
         _isDirty = false;
         StateHasChanged();
 
-        if (importResults.Count == 0)
+        if (importResults.Count > 0 && reportableResults.Count == 0)
+        {
+            // Every result was a capability refusal, each already explained in its own dialog; nothing left to summarize.
+            return;
+        }
+
+        if (reportableResults.Count == 0)
         {
             UserMessageService.ShowSnackbarTextMessage(Localizer["No workflows were imported."], Severity.Info);
             return;
@@ -735,8 +734,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
         if (successfulImports.Count == 1)
             UserMessageService.ShowSnackbarTextMessage(Localizer["Successfully imported 1 workflow definition."], Severity.Success, ConfigureSnackbar);
-        else if (importResults.Count > 1)
-            UserMessageService.ShowSnackbarTextMessage(Localizer["Successfully imported {0} workflow definitions.", importResults.Count], Severity.Success, ConfigureSnackbar);
+        else if (reportableResults.Count > 1)
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Successfully imported {0} workflow definitions.", reportableResults.Count], Severity.Success, ConfigureSnackbar);
 
         if (failedImports.Count == 1)
             UserMessageService.ShowSnackbarTextMessage(Localizer["Failed to import 1 workflow definition: {0}", failedImports[0].Failure!.ErrorMessage], Severity.Error, ConfigureSnackbar);
