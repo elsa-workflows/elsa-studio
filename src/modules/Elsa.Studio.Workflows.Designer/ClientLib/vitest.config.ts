@@ -1,16 +1,24 @@
 import { defineConfig } from 'vitest/config';
 
-// There is no runtime test suite here (yet): the one thing this package needs verified is that
-// src/bpmn/types.generated.ts actually describes the JSON Elsa's activity serializer produces for a
-// real BpmnProcess.Process value. That is a compile-time question, so it is asked with a `.test-d.ts`
-// file and Vitest's typecheck mode rather than a runtime assertion -- see
-// src/bpmn/__tests__/process-payload.test-d.ts.
+// Two suites, both under src/bpmn:
+//
+//  - `*.test.ts`, run in a jsdom environment. src/bpmn/di-reader.ts parses BPMN DI with the platform
+//    `DOMParser`, which is what the browser gives it at runtime; jsdom is the one test environment
+//    that provides the same API with real XML namespace support, so the reader under test is the
+//    reader that ships rather than an injected stand-in.
+//  - `*.test-d.ts`, run by Vitest's typecheck mode. Whether src/bpmn/types.generated.ts still
+//    describes the JSON Elsa's activity serializer produces is a compile-time question, so it is
+//    asked with a type-level assertion rather than a runtime one -- see
+//    src/bpmn/__tests__/process-payload.test-d.ts.
+//
+// The designer and react-designer bundles have no test suite; they are covered by the .NET side.
 export default defineConfig({
-  test: {
-    include: [],
-    typecheck: {
-      enabled: true,
-      include: ['src/**/*.test-d.ts'],
+    test: {
+        environment: 'jsdom',
+        include: ['src/**/*.test.ts'],
+        typecheck: {
+            enabled: true,
+            include: ['src/**/*.test-d.ts'],
+        },
     },
-  },
 });
