@@ -97,6 +97,7 @@ export function buildBpmnViewModel(input: BpmnViewModelInput): BpmnViewModel {
     const associations: BpmnViewAssociation[] = [];
     const lanes: BpmnViewLane[] = [];
     const seenElementIds = new Map<string, string>();
+    const seenFlowIds = new Map<string, string>();
 
     for (const scope of scopes) {
         const scopeElements = scope.definition.elements ?? [];
@@ -142,6 +143,21 @@ export function buildBpmnViewModel(input: BpmnViewModelInput): BpmnViewModel {
         }
 
         for (const flow of scope.definition.sequenceFlows ?? []) {
+            const alreadySeenFlow = seenFlowIds.get(flow.flowId);
+
+            if (alreadySeenFlow != null) {
+                report(
+                    'duplicate-flow-id',
+                    'error',
+                    `The sequence flow id '${flow.flowId}' is used ${alreadySeenFlow === scope.id
+                        ? `twice in scope '${scope.id}'`
+                        : `both in scope '${alreadySeenFlow}' and in scope '${scope.id}'`}. Anything keyed by flow id cannot tell the two apart.`,
+                    flow.flowId,
+                    scope.id);
+            } else {
+                seenFlowIds.set(flow.flowId, scope.id);
+            }
+
             const source = elementsById.get(flow.sourceRef);
             const target = elementsById.get(flow.targetRef);
 

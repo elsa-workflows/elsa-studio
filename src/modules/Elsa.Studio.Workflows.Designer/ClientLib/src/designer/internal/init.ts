@@ -4,6 +4,7 @@ import {Activity} from "../models";
 import {ActivityShape, FlowchartEdgeShape, SequenceEdgeShape} from '../api/designer-mode';
 import {createDesignerPortGroups, designerPortMarkup} from './designer-ports';
 import {registerStateMachineShapes} from './state-machine-shapes';
+import {registerBpmnShapes} from '../bpmn/shapes';
 
 export function initialize() {
     Shape.HTML.register({
@@ -63,5 +64,6 @@ export function initialize() {
     );
 
     registerStateMachineShapes();
+    registerBpmnShapes();
 
 }

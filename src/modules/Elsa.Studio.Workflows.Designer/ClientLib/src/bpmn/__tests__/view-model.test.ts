@@ -646,6 +646,19 @@ describe('refusals', () => {
 
         expect(diagnostic).toMatchObject({ severity: 'error', elementId: 'Start_1', scopeId: 'Fulfil' });
     });
+
+    it('reports a flow id used by two scopes, mirroring the duplicate-element-id diagnostic', () => {
+        const fixture = loadFixture('subprocess-boundary-events');
+        const activity = structuredClone(fixture.activity) as BpmnActivity;
+        const nested = activity.activities!.find(candidate => candidate.process?.processId === 'Fulfil')!;
+
+        (nested.process!.sequenceFlows![0] as { flowId: string }).flowId = 'Flow_1';
+
+        const model = buildBpmnViewModel({ activity, sourceXml: fixture.sourceXml });
+        const diagnostic = model.diagnostics.find(candidate => candidate.code === 'duplicate-flow-id')!;
+
+        expect(diagnostic).toMatchObject({ severity: 'error', elementId: 'Flow_1', scopeId: 'Fulfil' });
+    });
 });
 
 describe('the module reads and never writes', () => {

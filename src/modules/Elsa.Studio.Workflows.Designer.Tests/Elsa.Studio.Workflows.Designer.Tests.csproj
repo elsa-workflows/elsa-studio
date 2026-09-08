@@ -78,6 +78,12 @@
         <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\api\update-activity-size.ts"
               Link="DesignerAssets\update-activity-size.ts"
               CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\internal\canvas-ready.ts"
+              Link="DesignerAssets\canvas-ready.ts"
+              CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\bpmn\graph-registry.ts"
+              Link="DesignerAssets\bpmn-graph-registry.ts"
+              CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>
