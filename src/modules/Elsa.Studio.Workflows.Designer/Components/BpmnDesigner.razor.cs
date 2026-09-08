@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
@@ -170,7 +171,7 @@ public partial class BpmnDesigner : IAsyncDisposable
         if (_activity.GetId() == id)
             _activity = (JsonObject)activity.DeepClone()!;
         else
-            ReplaceActivity(_activity, id, activity);
+            _activity.ReplaceActivity(id, activity);
 
         return Task.CompletedTask;
     }
@@ -270,35 +271,6 @@ public partial class BpmnDesigner : IAsyncDisposable
         return scope.GetActivities()
             .Select(activity => ResolveElementId(activity, activityId))
             .FirstOrDefault(found => found != null);
-    }
-
-    /// <summary>
-    /// Replaces the activity with the specified id, wherever in the tree it is -- the root's own
-    /// activities or, recursively, a nested BPMN scope's -- with a clone of <paramref name="replacement"/>.
-    /// Mirrors <c>BpmnDiagramDesigner</c>'s own replacement, kept private to this component since the
-    /// two do not share an assembly.
-    /// </summary>
-    private static bool ReplaceActivity(JsonObject scope, string id, JsonObject replacement)
-    {
-        if (scope["activities"] is not JsonArray activities)
-            return false;
-
-        for (var i = 0; i < activities.Count; i++)
-        {
-            if (activities[i] is not JsonObject child)
-                continue;
-
-            if (child.GetId() == id)
-            {
-                activities[i] = (JsonObject)replacement.DeepClone()!;
-                return true;
-            }
-
-            if (ReplaceActivity(child, id, replacement))
-                return true;
-        }
-
-        return false;
     }
 
     private async Task ScheduleGraphActionAsync(Func<Task> action) => await _pendingGraphActions.EnqueueAsync(action);

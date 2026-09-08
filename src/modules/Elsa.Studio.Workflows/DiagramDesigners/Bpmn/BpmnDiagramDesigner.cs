@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -49,7 +50,7 @@ public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions>
         if (_rootActivity.GetId() == id)
             _rootActivity = (JsonObject)activity.DeepClone()!;
         else
-            ReplaceActivity(_rootActivity, id, activity);
+            _rootActivity.ReplaceActivity(id, activity);
 
         await InvokeDesignerActionAsync(x => x.UpdateActivityAsync(id, activity));
     }
@@ -119,33 +120,6 @@ public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions>
 
     private Task OnZoomToFitClicked() => _designerWrapper != null ? _designerWrapper.ZoomToFitAsync() : Task.CompletedTask;
     private Task OnCenterClicked() => _designerWrapper != null ? _designerWrapper.CenterContentAsync() : Task.CompletedTask;
-
-    /// <summary>
-    /// Replaces the activity with the specified id, wherever in the tree it is -- the root's own
-    /// activities or, recursively, a nested BPMN scope's -- with a clone of <paramref name="replacement"/>.
-    /// </summary>
-    private static bool ReplaceActivity(JsonObject scope, string id, JsonObject replacement)
-    {
-        if (scope["activities"] is not JsonArray activities)
-            return false;
-
-        for (var i = 0; i < activities.Count; i++)
-        {
-            if (activities[i] is not JsonObject child)
-                continue;
-
-            if (child.GetId() == id)
-            {
-                activities[i] = (JsonObject)replacement.DeepClone()!;
-                return true;
-            }
-
-            if (ReplaceActivity(child, id, replacement))
-                return true;
-        }
-
-        return false;
-    }
 
     /// <summary>
     /// Reads the imported BPMN document's source XML from the workflow definition's custom
