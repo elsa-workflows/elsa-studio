@@ -40,7 +40,13 @@ public static class ValidationApiExceptionExtensions
         return new ValidationErrors(new List<ValidationError> { new(e.ReasonPhrase ?? e.Message) });
     }
 
-    private static ValidationErrors? GetValidationErrorsFromContent(string? content)
+    /// <summary>
+    /// Parses a FastEndpoints-shaped error body (an <c>errors</c> object/array/string, or a <c>detail</c>/<c>title</c>/
+    /// <c>message</c> fallback) into <see cref="ValidationErrors"/>, or <see langword="null"/> when <paramref name="content"/>
+    /// is empty or does not parse as JSON. Shared with callers that have a raw response body rather than an
+    /// <see cref="ApiException"/> to extract it from.
+    /// </summary>
+    public static ValidationErrors? GetValidationErrorsFromContent(string? content)
     {
         if (string.IsNullOrWhiteSpace(content))
             return null;

@@ -39,6 +39,7 @@ public partial class WorkflowDefinitionList
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
     [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
+    [Inject] private IBpmnImportUiService BpmnImportUiService { get; set; } = null!;
 
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
@@ -393,9 +394,60 @@ public partial class WorkflowDefinitionList
         return DomAccessor.ClickElementAsync("#workflow-file-upload-button-wrapper input[type=file]");
     }
 
+    private Task OnImportBpmnClicked()
+    {
+        return DomAccessor.ClickElementAsync("#workflow-bpmn-file-upload-button-wrapper input[type=file]");
+    }
+
+    private async Task OnBpmnFilesSelected(IReadOnlyList<IBrowserFile> files)
+    {
+        if (files.Count == 0)
+            return;
+
+        var result = await BpmnImportUiService.ImportFileAsync(files[0], definitionId: null);
+
+        // A null result means the user cancelled the findings dialog before anything was imported; there is
+        // nothing to report or reload.
+        if (result == null)
+            return;
+
+        if (result.IsSuccess)
+        {
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow imported successfully."], Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+            await EditAsync(result.WorkflowDefinition!.DefinitionId);
+        }
+        else
+        {
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Failed to import BPMN document. Reason: {0}", result.Failure!.ErrorMessage], Severity.Error, options =>
+            {
+                options.SnackbarVariant = Variant.Filled;
+                options.VisibleStateDuration = 10000;
+            });
+        }
+
+        Reload();
+    }
+
     private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
     {
-        var results = (await WorkflowDefinitionImporter.ImportFilesAsync(files)).ToList();
+        // A .bpmn file dropped on the generic (JSON/ZIP) picker cannot be parsed as either, so it is routed through
+        // the same interactive BPMN import flow the dedicated "Import BPMN" button uses instead of silently
+        // producing zero results.
+        var bpmnFiles = files.Where(BpmnImportUiService.IsBpmnFile).ToList();
+        var otherFiles = files.Where(file => !BpmnImportUiService.IsBpmnFile(file)).ToList();
+
+        var results = new List<WorkflowImportResult>();
+
+        if (otherFiles.Count > 0)
+            results.AddRange(await WorkflowDefinitionImporter.ImportFilesAsync(otherFiles));
+
+        foreach (var bpmnFile in bpmnFiles)
+        {
+            var bpmnResult = await BpmnImportUiService.ImportFileAsync(bpmnFile, definitionId: null);
+            if (bpmnResult != null)
+                results.Add(bpmnResult);
+        }
+
         var successfulResultCount = results.Count(x => x.IsSuccess);
         var failedResultCount = results.Count(x => !x.IsSuccess);
         var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";

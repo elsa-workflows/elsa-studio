@@ -16,7 +16,7 @@ namespace Elsa.Studio.Workflows.Tests;
 /// </summary>
 public class BpmnDiagramDesignerTests
 {
-    private readonly BpmnDiagramDesigner _designer = new(new TestLocalizer(), Microsoft.Extensions.Options.Options.Create(new DesignerOptions()));
+    private readonly BpmnDiagramDesigner _designer = new(new TestLocalizer(), Microsoft.Extensions.Options.Options.Create(new DesignerOptions()), null!, null!, null!, null!);
 
     [Fact]
     public async Task ReadRootActivityAsync_ReturnsTheLoadedActivityUnchanged()

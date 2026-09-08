@@ -2,7 +2,11 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Studio.Contracts;
+using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Localization;
+using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
@@ -18,7 +22,13 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Bpmn;
 /// A diagram designer that displays an imported BPMN process, read-only. Editing lands in a later
 /// increment (W14); this designer only ever shows the diagram and forwards selection.
 /// </summary>
-public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions> designerOptions) : IDiagramDesignerToolboxProvider
+public class BpmnDiagramDesigner(
+    ILocalizer localizer,
+    IOptions<DesignerOptions> designerOptions,
+    IDialogService dialogService,
+    IBpmnInterchangeService bpmnInterchangeService,
+    IFiles files,
+    IUserMessageService userMessageService) : IDiagramDesignerToolboxProvider
 {
     /// <summary>
     /// The custom property key elsa-core stores the imported BPMN document's source XML under.
@@ -29,6 +39,7 @@ public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions>
     private BpmnDesignerWrapper? _designerWrapper;
     private JsonObject _rootActivity = [];
     private string? _sourceXml;
+    private WorkflowDefinition? _workflowDefinition;
 
     /// <inheritdoc />
     public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
@@ -84,6 +95,7 @@ public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions>
 
         _rootActivity = activity;
         _sourceXml = GetSourceXml(context.WorkflowDefinition);
+        _workflowDefinition = context.WorkflowDefinition;
 
         return builder =>
         {
@@ -110,6 +122,7 @@ public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions>
 
         yield return DiagramDesignerToolbox.DisplayToolboxItem(localizer["Zoom to fit"], Icons.Material.Outlined.FitScreen, localizer["Zoom to fit the screen"], OnZoomToFitClicked);
         yield return DiagramDesignerToolbox.DisplayToolboxItem(localizer["Center"], Icons.Material.Filled.FilterCenterFocus, localizer["Center"], OnCenterClicked);
+        yield return DiagramDesignerToolbox.DisplayToolboxItem(localizer["Export"], Icons.Material.Outlined.Download, localizer["Export as BPMN 2.0 XML"], OnExportClicked);
     }
 
     private async Task InvokeDesignerActionAsync(Func<BpmnDesignerWrapper, Task> action)
@@ -120,6 +133,53 @@ public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions>
 
     private Task OnZoomToFitClicked() => _designerWrapper != null ? _designerWrapper.ZoomToFitAsync() : Task.CompletedTask;
     private Task OnCenterClicked() => _designerWrapper != null ? _designerWrapper.CenterContentAsync() : Task.CompletedTask;
+
+    private async Task OnExportClicked()
+    {
+        if (_workflowDefinition == null)
+            return;
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        };
+
+        var dialog = await dialogService.ShowAsync<ExportBpmnDialog>(localizer["Export BPMN"], options);
+        var result = await dialog.Result;
+
+        if (result?.Canceled != false)
+            return;
+
+        var exportResult = await bpmnInterchangeService.ExportAsync(_workflowDefinition.DefinitionId);
+
+        if (!exportResult.IsSuccess)
+        {
+            userMessageService.ShowSnackbarTextMessage(DescribeExportFailure(exportResult.Failure!), Severity.Error);
+            return;
+        }
+
+        var download = exportResult.Success!;
+
+        if (download.Content.CanSeek)
+            download.Content.Seek(0, SeekOrigin.Begin);
+
+        await files.DownloadFileFromStreamAsync(download.FileName, download.Content);
+    }
+
+    /// <summary>
+    /// Renders the two 422 refusals in the user's own words, per this program's design; anything else falls back to
+    /// the server's own message.
+    /// </summary>
+    private string DescribeExportFailure(BpmnExportFailure failure) => failure.Reason switch
+    {
+        BpmnExportFailureReason.NotFound => localizer["Definition not found."],
+        BpmnExportFailureReason.NotImportedFromBpmn => localizer["This definition was not imported from BPMN."],
+        BpmnExportFailureReason.DefinitionChangedSinceImport => localizer["The definition changed since import; export reflects the imported document only."],
+        _ => localizer[failure.Message]
+    };
 
     /// <summary>
     /// Reads the imported BPMN document's source XML from the workflow definition's custom

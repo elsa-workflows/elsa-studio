@@ -91,6 +91,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     [Inject] private IBackendApiClientProvider BackendApiClientProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
     [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
+    [Inject] private IBpmnImportUiService BpmnImportUiService { get; set; } = null!;
     [Inject] private IOptions<WorkflowDefinitionOptions> WorkflowDefinitionOptions { get; set; } = null!;
 
     /// <summary>
@@ -695,7 +696,30 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
                 return Task.CompletedTask;
             }
         };
-        var importResults = (await WorkflowDefinitionImporter.ImportFilesAsync(files, options)).ToList();
+
+        // A .bpmn file cannot be parsed as JSON, so it is routed through the same interactive BPMN import flow the
+        // definitions list uses, updating the definition currently open here rather than creating a new one.
+        var bpmnFiles = files.Where(BpmnImportUiService.IsBpmnFile).ToList();
+        var otherFiles = files.Where(file => !BpmnImportUiService.IsBpmnFile(file)).ToList();
+
+        var importResults = new List<WorkflowImportResult>();
+
+        if (otherFiles.Count > 0)
+            importResults.AddRange(await WorkflowDefinitionImporter.ImportFilesAsync(otherFiles, options));
+
+        foreach (var bpmnFile in bpmnFiles)
+        {
+            var bpmnResult = await BpmnImportUiService.ImportFileAsync(bpmnFile, options.DefinitionId);
+
+            if (bpmnResult == null)
+                continue;
+
+            importResults.Add(bpmnResult);
+
+            if (bpmnResult.IsSuccess)
+                await SetImportedWorkflowDefinitionAsync(bpmnResult.WorkflowDefinition!);
+        }
+
         var failedImports = importResults.Where(x => !x.IsSuccess).ToList();
         var successfulImports = importResults.Where(x => x.IsSuccess).ToList();
 
