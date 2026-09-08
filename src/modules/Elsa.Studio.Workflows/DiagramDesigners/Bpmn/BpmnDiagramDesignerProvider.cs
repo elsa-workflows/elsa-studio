@@ -1,10 +1,14 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
+using Elsa.Studio.Contracts;
+using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Localization;
+using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.UI.Contracts;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Options;
+using MudBlazor;
 
 namespace Elsa.Studio.Workflows.DiagramDesigners.Bpmn;
 
@@ -13,7 +17,13 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Bpmn;
 /// designer instead of falling back to the JSON view.
 /// </summary>
 [UsedImplicitly]
-public class BpmnDiagramDesignerProvider(ILocalizer localizer, IOptions<DesignerOptions> designerOptions) : IDiagramDesignerProvider
+public class BpmnDiagramDesignerProvider(
+    ILocalizer localizer,
+    IOptions<DesignerOptions> designerOptions,
+    IDialogService dialogService,
+    IBpmnInterchangeService bpmnInterchangeService,
+    IFiles files,
+    IUserMessageService userMessageService) : IDiagramDesignerProvider
 {
     /// <inheritdoc />
     public double Priority => 10;
@@ -22,5 +32,5 @@ public class BpmnDiagramDesignerProvider(ILocalizer localizer, IOptions<Designer
     public bool GetSupportsActivity(JsonObject activity) => activity.GetTypeName() == "Elsa.BpmnProcess";
 
     /// <inheritdoc />
-    public IDiagramDesigner GetEditor() => new BpmnDiagramDesigner(localizer, designerOptions);
+    public IDiagramDesigner GetEditor() => new BpmnDiagramDesigner(localizer, designerOptions, dialogService, bpmnInterchangeService, files, userMessageService);
 }

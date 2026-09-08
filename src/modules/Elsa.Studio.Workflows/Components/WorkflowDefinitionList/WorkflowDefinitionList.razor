@@ -31,6 +31,10 @@
         <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnFilesSelected" MaximumFileCount="Int32.MaxValue" />
     </div>
 
+    <div id="workflow-bpmn-file-upload-button-wrapper" class="d-none">
+        <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="@OnBpmnFilesSelected" MaximumFileCount="1" Accept=".bpmn" />
+    </div>
+
     <MudTable @ref="_table"
               T="WorkflowDefinitionRow"
               ServerData="ServerReload"
@@ -74,6 +78,9 @@
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Disabled="IsReadOnlyMode" Dense="true">
                     <MudTooltip Text="@Localizer["Upload JSON and/or ZIP files containing workflow data to import."]" Inline="false" Delay="1000">
                         <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportClicked">@Localizer["Import"]</MudMenuItem>
+                    </MudTooltip>
+                    <MudTooltip Text="@Localizer["Upload a BPMN 2.0 (.bpmn) file to import as a new workflow."]" Inline="false" Delay="1000">
+                        <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@OnImportBpmnClicked">@Localizer["Import BPMN"]</MudMenuItem>
                     </MudTooltip>
                 </MudMenu>
             </MudButtonGroup>

@@ -17,9 +17,9 @@ public static class ValidationApiExceptionExtensions
         var problemDetails = e.Content;
 
         if (problemDetails != null)
-            return problemDetails.ToValidationErrors();
+            return problemDetails.ToValidationErrors() with { StatusCode = e.StatusCode };
 
-        return new ValidationErrors(new List<ValidationError> { new(e.ReasonPhrase ?? "The server responded with a Bad Request status code. That's all I know.") });
+        return new ValidationErrors(new List<ValidationError> { new(e.ReasonPhrase ?? "The server responded with a Bad Request status code. That's all I know.") }, e.StatusCode);
     }
 
     /// <summary>
@@ -32,15 +32,21 @@ public static class ValidationApiExceptionExtensions
 
         var errors = GetValidationErrorsFromContent(e.Content);
         if (errors != null)
-            return errors;
+            return errors with { StatusCode = e.StatusCode };
 
         if (!string.IsNullOrWhiteSpace(e.Content))
-            return new ValidationErrors(new List<ValidationError> { new(e.Content) });
+            return new ValidationErrors(new List<ValidationError> { new(e.Content) }, e.StatusCode);
 
-        return new ValidationErrors(new List<ValidationError> { new(e.ReasonPhrase ?? e.Message) });
+        return new ValidationErrors(new List<ValidationError> { new(e.ReasonPhrase ?? e.Message) }, e.StatusCode);
     }
 
-    private static ValidationErrors? GetValidationErrorsFromContent(string? content)
+    /// <summary>
+    /// Parses a FastEndpoints-shaped error body (an <c>errors</c> object/array/string, or a <c>detail</c>/<c>title</c>/
+    /// <c>message</c> fallback) into <see cref="ValidationErrors"/>, or <see langword="null"/> when <paramref name="content"/>
+    /// is empty or does not parse as JSON. Shared with callers that have a raw response body rather than an
+    /// <see cref="ApiException"/> to extract it from.
+    /// </summary>
+    public static ValidationErrors? GetValidationErrorsFromContent(string? content)
     {
         if (string.IsNullOrWhiteSpace(content))
             return null;

@@ -17,7 +17,7 @@ namespace Elsa.Studio.Workflows.Tests;
 /// </summary>
 public class BpmnDiagramDesignerProviderTests
 {
-    private readonly BpmnDiagramDesignerProvider _provider = new(new TestLocalizer(), Microsoft.Extensions.Options.Options.Create(new DesignerOptions()));
+    private readonly BpmnDiagramDesignerProvider _provider = new(new TestLocalizer(), Microsoft.Extensions.Options.Options.Create(new DesignerOptions()), null!, null!, null!, null!);
 
     [Fact]
     public void GetSupportsActivity_ReturnsTrueForBpmnProcessActivity()
