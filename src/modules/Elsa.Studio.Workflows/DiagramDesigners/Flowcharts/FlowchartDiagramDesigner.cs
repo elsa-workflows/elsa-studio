@@ -9,7 +9,6 @@ using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Options;
 using MudBlazor;
 
@@ -85,33 +84,13 @@ public class FlowchartDiagramDesigner(ILocalizer localizer, IDialogService dialo
     /// <inheritdoc />
     public IEnumerable<RenderFragment> GetToolboxItems(bool isReadonly)
     {
-        yield return DisplayToolboxItem(localizer["Zoom to fit"], Icons.Material.Outlined.FitScreen, localizer["Zoom to fit the screen"], OnZoomToFitClicked);
-        yield return DisplayToolboxItem(localizer["Center"], Icons.Material.Filled.FilterCenterFocus, localizer["Center"], OnCenterClicked);
-        yield return DisplayToolboxItem(localizer["Auto layout"], Icons.Material.Outlined.AutoAwesomeMosaic, localizer["Auto layout"], OnAutoLayoutClicked);
+        yield return DiagramDesignerToolbox.DisplayToolboxItem(localizer["Zoom to fit"], Icons.Material.Outlined.FitScreen, localizer["Zoom to fit the screen"], OnZoomToFitClicked);
+        yield return DiagramDesignerToolbox.DisplayToolboxItem(localizer["Center"], Icons.Material.Filled.FilterCenterFocus, localizer["Center"], OnCenterClicked);
+        yield return DiagramDesignerToolbox.DisplayToolboxItem(localizer["Auto layout"], Icons.Material.Outlined.AutoAwesomeMosaic, localizer["Auto layout"], OnAutoLayoutClicked);
 
         // Exporting is available in both read-only and editable mode, but only the X6 designer can produce an image.
         if (!designerOptions.Value.UseReactFlow)
-            yield return DisplayToolboxItem(localizer["Export"], Icons.Material.Outlined.Download, localizer["Export as image"], OnExportClicked);
-    }
-
-    private RenderFragment DisplayToolboxItem(string title, string icon, string description, Func<Task> onClick)
-    {
-        return builder =>
-        {
-            builder.OpenComponent<MudTooltip>(0);
-            builder.AddAttribute(1, nameof(MudTooltip.Text), description);
-            builder.AddAttribute(2, nameof(MudTooltip.Delay), 500d);
-            builder.AddAttribute(3, nameof(MudTooltip.ChildContent), (RenderFragment)(childBuilder =>
-            {
-                childBuilder.OpenComponent<MudIconButton>(0);
-                childBuilder.AddAttribute(1, nameof(MudIconButton.Icon), icon);
-                childBuilder.AddAttribute(2, nameof(MudIconButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, onClick));
-                childBuilder.AddAttribute(3, "aria-label", title);
-                childBuilder.CloseComponent();
-            }));
-
-            builder.CloseComponent();
-        };
+            yield return DiagramDesignerToolbox.DisplayToolboxItem(localizer["Export"], Icons.Material.Outlined.Download, localizer["Export as image"], OnExportClicked);
     }
 
     private async Task InvokeDesignerActionAsync(Func<FlowchartDesignerWrapper, Task> action)

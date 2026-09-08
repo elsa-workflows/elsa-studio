@@ -8,7 +8,6 @@ using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.UI.Contexts;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Options;
 using MudBlazor;
 
@@ -103,28 +102,8 @@ public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions>
         if (designerOptions.Value.UseReactFlow)
             yield break;
 
-        yield return DisplayToolboxItem(localizer["Zoom to fit"], Icons.Material.Outlined.FitScreen, localizer["Zoom to fit the screen"], OnZoomToFitClicked);
-        yield return DisplayToolboxItem(localizer["Center"], Icons.Material.Filled.FilterCenterFocus, localizer["Center"], OnCenterClicked);
-    }
-
-    private RenderFragment DisplayToolboxItem(string title, string icon, string description, Func<Task> onClick)
-    {
-        return builder =>
-        {
-            builder.OpenComponent<MudTooltip>(0);
-            builder.AddAttribute(1, nameof(MudTooltip.Text), description);
-            builder.AddAttribute(2, nameof(MudTooltip.Delay), 500d);
-            builder.AddAttribute(3, nameof(MudTooltip.ChildContent), (RenderFragment)(childBuilder =>
-            {
-                childBuilder.OpenComponent<MudIconButton>(0);
-                childBuilder.AddAttribute(1, nameof(MudIconButton.Icon), icon);
-                childBuilder.AddAttribute(2, nameof(MudIconButton.OnClick), EventCallback.Factory.Create<MouseEventArgs>(this, onClick));
-                childBuilder.AddAttribute(3, "aria-label", title);
-                childBuilder.CloseComponent();
-            }));
-
-            builder.CloseComponent();
-        };
+        yield return DiagramDesignerToolbox.DisplayToolboxItem(localizer["Zoom to fit"], Icons.Material.Outlined.FitScreen, localizer["Zoom to fit the screen"], OnZoomToFitClicked);
+        yield return DiagramDesignerToolbox.DisplayToolboxItem(localizer["Center"], Icons.Material.Filled.FilterCenterFocus, localizer["Center"], OnCenterClicked);
     }
 
     private async Task InvokeDesignerActionAsync(Func<BpmnDesignerWrapper, Task> action)

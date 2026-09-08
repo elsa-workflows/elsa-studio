@@ -121,8 +121,21 @@ public partial class BpmnDesigner : IAsyncDisposable
 
         var diagnostics = await ScheduleGraphActionAsync(() => _graphApi!.LoadDiagramAsync(payload));
 
-        foreach (var diagnostic in diagnostics.Where(d => d.Severity == "error"))
-            Logger.LogWarning("BPMN diagram '{ActivityId}' reported an error: {Message}", activity.GetId(), diagnostic.Message);
+        foreach (var diagnostic in diagnostics)
+        {
+            switch (diagnostic.Severity)
+            {
+                case "error":
+                    Logger.LogWarning("BPMN diagram '{ActivityId}' reported diagnostic {Code} on element '{ElementId}': {Message}", activity.GetId(), diagnostic.Code, diagnostic.ElementId, diagnostic.Message);
+                    break;
+                case "warning":
+                    Logger.LogInformation("BPMN diagram '{ActivityId}' reported diagnostic {Code} on element '{ElementId}': {Message}", activity.GetId(), diagnostic.Code, diagnostic.ElementId, diagnostic.Message);
+                    break;
+                default:
+                    Logger.LogDebug("BPMN diagram '{ActivityId}' reported diagnostic {Code} on element '{ElementId}': {Message}", activity.GetId(), diagnostic.Code, diagnostic.ElementId, diagnostic.Message);
+                    break;
+            }
+        }
 
         if (activityStats != null)
         {
