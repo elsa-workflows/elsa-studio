@@ -11,6 +11,7 @@
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageVersion Include="AngleSharp" Version="1.5.2" />
     <PackageVersion Include="BlazorMonaco" Version="3.4.0" />
+    <PackageVersion Include="Bpmn.Model" Version="0.2.0" />
     <PackageVersion Include="bunit" Version="2.7.2" />
     <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="9.1.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
