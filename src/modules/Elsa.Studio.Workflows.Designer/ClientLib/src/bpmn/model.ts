@@ -334,6 +334,16 @@ export type BpmnDiagnosticCode =
     | 'unbound-work'
     /** An element declares a binding ref that `workBindings` or `activities` does not resolve. */
     | 'unresolved-binding'
+    /**
+     * An event subprocess declares a listener binding ref that `workBindings` or `activities` does
+     * not resolve.
+     */
+    | 'unresolved-listener-binding'
+    /**
+     * Two different nested processes reuse the same processId; the second, and everything it hosts,
+     * is not shown.
+     */
+    | 'duplicate-process-id'
     /** A sequence flow names a source or target its scope does not contain; the flow is dropped. */
     | 'dangling-flow'
     /** A boundary event names a host its scope does not contain. */

@@ -83,7 +83,7 @@ export function buildBpmnViewModel(input: BpmnViewModelInput): BpmnViewModel {
         return emptyViewModel(diagnostics);
     }
 
-    const scopes = collectScopes(input.activity, rootProcess);
+    const scopes = collectScopes(input.activity, rootProcess, report);
     const diagram = readDiagramInterchange(input.sourceXml);
 
     for (const duplicate of diagram.duplicateShapeIds) {
@@ -261,12 +261,15 @@ interface ScopeNode {
  *
  * A nested BPMN scope is an `Elsa.BpmnProcess` bound as its host element's work, so the scope
  * hierarchy is exactly the activity hierarchy. `visited` closes the one way that could not
- * terminate: an activity graph that -- through a hand-edited payload -- reaches the same scope
- * twice.
+ * terminate: an activity graph that -- through a hand-edited payload -- reaches the very same
+ * payload object twice. A *different* payload object that happens to carry a processId already
+ * seen is not a cycle but a malformed document -- two distinct nested processes cannot share an
+ * id, since everything keyed by it (this map, instance state) could only ever mean one of them --
+ * so that case is reported and stopped, rather than silently treated the same as a cycle.
  */
-function collectScopes(rootActivity: BpmnActivity, rootProcess: BpmnProcessDefinition): ScopeNode[] {
+function collectScopes(rootActivity: BpmnActivity, rootProcess: BpmnProcessDefinition, report: Report): ScopeNode[] {
     const scopes: ScopeNode[] = [];
-    const visited = new Set<string>();
+    const visited = new Map<string, { readonly definition: BpmnProcessDefinition; readonly activityId: string }>();
 
     const walk = (
         activity: BpmnActivity,
@@ -274,9 +277,22 @@ function collectScopes(rootActivity: BpmnActivity, rootProcess: BpmnProcessDefin
         parentScopeId: string | null,
         hostElementId: string | null,
         depth: number): void => {
-        if (visited.has(definition.processId)) return;
+        const seen = visited.get(definition.processId);
 
-        visited.add(definition.processId);
+        if (seen != null) {
+            if (seen.definition !== definition) {
+                report(
+                    'duplicate-process-id',
+                    'error',
+                    `The processId '${definition.processId}' is used by two different nested BPMN processes, hosted by the activities '${seen.activityId}' and '${activity.id}'. Instance state and the scope hierarchy cannot tell the two apart, so only the first is shown.`,
+                    hostElementId,
+                    parentScopeId);
+            }
+
+            return;
+        }
+
+        visited.set(definition.processId, { definition, activityId: activity.id });
 
         const workBindings = activity.workBindings ?? {};
         const activitiesById = new Map((activity.activities ?? []).map(child => [child.id, child]));
@@ -396,6 +412,15 @@ function buildElement(
             'unresolved-binding',
             'error',
             `The ${element.elementType} '${element.name ?? element.elementId}' declares the binding ref '${element.bindingRef}', which scope '${scope.id}' does not map to an activity it carries.`,
+            element.elementId,
+            scope.id);
+    }
+
+    if (listenerBinding?.state === 'unresolved') {
+        report(
+            'unresolved-listener-binding',
+            'error',
+            `The event subprocess '${element.name ?? element.elementId}' declares the listener binding ref '${element.listenerBindingRef}', which scope '${scope.id}' does not map to an activity it carries.`,
             element.elementId,
             scope.id);
     }

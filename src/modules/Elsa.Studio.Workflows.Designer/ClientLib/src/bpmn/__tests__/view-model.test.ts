@@ -160,12 +160,54 @@ describe('scopes', () => {
         expect(element(model, 'Fulfil').listenerBinding).toBeNull();
     });
 
+    it('reports a listener binding ref that workBindings does not map as unresolved, not silently', () => {
+        const fixture = loadFixture('subprocess-boundary-events');
+        const activity = structuredClone(fixture.activity) as BpmnActivity;
+
+        delete (activity.workBindings as Record<string, string>)['node-OnRecall-listener'];
+
+        const model = buildBpmnViewModel({ activity, sourceXml: fixture.sourceXml });
+
+        expect(element(model, 'OnRecall').listenerBinding).toMatchObject({
+            state: 'unresolved',
+            bindingRef: 'node-OnRecall-listener',
+            activityId: null,
+        });
+
+        const diagnostic = model.diagnostics.find(candidate => candidate.code === 'unresolved-listener-binding')!;
+
+        expect(diagnostic).toMatchObject({ severity: 'error', elementId: 'OnRecall', scopeId: 'subprocess-boundary-events' });
+        expect(diagnostic.message).toContain('OnRecall');
+        expect(diagnostic.message).toContain('node-OnRecall-listener');
+    });
+
     it('marks a transaction on both the element and the scope it hosts', () => {
         const model = build('transaction-compensation');
 
         expect(element(model, 'BookTrip').isTransaction).toBe(true);
         expect(model.scopes.find(scope => scope.id === 'BookTrip')!.isTransaction).toBe(true);
         expect(model.scopes.find(scope => scope.id === 'transaction-compensation')!.isTransaction).toBe(false);
+    });
+
+    it('reports two distinct nested processes reusing a processId, and still renders the first one', () => {
+        const fixture = loadFixture('subprocess-boundary-events');
+        const activity = structuredClone(fixture.activity) as BpmnActivity;
+        const onRecall = activity.activities!.find(candidate => candidate.id === 'subprocess-boundary-events:node-OnRecall')!;
+
+        // Two distinct payload objects -- `Fulfil`'s and `OnRecall`'s -- now claim the same processId.
+        (onRecall.process as { processId: string }).processId = 'Fulfil';
+
+        const model = buildBpmnViewModel({ activity, sourceXml: fixture.sourceXml });
+        const diagnostic = model.diagnostics.find(candidate => candidate.code === 'duplicate-process-id')!;
+
+        expect(diagnostic).toMatchObject({ severity: 'error', elementId: 'OnRecall', scopeId: 'subprocess-boundary-events' });
+        expect(diagnostic.message).toContain('Fulfil');
+        expect(diagnostic.message).toContain('subprocess-boundary-events:node-Fulfil');
+        expect(diagnostic.message).toContain('subprocess-boundary-events:node-OnRecall');
+
+        // The first scope to claim the processId is kept, elements and all.
+        expect(model.scopes.map(scope => scope.id)).toEqual(['subprocess-boundary-events', 'Fulfil']);
+        expect(element(model, 'PickLine').scopeId).toBe('Fulfil');
     });
 
     it('reads multi-instance markers', () => {
