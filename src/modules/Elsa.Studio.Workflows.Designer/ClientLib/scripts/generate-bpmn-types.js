@@ -27,6 +27,7 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..', '..');
 const PACKAGES_PROPS_PATH = path.join(REPO_ROOT, 'Directory.Packages.props');
 const OUTPUT_PATH = path.join(__dirname, '..', 'src', 'bpmn', 'types.generated.ts');
 const PACKAGE_ID = 'Bpmn.Model';
+const VERSION_PROPERTY_NAME = 'BpmnModelVersion';
 
 // A raw `[k: string]: unknown` (or `any`) index signature is the old hand-written mirror's failure
 // mode: it means some object in the schema lost its shape (usually a missing `additionalProperties:
@@ -38,11 +39,11 @@ const LOOSE_INDEX_SIGNATURE = /\[k: string\]:\s*(unknown|any)\b/;
 
 function readPinnedVersion() {
     const xml = fs.readFileSync(PACKAGES_PROPS_PATH, 'utf8');
-    const pattern = new RegExp(`<PackageVersion\\s+Include="${PACKAGE_ID.replace('.', '\\.')}"\\s+Version="([^"]+)"`);
+    const pattern = new RegExp(`<${VERSION_PROPERTY_NAME}>([^<]+)</${VERSION_PROPERTY_NAME}>`);
     const match = xml.match(pattern);
 
     if (!match) {
-        throw new Error(`Could not find a <PackageVersion Include="${PACKAGE_ID}" .../> entry in ${PACKAGES_PROPS_PATH}.`);
+        throw new Error(`Could not find a <${VERSION_PROPERTY_NAME}>...</${VERSION_PROPERTY_NAME}> property in ${PACKAGES_PROPS_PATH}.`);
     }
 
     return match[1];

@@ -2,6 +2,13 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+    <!--
+      Bpmn.Model is also referenced via <PackageDownload> (not <PackageReference>) in
+      Elsa.Studio.Workflows.Designer.csproj, which CPM does not manage. Naming the version here,
+      once, keeps that PackageDownload's version pin from drifting from this file's PackageVersion
+      entry. ClientLib/scripts/generate-bpmn-types.js also reads this property.
+    -->
+    <BpmnModelVersion>0.2.0</BpmnModelVersion>
   </PropertyGroup>
   <ItemGroup Label="Elsa">
     <PackageVersion Include="Elsa.Api.Client" Version="3.8.0-preview.5565" />
@@ -11,7 +18,7 @@
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageVersion Include="AngleSharp" Version="1.5.2" />
     <PackageVersion Include="BlazorMonaco" Version="3.4.0" />
-    <PackageVersion Include="Bpmn.Model" Version="0.2.0" />
+    <PackageVersion Include="Bpmn.Model" Version="$(BpmnModelVersion)" />
     <PackageVersion Include="bunit" Version="2.7.2" />
     <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="9.1.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />

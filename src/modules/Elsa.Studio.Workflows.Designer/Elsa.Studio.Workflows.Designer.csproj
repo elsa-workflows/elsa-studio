@@ -25,7 +25,7 @@
             at a version pinned centrally like every other dependency, for ClientLib/scripts/generate-bpmn-types.js
             to read when it regenerates src/bpmn/types.generated.ts. See that script for how the path is resolved.
         -->
-        <PackageDownload Include="Bpmn.Model" Version="[0.2.0]"/>
+        <PackageDownload Include="Bpmn.Model" Version="[$(BpmnModelVersion)]"/>
     </ItemGroup>
 
     <ItemGroup>
