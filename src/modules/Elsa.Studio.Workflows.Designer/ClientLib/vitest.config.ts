@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config';
 
-// Two suites, both under src/bpmn:
+// Two suites:
 //
 //  - `*.test.ts`, run in a jsdom environment. src/bpmn/di-reader.ts parses BPMN DI with the platform
 //    `DOMParser`, which is what the browser gives it at runtime; jsdom is the one test environment
@@ -11,7 +11,10 @@ import { defineConfig } from 'vitest/config';
 //    asked with a type-level assertion rather than a runtime one -- see
 //    src/bpmn/__tests__/process-payload.test-d.ts.
 //
-// The designer and react-designer bundles have no test suite; they are covered by the .NET side.
+// Covered: src/bpmn, and the pure half of the X6 BPMN adapter under src/designer/bpmn -- its cell
+// mapping, badge policy and graph options are all plain functions precisely so that they can be
+// tested here rather than only in a browser. The rest of the designer and react-designer bundles
+// have no test suite; they are covered by the .NET side.
 export default defineConfig({
     test: {
         environment: 'jsdom',

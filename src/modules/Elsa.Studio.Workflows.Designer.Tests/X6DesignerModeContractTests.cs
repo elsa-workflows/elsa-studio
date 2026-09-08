@@ -97,14 +97,32 @@ public sealed class X6DesignerModeContractTests
     {
         var disposal = ReadAsset("dispose-graph.ts");
         var loading = ReadAsset("load-graph.ts");
+        var canvasReady = ReadAsset("canvas-ready.ts");
 
         Assert.Contains("binding.graph.dispose()", disposal, StringComparison.Ordinal);
         Assert.True(
             disposal.IndexOf("binding.graph.dispose()", StringComparison.Ordinal) <
             disposal.IndexOf("delete graphBindings[graphId]", StringComparison.Ordinal));
-        Assert.Contains("!container.isConnected", loading, StringComparison.Ordinal);
-        Assert.Contains("graphBindings[graphId]?.graph !== graph", loading, StringComparison.Ordinal);
-        Assert.Contains("graphBindings[graphId] !== binding", loading, StringComparison.Ordinal);
+
+        // The wait for a laid-out container is shared with the BPMN canvas, so the two guards that
+        // stop a stale load from stealing the viewport live in canvas-ready.ts: the container must
+        // still be in the document, and the caller must still recognise the graph as its own.
+        Assert.Contains("!container.isConnected", canvasReady, StringComparison.Ordinal);
+        Assert.Contains("!isCurrent()", canvasReady, StringComparison.Ordinal);
+        Assert.Contains("whenCanvasHasHeight(graph, () => graphBindings[graphId] === binding)", loading, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GraphDisposal_AlsoTearsDownABpmnCanvasRegisteredUnderTheSameId()
+    {
+        var disposal = ReadAsset("dispose-graph.ts");
+        var registry = ReadAsset("bpmn-graph-registry.ts");
+
+        // The BPMN adapter keeps its own registry, so the generic teardown has to reach it as well;
+        // otherwise a component that calls the wrong one leaks an X6 graph without saying so.
+        Assert.Contains("disposeBpmnGraphBinding(graphId)", disposal, StringComparison.Ordinal);
+        Assert.Contains("binding.graph.dispose()", registry, StringComparison.Ordinal);
+        Assert.Contains("delete bpmnGraphBindings[graphId]", registry, StringComparison.Ordinal);
     }
 
     private static string ReadAsset(string name) =>
