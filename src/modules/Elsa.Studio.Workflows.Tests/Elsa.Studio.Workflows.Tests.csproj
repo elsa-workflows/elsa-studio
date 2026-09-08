@@ -48,6 +48,9 @@
         <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\designer\api\create-graph.ts"
               Link="DesignerAssets\create-graph.ts"
               CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\Elsa.Studio.Workflows.Designer\ClientLib\src\bpmn\__fixtures__\camunda-order-process.activity.json"
+              Link="DesignerAssets\camunda-order-process.activity.json"
+              CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

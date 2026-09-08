@@ -1,0 +1,13 @@
+@inject ILocalizer Localizer
+
+<div style="height:100%">
+    @if (UseReactFlow)
+    {
+        <MudAlert Severity="Severity.Info">@Localizer["BPMN is not yet available on the React Flow canvas."]</MudAlert>
+    }
+    else
+    {
+        <BpmnDesigner @ref="@Designer" Activity="@Activity" SourceXml="@SourceXml" ActivityStats="@ActivityStats"
+            ActivitySelected="@ActivitySelected" ActivityDoubleClick="@ActivityDoubleClick" CanvasSelected="@OnCanvasSelected" />
+    }
+</div>
