@@ -101,6 +101,7 @@ async function generate(schemaPath) {
         bannerComment: '',
         style: { semi: true, singleQuote: true },
         enableConstEnums: false,
+        format: false,
     });
 
     if (LOOSE_INDEX_SIGNATURE.test(body)) {
