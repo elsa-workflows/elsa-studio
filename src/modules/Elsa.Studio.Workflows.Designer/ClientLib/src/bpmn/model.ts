@@ -330,6 +330,8 @@ export type BpmnDiagnosticCode =
     | 'duplicate-di-shape'
     /** Two elements in this document share an id. */
     | 'duplicate-element-id'
+    /** Two sequence flows in this document share an id. */
+    | 'duplicate-flow-id'
     /** An element that needs work performed declares no binding ref. A publish error (W8). */
     | 'unbound-work'
     /** An element declares a binding ref that `workBindings` or `activities` does not resolve. */
