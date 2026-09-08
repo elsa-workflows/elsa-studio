@@ -45,7 +45,11 @@ public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions>
     /// </remarks>
     public Task UpdateActivityAsync(string id, JsonObject activity)
     {
-        ReplaceActivity(_rootActivity, id, activity);
+        if (_rootActivity.GetId() == id)
+            _rootActivity = (JsonObject)activity.DeepClone()!;
+        else
+            ReplaceActivity(_rootActivity, id, activity);
+
         return Task.CompletedTask;
     }
 

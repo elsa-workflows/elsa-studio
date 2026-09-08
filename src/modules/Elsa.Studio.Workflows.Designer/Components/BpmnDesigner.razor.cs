@@ -182,6 +182,7 @@ public partial class BpmnDesigner : IAsyncDisposable
             _componentRef = DotNetObjectReference.Create(this);
             _graphApi = await DesignerJsInterop.CreateBpmnGraphAsync(_containerId, _componentRef);
             await _pendingGraphActions.ProcessAsync();
+            await LoadBpmnAsync(Activity, SourceXml, ActivityStats);
         }
     }
 
@@ -215,15 +216,9 @@ public partial class BpmnDesigner : IAsyncDisposable
         if (root.GetId() == id)
             return root;
 
-        foreach (var activity in root.GetActivities())
-        {
-            var found = FindActivityById(activity, id);
-
-            if (found != null)
-                return found;
-        }
-
-        return null;
+        return root.GetActivities()
+            .Select(activity => FindActivityById(activity, id))
+            .FirstOrDefault(found => found != null);
     }
 
     /// <summary>
@@ -249,15 +244,9 @@ public partial class BpmnDesigner : IAsyncDisposable
             }
         }
 
-        foreach (var activity in scope.GetActivities())
-        {
-            var found = ResolveElementId(activity, activityId);
-
-            if (found != null)
-                return found;
-        }
-
-        return null;
+        return scope.GetActivities()
+            .Select(activity => ResolveElementId(activity, activityId))
+            .FirstOrDefault(found => found != null);
     }
 
     private async Task ScheduleGraphActionAsync(Func<Task> action) => await _pendingGraphActions.EnqueueAsync(action);

@@ -53,6 +53,27 @@ public class BpmnDiagramDesignerTests
         Assert.NotSame(updatedChild, resultChild);
     }
 
+    [Fact]
+    public async Task UpdateActivityAsync_ReplacesTheRootActivity_WhenTheIdMatchesTheRoot()
+    {
+        var activity = LoadFixture();
+        await _designer.LoadRootActivityAsync(activity, null);
+
+        var rootId = activity["id"]!.GetValue<string>();
+        var updatedRoot = new JsonObject
+        {
+            ["id"] = rootId,
+            ["type"] = "Elsa.BpmnProcess",
+            ["name"] = "updated-root"
+        };
+
+        await _designer.UpdateActivityAsync(rootId, updatedRoot);
+        var result = await _designer.ReadRootActivityAsync();
+
+        Assert.Equal("updated-root", result["name"]!.GetValue<string>());
+        Assert.NotSame(updatedRoot, result);
+    }
+
     private static JsonObject LoadFixture()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "DesignerAssets", "camunda-order-process.activity.json");
