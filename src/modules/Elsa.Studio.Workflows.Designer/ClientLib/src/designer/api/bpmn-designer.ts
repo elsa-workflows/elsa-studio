@@ -10,6 +10,7 @@
 import type {BpmnDiagnostic, BpmnViewModel, BpmnViewModelInput, BpmnActivityStats, BpmnElementStats} from '../../bpmn';
 import {buildBpmnViewModel} from '../../bpmn';
 import {bpmnGraphBindings, disposeBpmnGraphBinding} from '../bpmn/graph-registry';
+import type {BpmnGraphBinding} from '../bpmn/graph-registry';
 import {
     createBpmnGraph as mountBpmnGraph,
     loadBpmnDiagram as loadIntoBinding,
@@ -22,6 +23,25 @@ import type {DotNetComponentRef} from './graph-bindings';
 
 export type {BpmnGraphSettings} from '../bpmn/graph-options';
 export type {BpmnElementSelection} from '../bpmn/dotnet-bpmn-designer';
+
+/**
+ * Looks up the BPMN graph binding registered under `graphId`, warning to the console if `action`
+ * is given and there is none.
+ *
+ * Every interop function below needs this same "find it or bail" guard before it can touch a
+ * binding; centralising it keeps the four call sites down to the one line that differs between
+ * them, without changing which of them logs a warning.
+ */
+function resolveBpmnBinding(graphId: string, action?: string): BpmnGraphBinding | undefined {
+    const binding = bpmnGraphBindings[graphId];
+
+    if (binding == null) {
+        if (action != null) console.warn(`No BPMN graph with id '${graphId}' to ${action}.`);
+        return undefined;
+    }
+
+    return binding;
+}
 
 /**
  * Creates a read-only BPMN canvas in the element with the given id and registers it under that id.
@@ -61,12 +81,9 @@ export function buildBpmnDiagram(input: BpmnViewModelInput | string): BpmnViewMo
  * @returns the view model's diagnostics, in document order.
  */
 export function loadBpmnDiagram(graphId: string, model: BpmnViewModel | BpmnViewModelInput | string): readonly BpmnDiagnostic[] {
-    const binding = bpmnGraphBindings[graphId];
+    const binding = resolveBpmnBinding(graphId, 'load a diagram into');
 
-    if (binding == null) {
-        console.warn(`No BPMN graph with id '${graphId}' to load a diagram into.`);
-        return [];
-    }
+    if (binding == null) return [];
 
     const parsed = typeof model === 'string' ? JSON.parse(model) : model;
     const viewModel: BpmnViewModel = Array.isArray((parsed as BpmnViewModel).elements)
@@ -86,7 +103,7 @@ export function loadBpmnDiagram(graphId: string, model: BpmnViewModel | BpmnView
  * null or an empty map to clear the overlay entirely.
  */
 export function updateBpmnElementStats(graphId: string, elementStats: Readonly<Record<string, BpmnElementStats>> | null): void {
-    const binding = bpmnGraphBindings[graphId];
+    const binding = resolveBpmnBinding(graphId);
 
     if (binding == null) return;
 
@@ -101,7 +118,7 @@ export function updateBpmnElementStats(graphId: string, elementStats: Readonly<R
  * no activity id -- light up at all.
  */
 export function updateBpmnActivityStats(graphId: string, activityId: string, activityStats: BpmnActivityStats | null): void {
-    const binding = bpmnGraphBindings[graphId];
+    const binding = resolveBpmnBinding(graphId);
 
     if (binding == null) return;
 
@@ -110,7 +127,7 @@ export function updateBpmnActivityStats(graphId: string, activityId: string, act
 
 /** Selects one BPMN element by its element id, optionally centring the viewport on it. */
 export function selectBpmnElement(graphId: string, elementId: string, center = false): void {
-    const binding = bpmnGraphBindings[graphId];
+    const binding = resolveBpmnBinding(graphId);
 
     if (binding == null) return;
 
