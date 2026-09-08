@@ -61,7 +61,7 @@ public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDis
                 }
 
                 await _loadLock.WaitAsync(operationCancellation.Token);
-                CancellationTokenSource? loadCancellation = null;
+                using var loadCancellation = CancellationTokenSource.CreateLinkedTokenSource(operationCancellation.Token);
 
                 try
                 {
@@ -71,7 +71,6 @@ public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDis
                         if (_snapshot != null)
                             return _snapshot;
 
-                        loadCancellation = CancellationTokenSource.CreateLinkedTokenSource(operationCancellation.Token);
                         _activeLoadCancellation = loadCancellation;
                     }
 
@@ -131,7 +130,6 @@ public sealed class IdentityPermissionContext : IIdentityPermissionContext, IDis
                             _activeLoadCancellation = null;
                     }
 
-                    loadCancellation?.Dispose();
                     _loadLock.Release();
                 }
             }

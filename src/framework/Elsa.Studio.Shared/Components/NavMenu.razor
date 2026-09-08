@@ -34,6 +34,7 @@
     private CancellationTokenSource? _refreshCancellation;
     private AuthenticationStateProvider? _authenticationStateProvider;
     private long _authenticationGeneration;
+    private bool _disposed;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -42,8 +43,17 @@
         if (_authenticationStateProvider is not null)
             _authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
+        CancellationToken lifetimeToken;
+        lock (_refreshSync)
+        {
+            if (_disposed)
+                return;
+
+            lifetimeToken = _lifetime.Token;
+        }
+
         var generation = Volatile.Read(ref _authenticationGeneration);
-        var menu = await LoadMenuAsync(_lifetime.Token);
+        var menu = await LoadMenuAsync(lifetimeToken);
 
         if (IsCurrentGeneration(generation))
             PublishMenu(menu);
@@ -59,16 +69,21 @@
     private void OnAuthenticationStateChanged(Task<AuthenticationState> authenticationStateTask)
     {
         CancellationTokenSource refreshCancellation;
+        CancellationTokenSource? previousRefreshCancellation;
         long generation;
 
         lock (_refreshSync)
         {
+            if (_disposed)
+                return;
+
             generation = ++_authenticationGeneration;
-            _refreshCancellation?.Cancel();
+            previousRefreshCancellation = _refreshCancellation;
             _refreshCancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
             refreshCancellation = _refreshCancellation;
         }
 
+        TryCancel(previousRefreshCancellation);
         _ = RefreshMenuAsync(authenticationStateTask, generation, refreshCancellation);
     }
 
@@ -116,8 +131,15 @@
         }
     }
 
-    private bool IsCurrentGeneration(long generation) =>
-        Volatile.Read(ref _authenticationGeneration) == generation && !_lifetime.IsCancellationRequested;
+    private bool IsCurrentGeneration(long generation)
+    {
+        lock (_refreshSync)
+        {
+            return !_disposed &&
+                   Volatile.Read(ref _authenticationGeneration) == generation &&
+                   !_lifetime.IsCancellationRequested;
+        }
+    }
 
     private void PublishMenu((IDictionary<string, MenuItemGroup> Groups, IEnumerable<MenuItem> Items) menu)
     {
@@ -130,11 +152,27 @@
         if (_authenticationStateProvider is not null)
             _authenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
 
-        _lifetime.Cancel();
         lock (_refreshSync)
         {
-            _refreshCancellation?.Cancel();
+            if (_disposed)
+                return;
+
+            _disposed = true;
         }
+
+        _lifetime.Cancel();
         _lifetime.Dispose();
+    }
+
+    private void TryCancel(CancellationTokenSource? cancellation)
+    {
+        try
+        {
+            cancellation?.Cancel();
+        }
+        catch (ObjectDisposedException exception)
+        {
+            Logger.LogDebug(exception, "A completed navigation menu refresh was already disposed");
+        }
     }
 }
