@@ -38,19 +38,20 @@ public class BpmnDiagramDesigner(ILocalizer localizer, IOptions<DesignerOptions>
 
     /// <inheritdoc />
     /// <remarks>
-    /// The canvas is read-only and has nothing to react to, so this only keeps the in-memory root
-    /// activity in step: the matching child activity node is replaced by id, wherever in the tree it
-    /// is, so that <see cref="ReadRootActivityAsync"/> returns the edited tree. The canvas itself is
-    /// left untouched.
+    /// The canvas is read-only and has nothing to react to, so this keeps two copies of the in-memory
+    /// root activity in step: the matching child activity node is replaced by id, wherever in the tree
+    /// it is, so that <see cref="ReadRootActivityAsync"/> returns the edited tree, and the same
+    /// replacement is forwarded to the mounted <see cref="BpmnDesignerWrapper"/> so its own held tree
+    /// -- the one selection resolves from -- does not go stale. The canvas itself is left untouched.
     /// </remarks>
-    public Task UpdateActivityAsync(string id, JsonObject activity)
+    public async Task UpdateActivityAsync(string id, JsonObject activity)
     {
         if (_rootActivity.GetId() == id)
             _rootActivity = (JsonObject)activity.DeepClone()!;
         else
             ReplaceActivity(_rootActivity, id, activity);
 
-        return Task.CompletedTask;
+        await InvokeDesignerActionAsync(x => x.UpdateActivityAsync(id, activity));
     }
 
     /// <inheritdoc />

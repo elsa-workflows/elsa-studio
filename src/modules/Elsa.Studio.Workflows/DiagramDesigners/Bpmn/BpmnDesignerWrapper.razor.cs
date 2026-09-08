@@ -60,6 +60,16 @@ public partial class BpmnDesignerWrapper
     }
 
     /// <summary>
+    /// Keeps the underlying designer's held activity tree in step with an edit made elsewhere (the
+    /// properties panel), without touching the canvas. See <see cref="BpmnDesigner.UpdateActivityAsync"/>.
+    /// </summary>
+    public async Task UpdateActivityAsync(string id, JsonObject activity)
+    {
+        if (Designer != null)
+            await Designer.UpdateActivityAsync(id, activity);
+    }
+
+    /// <summary>
     /// Updates the stats of the specified activity.
     /// </summary>
     public async Task UpdateActivityStatsAsync(string id, ActivityStats stats)

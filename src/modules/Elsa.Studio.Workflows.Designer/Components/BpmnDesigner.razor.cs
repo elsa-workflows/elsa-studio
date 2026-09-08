@@ -153,6 +153,29 @@ public partial class BpmnDesigner : IAsyncDisposable
         await ScheduleGraphActionAsync(() => _graphApi!.UpdateActivityStatsAsync(activityId, stats));
 
     /// <summary>
+    /// Keeps the held activity tree in step with an edit made elsewhere (the properties panel): the
+    /// matching node -- the root itself or, recursively, a child bound to a BPMN element or to a
+    /// nested scope -- is replaced by a clone of <paramref name="activity"/>, the same rules
+    /// <c>BpmnDiagramDesigner</c> applies to its own copy. Without this, <see cref="ResolveSelectedActivity"/>
+    /// and <see cref="SelectActivityAsync"/> would keep resolving from a pre-edit tree, since the
+    /// canvas itself is read-only and has nothing to reload. No JS call, no canvas reload.
+    /// </summary>
+    /// <param name="id">The id of the activity to replace.</param>
+    /// <param name="activity">The replacement activity.</param>
+    public Task UpdateActivityAsync(string id, JsonObject activity)
+    {
+        if (_activity == null)
+            return Task.CompletedTask;
+
+        if (_activity.GetId() == id)
+            _activity = (JsonObject)activity.DeepClone()!;
+        else
+            ReplaceActivity(_activity, id, activity);
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Selects the element bound to the specified activity, through <c>workBindings</c>. A no-op for
     /// an id that names the root or a scope, since neither is bound work.
     /// </summary>
@@ -247,6 +270,35 @@ public partial class BpmnDesigner : IAsyncDisposable
         return scope.GetActivities()
             .Select(activity => ResolveElementId(activity, activityId))
             .FirstOrDefault(found => found != null);
+    }
+
+    /// <summary>
+    /// Replaces the activity with the specified id, wherever in the tree it is -- the root's own
+    /// activities or, recursively, a nested BPMN scope's -- with a clone of <paramref name="replacement"/>.
+    /// Mirrors <c>BpmnDiagramDesigner</c>'s own replacement, kept private to this component since the
+    /// two do not share an assembly.
+    /// </summary>
+    private static bool ReplaceActivity(JsonObject scope, string id, JsonObject replacement)
+    {
+        if (scope["activities"] is not JsonArray activities)
+            return false;
+
+        for (var i = 0; i < activities.Count; i++)
+        {
+            if (activities[i] is not JsonObject child)
+                continue;
+
+            if (child.GetId() == id)
+            {
+                activities[i] = (JsonObject)replacement.DeepClone()!;
+                return true;
+            }
+
+            if (ReplaceActivity(child, id, replacement))
+                return true;
+        }
+
+        return false;
     }
 
     private async Task ScheduleGraphActionAsync(Func<Task> action) => await _pendingGraphActions.EnqueueAsync(action);
