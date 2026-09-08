@@ -14,7 +14,6 @@ namespace Elsa.Studio.Security.Components;
 /// </summary>
 public partial class UserListSurface : IAsyncDisposable
 {
-    protected const int PreviewLimit = 3;
     private readonly CancellationTokenSource _lifetime = new();
     private readonly HashSet<string> _deletingIds = new(StringComparer.Ordinal);
     private readonly List<UserSummary> _users = [];
@@ -44,21 +43,6 @@ public partial class UserListSurface : IAsyncDisposable
             return string.IsNullOrWhiteSpace(_search)
                 ? $"{count} {label} · all loaded"
                 : $"{count} {label} · matching search";
-        }
-    }
-
-    /// <summary>Describes the tenant scope of the loaded list without pretending to know more than Core returned.</summary>
-    protected string ScopeSummary
-    {
-        get
-        {
-            var scopes = _users.Select(x => Scope(x.TenantId)).Distinct(StringComparer.Ordinal).ToList();
-            return scopes.Count switch
-            {
-                0 => "Current tenant scope",
-                1 => scopes[0] == "Host" ? "Host scope" : $"Tenant {scopes[0]}",
-                _ => "Mixed tenant scopes"
-            };
         }
     }
 
@@ -121,11 +105,8 @@ public partial class UserListSurface : IAsyncDisposable
         Snackbar.Add("User ID copied.", Severity.Success);
     }
 
-    protected static IEnumerable<string> Preview(ICollection<string> values) =>
-        values.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Take(PreviewLimit);
-
     protected static string Scope(string? tenantId) => string.IsNullOrWhiteSpace(tenantId) ? "Host" : tenantId;
-    protected static string UserUrl(string id) => $"security/users/{Uri.EscapeDataString(id)}";
+    protected static string UserUrl(string id) => $"/security/users/{Uri.EscapeDataString(id)}";
     protected bool IsDeleting(string id) => _deletingIds.Contains(id);
 
     private async Task LoadAsync(CancellationToken cancellationToken)
