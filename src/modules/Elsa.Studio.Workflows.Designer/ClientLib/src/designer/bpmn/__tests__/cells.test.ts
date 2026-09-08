@@ -10,7 +10,7 @@
 import type { Edge } from '@antv/x6';
 import { describe, expect, it } from 'vitest';
 import { buildBpmnViewModel } from '../../../bpmn';
-import type { BpmnViewModel } from '../../../bpmn';
+import type { BpmnActivity, BpmnViewModel } from '../../../bpmn';
 import { FIXTURE_NAMES, loadFixture, type FixtureName } from '../../../bpmn/__tests__/fixtures';
 import { buildBpmnX6Cells, type BpmnElementCellData, type BpmnFlowCellData, type BpmnX6Cells } from '../cells';
 import { ACTIVITY_MARKER_GLYPHS } from '../glyphs';
@@ -70,6 +70,7 @@ describe.each(FIXTURE_NAMES)('%s', name => {
         expect(cells.nodes).toHaveLength(expectation.elements + expectation.placedLanes + expectation.placedPools);
         expect(cells.edges).toHaveLength(expectation.flows + expectation.resolvedAssociations);
         expect(cells.undrawn).toEqual([]);
+        expect(cells.collisions).toEqual([]);
     });
 
     it('gives every cell an id of its own', () => {
@@ -372,6 +373,48 @@ describe('lanes and pools the document does not place', () => {
             reason: 'The BPMN source places no shape for this lane.',
         }]);
         expect(cells.nodes).toHaveLength(model.elements.length + model.lanes.length - 1 + model.pools.length);
+    });
+});
+
+describe('duplicate cell ids', () => {
+    // BPMN requires element ids to be document-unique, and the view model already reports a
+    // violation as `duplicate-element-id` -- but it still renders both elements, which is what would
+    // otherwise hand X6 two cells sharing an id and let it pick a survivor arbitrarily.
+    it('keeps the first element with a colliding id and drops the duplicate along with the flow attached to it', () => {
+        const fixture = loadFixture('subprocess-boundary-events');
+        const activity = structuredClone(fixture.activity) as BpmnActivity;
+        const nested = activity.activities!.find(candidate => candidate.process?.processId === 'Fulfil')!;
+        const subStart = nested.process!.elements.find(candidate => candidate.elementId === 'Sub_Start')! as { elementId: string };
+        const subFlow1 = nested.process!.sequenceFlows!.find(candidate => candidate.flowId === 'Sub_Flow_1')! as { sourceRef: string };
+
+        // 'Start_1' already names the root scope's start event; renaming this nested scope's start
+        // event to the same id, and its outgoing flow along with it, reproduces the collision without
+        // touching anything the view model itself would refuse to build.
+        subStart.elementId = 'Start_1';
+        subFlow1.sourceRef = 'Start_1';
+
+        const model = buildBpmnViewModel({ activity, sourceXml: fixture.sourceXml });
+        const cells = buildBpmnX6Cells(model);
+        const rootStart = model.elements.find(candidate => candidate.scopeId === model.processId && candidate.id === 'Start_1')!;
+        const survivors = cells.nodes.filter(node => node.id === 'Start_1');
+
+        expect(survivors).toHaveLength(1);
+        expect({ x: survivors[0].x, y: survivors[0].y }).toEqual({ x: rootStart.geometry.x, y: rootStart.geometry.y });
+
+        expect(cells.collisions).toContainEqual(expect.objectContaining({ kind: 'element', id: 'Start_1' }));
+        expect(cells.collisions).toContainEqual(expect.objectContaining({ kind: 'flow', id: 'Sub_Flow_1' }));
+
+        // The dropped duplicate's own flow never reaches the canvas, so nothing from the 'Fulfil'
+        // scope ends up attached to the root's surviving 'Start_1' node.
+        expect(cells.edges.some(edge => edge.id === 'Sub_Flow_1')).toBe(false);
+
+        for (const edge of cells.edges) {
+            const data = edge.data as BpmnFlowCellData;
+
+            if (terminalCell(edge.source) === 'Start_1' || terminalCell(edge.target) === 'Start_1') {
+                expect(data.scopeId, edge.id as string).toBe(model.processId);
+            }
+        }
     });
 });
 

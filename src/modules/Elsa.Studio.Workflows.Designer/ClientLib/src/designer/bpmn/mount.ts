@@ -115,10 +115,12 @@ function wireEvents(binding: BpmnGraphBinding): void {
  * Replaces whatever the canvas holds with the cells for this view model.
  *
  * Reports, loudly, when the canvas ends up holding fewer cells than the mapping produced. X6 keys
- * its model by cell id and a second cell with the same id replaces the first, so a document whose
- * element ids are not unique -- which the view model reports as `duplicate-element-id` but still
- * renders -- would otherwise lose a shape without a word. A diagram that is quietly missing an
- * element is exactly the failure this issue asks to be made to name itself.
+ * its model by cell id and a second cell with the same id replaces the first, so `cells.ts` itself
+ * never emits two cells that would collide -- a document whose element ids are not unique, which the
+ * view model reports as `duplicate-element-id` but still renders, has its duplicate dropped there and
+ * named in `cells.collisions`. This still checks the canvas against the mapping and still logs
+ * `cells.collisions`, so a divergence this layer did not anticipate is not left to be discovered as a
+ * diagram that is quietly missing an element.
  */
 export function loadBpmnDiagram(binding: BpmnGraphBinding, viewModel: BpmnViewModel): void {
     const cells = buildBpmnX6Cells(viewModel);
@@ -150,6 +152,10 @@ function reportDivergence(binding: BpmnGraphBinding, cells: BpmnX6Cells): void {
 
     for (const undrawn of cells.undrawn) {
         console.warn(`BPMN diagram '${binding.graphId}': the ${undrawn.kind} '${undrawn.id}' is not drawn. ${undrawn.reason}`);
+    }
+
+    for (const collision of cells.collisions) {
+        console.error(`BPMN diagram '${binding.graphId}': the ${collision.kind} '${collision.id}' is not drawn. ${collision.reason}`);
     }
 }
 

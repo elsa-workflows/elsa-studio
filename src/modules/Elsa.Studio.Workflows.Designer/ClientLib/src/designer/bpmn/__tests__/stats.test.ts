@@ -90,4 +90,27 @@ describe('statsBadgeAttrs', () => {
         expect(Object.keys(statsBadgeAttrs(null)).sort())
             .toEqual(Object.keys(statsBadgeAttrs(resolveBpmnStatsBadge({ completed: 1 }, null))).sort());
     });
+
+    // The badge is the only part of the canvas that tells faulted, cancelled and blocked apart by
+    // colour alone; the title is what lets a tooltip, or a screen reader, say the same thing in words.
+    it('gives a faulted badge its title as a tooltip and an aria-label', () => {
+        const attrs = statsBadgeAttrs(resolveBpmnStatsBadge({ started: 1, faulted: true }, null));
+
+        expect(attrs.statsBadgeTitle.text).toBe('Faulted (1)');
+        expect(attrs.statsBadgeGroup['aria-label']).toBe('Faulted (1)');
+    });
+
+    it('gives a cancelled badge its title as a tooltip and an aria-label', () => {
+        const attrs = statsBadgeAttrs(resolveBpmnStatsBadge({ started: 1, canceled: true }, null));
+
+        expect(attrs.statsBadgeTitle.text).toBe('Canceled (1)');
+        expect(attrs.statsBadgeGroup['aria-label']).toBe('Canceled (1)');
+    });
+
+    it('gives a blocked badge its title as a tooltip and an aria-label', () => {
+        const attrs = statsBadgeAttrs(resolveBpmnStatsBadge({ started: 1, blocked: true }, null));
+
+        expect(attrs.statsBadgeTitle.text).toBe('Blocked (1)');
+        expect(attrs.statsBadgeGroup['aria-label']).toBe('Blocked (1)');
+    });
 });

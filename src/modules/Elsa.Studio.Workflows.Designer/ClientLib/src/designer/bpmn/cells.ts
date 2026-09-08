@@ -124,6 +124,23 @@ export interface BpmnUndrawn {
     readonly reason: string;
 }
 
+/**
+ * A cell the mapping chose not to emit because its id was already taken.
+ *
+ * X6 keys its whole model by cell id, document-wide, and a second cell with an id already in use
+ * silently replaces the first rather than erroring. Element and flow ids are only guaranteed unique
+ * within the BPMN document as a whole -- which the view model already checks and reports as
+ * `duplicate-element-id` / `duplicate-flow-id` -- so a malformed document can still ask this mapping
+ * for two cells with the same id. Rather than let X6 pick a survivor arbitrarily, the mapping keeps
+ * the first cell it built for a given id and drops every later one, and it drops with it any edge
+ * that would otherwise attach to the wrong survivor.
+ */
+export interface BpmnCollision {
+    readonly kind: 'pool' | 'lane' | 'element' | 'flow' | 'association';
+    readonly id: string;
+    readonly reason: string;
+}
+
 export interface BpmnX6Cells {
     readonly nodes: readonly Node.Metadata[];
     readonly edges: readonly Edge.Metadata[];
@@ -134,6 +151,8 @@ export interface BpmnX6Cells {
      * edge that is linked to its two nodes needs no geometry of its own.
      */
     readonly undrawn: readonly BpmnUndrawn[];
+    /** Cells dropped because their id collided with a cell already emitted. See {@link BpmnCollision}. */
+    readonly collisions: readonly BpmnCollision[];
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -151,43 +170,144 @@ export interface BpmnX6Cells {
  *    association;
  *  * every boundary event's node names its host in `data.boundaryHostElementId`, and no boundary
  *    event is an X6 child of anything -- see `nodeForElement` for why;
- *  * every cell id is unique, so `fromJSON` cannot silently drop one.
+ *  * every cell id is unique, so `fromJSON` cannot silently drop one -- a document that would make
+ *    two cells share an id instead has the later one, and any edge that would attach to it, reported
+ *    in {@link BpmnX6Cells.collisions} and left off the canvas.
  */
 export function buildBpmnX6Cells(viewModel: BpmnViewModel): BpmnX6Cells {
     const context = createContext(viewModel);
     const nodes: Node.Metadata[] = [];
     const edges: Edge.Metadata[] = [];
     const undrawn: BpmnUndrawn[] = [];
+    const collisions: BpmnCollision[] = [];
+    const claimedCellIds = new Set<string>();
+    /** The scope+element pairs whose node survived onto the canvas -- see {@link flowSurvives}. */
+    const survivingScopedElementIds = new Set<string>();
+
+    // A cell id already claimed by an earlier cell in this pass replaces nothing: it is dropped and
+    // reported instead, so the diagram never depends on which of two colliding cells X6 happened to
+    // keep.
+    const claim = (id: string): boolean => {
+        if (claimedCellIds.has(id)) return false;
+
+        claimedCellIds.add(id);
+
+        return true;
+    };
 
     for (const pool of viewModel.pools) {
         const node = nodeForPool(pool);
 
-        if (node == null) undrawn.push({ kind: 'pool', id: pool.id, reason: 'The BPMN source places no shape for this pool.' });
-        else nodes.push(node);
+        if (node == null) {
+            undrawn.push({ kind: 'pool', id: pool.id, reason: 'The BPMN source places no shape for this pool.' });
+        } else if (!claim(String(node.id))) {
+            collisions.push({ kind: 'pool', id: pool.id, reason: `Cell id '${node.id}' is already used by an earlier cell; the first cell is kept and this pool is dropped.` });
+        } else {
+            nodes.push(node);
+        }
     }
 
     for (const lane of viewModel.lanes) {
         const node = nodeForLane(lane);
 
-        if (node == null) undrawn.push({ kind: 'lane', id: lane.id, reason: 'The BPMN source places no shape for this lane.' });
-        else nodes.push(node);
+        if (node == null) {
+            undrawn.push({ kind: 'lane', id: lane.id, reason: 'The BPMN source places no shape for this lane.' });
+        } else if (!claim(String(node.id))) {
+            collisions.push({ kind: 'lane', id: lane.id, reason: `Cell id '${node.id}' is already used by an earlier cell; the first cell is kept and this lane is dropped.` });
+        } else {
+            nodes.push(node);
+        }
     }
 
     for (const element of viewModel.elements) {
-        nodes.push(nodeForElement(element, context));
+        const node = nodeForElement(element, context);
+
+        if (!claim(String(node.id))) {
+            collisions.push({
+                kind: 'element',
+                id: element.id,
+                reason: `The element id '${element.id}' is already drawn by another element (BPMN requires element ids to be `
+                    + `document-unique); the first one is kept and the element in scope '${element.scopeId}' is dropped.`,
+            });
+            continue;
+        }
+
+        survivingScopedElementIds.add(scopedKey(element.scopeId, element.id));
+        nodes.push(node);
     }
 
     for (const flow of viewModel.flows) {
-        edges.push(edgeForFlow(flow, context));
+        if (!flowSurvives(flow.scopeId, flow.sourceElementId, flow.targetElementId, context, survivingScopedElementIds)) {
+            collisions.push({
+                kind: 'flow',
+                id: flow.id,
+                reason: `The flow '${flow.id}' connects an element id that was dropped as a duplicate; the flow is dropped `
+                    + 'rather than risk attaching it to the wrong element.',
+            });
+            continue;
+        }
+
+        const edge = edgeForFlow(flow, context);
+
+        if (!claim(String(edge.id))) {
+            collisions.push({ kind: 'flow', id: flow.id, reason: `Cell id '${edge.id}' is already used by an earlier cell; the first cell is kept and this flow is dropped.` });
+            continue;
+        }
+
+        edges.push(edge);
     }
 
     for (const association of viewModel.associations) {
         if (!association.targetResolved) continue;
 
-        edges.push(edgeForAssociation(association.sourceElementId, association.targetElementId, association.scopeId, context));
+        const associationId = `${association.sourceElementId}->${association.targetElementId}`;
+
+        if (!flowSurvives(association.scopeId, association.sourceElementId, association.targetElementId, context, survivingScopedElementIds)) {
+            collisions.push({
+                kind: 'association',
+                id: associationId,
+                reason: `The compensation association '${associationId}' connects an element id that was dropped as a `
+                    + 'duplicate; the association is dropped rather than risk attaching it to the wrong element.',
+            });
+            continue;
+        }
+
+        const edge = edgeForAssociation(association.sourceElementId, association.targetElementId, association.scopeId, context);
+
+        if (!claim(String(edge.id))) {
+            collisions.push({ kind: 'association', id: associationId, reason: `Cell id '${edge.id}' is already used by an earlier cell; the first cell is kept and this association is dropped.` });
+            continue;
+        }
+
+        edges.push(edge);
     }
 
-    return { nodes, edges, undrawn };
+    return { nodes, edges, undrawn, collisions };
+}
+
+/**
+ * Whether a flow's (or association's) two endpoints still resolve to a node that made it onto the
+ * canvas.
+ *
+ * An endpoint that the view model does not resolve at all (a dangling flow, already reported by the
+ * view model itself) is left alone here -- that is not this function's concern. What it catches is
+ * the narrower case: the endpoint *did* resolve to a specific element, but that element's node lost
+ * out to an earlier one with the same id, so drawing the edge now would attach it to a node that is
+ * not the element the document meant.
+ */
+function flowSurvives(
+    scopeId: string,
+    sourceElementId: string,
+    targetElementId: string,
+    context: BuildContext,
+    survivingScopedElementIds: ReadonlySet<string>): boolean {
+    const sourceKey = scopedKey(scopeId, sourceElementId);
+    const targetKey = scopedKey(scopeId, targetElementId);
+
+    if (context.elementsByScopedId.has(sourceKey) && !survivingScopedElementIds.has(sourceKey)) return false;
+    if (context.elementsByScopedId.has(targetKey) && !survivingScopedElementIds.has(targetKey)) return false;
+
+    return true;
 }
 
 interface BuildContext {
@@ -652,6 +772,8 @@ export function statsBadgeAttrs(badge: BpmnStatsBadge | null): Record<string, an
         return {
             statsBadge: { display: 'none' },
             statsLabel: { display: 'none', text: '' },
+            statsBadgeGroup: { 'aria-label': null },
+            statsBadgeTitle: { text: '' },
         };
     }
 
@@ -667,6 +789,10 @@ export function statsBadgeAttrs(badge: BpmnStatsBadge | null): Record<string, an
             text: badge.count == null ? '' : `${badge.count}`,
             fill: BADGE_TEXT_BY_TONE[badge.tone],
         },
+        // `<title>` is the SVG tooltip, and `aria-label` says the same thing to a screen reader --
+        // between them the badge's state is not colour alone.
+        statsBadgeGroup: { 'aria-label': badge.title },
+        statsBadgeTitle: { text: badge.title },
     };
 }
 

@@ -21,13 +21,30 @@ import {
 } from './constants';
 import { CONTAINER_STROKE, CONTAINER_SURFACE, EDGE, HEADER_SURFACE, MUTED, STROKE, SURFACE, TEXT } from './palette';
 
-/** The badge circle and its number, shared by every element shape. */
+/**
+ * The badge circle and its number, shared by every element shape, grouped so the badge carries one
+ * `aria-label` and one `<title>` tooltip rather than leaving its state -- faulted, cancelled,
+ * blocked -- to be read off its colour alone.
+ */
 const STATS_MARKUP = [
-    { tagName: 'circle', selector: 'statsBadge' },
-    { tagName: 'text', selector: 'statsLabel' },
+    {
+        tagName: 'g',
+        selector: 'statsBadgeGroup',
+        children: [
+            { tagName: 'title', selector: 'statsBadgeTitle' },
+            { tagName: 'circle', selector: 'statsBadge' },
+            { tagName: 'text', selector: 'statsLabel' },
+        ],
+    },
 ];
 
 const STATS_ATTRS = {
+    statsBadgeGroup: {
+        'aria-label': null,
+    },
+    statsBadgeTitle: {
+        text: '',
+    },
     statsBadge: {
         display: 'none',
         r: 9,
