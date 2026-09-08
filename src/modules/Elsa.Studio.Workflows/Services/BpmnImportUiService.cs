@@ -1,3 +1,4 @@
+using System.Net;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -56,7 +57,10 @@ public class BpmnImportUiService(
         {
             var failure = importResult.Failure!;
             var message = string.Join(" ", failure.Errors.Select(error => error.ErrorMessage));
-            var refusal = BpmnCapabilityRefusal.TryParse(message);
+
+            // Only a 422 can be a capability refusal; matching the wording alone on any other status (e.g. a 500
+            // whose message happens to echo the refusal's phrasing) would misreport an unrelated failure as one.
+            var refusal = failure.StatusCode == HttpStatusCode.UnprocessableEntity ? BpmnCapabilityRefusal.TryParse(message) : null;
 
             if (refusal != null)
             {

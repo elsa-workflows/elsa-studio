@@ -710,9 +710,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
             if (bpmnResult.WorkflowDefinition is { } workflowDefinition)
                 await SetImportedWorkflowDefinitionAsync(workflowDefinition);
 
-        // A capability refusal was already reported in its own dialog by BpmnImportUiService; excluding it here
-        // keeps the summary snackbar limited to the failures it did not already explain.
-        var reportableResults = importResults.Where(x => x.Failure?.FailureType != WorkflowImportFailureType.CapabilityRefusal).ToList();
+        var reportableResults = BpmnImportBatch.ReportableResults(importResults);
         var failedImports = reportableResults.Where(x => !x.IsSuccess).ToList();
         var successfulImports = reportableResults.Where(x => x.IsSuccess).ToList();
 
@@ -720,7 +718,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         _isDirty = false;
         StateHasChanged();
 
-        if (importResults.Count > 0 && reportableResults.Count == 0)
+        if (BpmnImportBatch.AllReported(importResults))
         {
             // Every result was a capability refusal, each already explained in its own dialog; nothing left to summarize.
             return;

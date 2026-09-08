@@ -442,11 +442,9 @@ public partial class WorkflowDefinitionList
         if (bpmnBatch.OtherFiles.Count > 0)
             results.AddRange(await WorkflowDefinitionImporter.ImportFilesAsync(bpmnBatch.OtherFiles));
 
-        // A capability refusal was already reported in its own dialog by BpmnImportUiService; excluding it here
-        // keeps the summary snackbar limited to the failures it did not already explain.
-        var reportableResults = results.Where(x => x.Failure?.FailureType != WorkflowImportFailureType.CapabilityRefusal).ToList();
+        var reportableResults = BpmnImportBatch.ReportableResults(results);
 
-        if (results.Count > 0 && reportableResults.Count == 0)
+        if (BpmnImportBatch.AllReported(results))
         {
             // Every result was a capability refusal, each already explained in its own dialog; nothing left to summarize.
             Reload();

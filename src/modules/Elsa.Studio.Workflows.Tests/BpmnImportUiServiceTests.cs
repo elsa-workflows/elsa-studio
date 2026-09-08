@@ -1,3 +1,4 @@
+using System.Net;
 using Bunit;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -69,7 +70,120 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
         Assert.Equal("wf-1", definitionService.RequestedDefinitionId);
     }
 
+    [Fact]
+    public async Task ImportBpmnFilesAsync_SplitsBpmnFilesFromOtherFiles_AndImportsEachBpmnFileInOrder()
+    {
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var localizer = Services.GetRequiredService<ILocalizer>();
+        var interchangeService = new FakeBpmnInterchangeService
+        {
+            AnalyzeResult = new(new BpmnImportAnalysisModel { ProcessIds = ["only-process"] }),
+            ImportResult = new(new BpmnImportResultModel { DefinitionId = "wf-1", Version = 1 })
+        };
+        var definitionService = new FakeWorkflowDefinitionService { DefinitionToReturn = new WorkflowDefinition { DefinitionId = "wf-1" } };
+        var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
+        var files = new IBrowserFile[]
+        {
+            new FakeBrowserFile("a.bpmn"),
+            new FakeBrowserFile("data.json"),
+            new FakeBrowserFile("b.bpmn")
+        };
+
+        var batchTask = _dialogProvider.InvokeAsync(() => service.ImportBpmnFilesAsync(files, definitionId: null));
+
+        // "a.bpmn"'s findings dialog.
+        _dialogProvider.WaitForElement("button");
+        await _dialogProvider.InvokeAsync(() => ImportButton().ClickAsync(new MouseEventArgs()));
+
+        // "b.bpmn"'s findings dialog.
+        _dialogProvider.WaitForElement("button");
+        await _dialogProvider.InvokeAsync(() => ImportButton().ClickAsync(new MouseEventArgs()));
+
+        var batch = await batchTask.WaitAsync(Timeout);
+
+        Assert.Equal(2, batch.Results.Count);
+        Assert.Equal("a.bpmn", batch.Results[0].FileName);
+        Assert.Equal("b.bpmn", batch.Results[1].FileName);
+        Assert.True(batch.Results[0].IsSuccess);
+        Assert.True(batch.Results[1].IsSuccess);
+        var otherFile = Assert.Single(batch.OtherFiles);
+        Assert.Equal("data.json", otherFile.Name);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_ShowsTheRefusalDialogOnce_AndReturnsACapabilityRefusalResult_On422()
+    {
+        const string message =
+            "This deployment does not declare the following BPMN host capabilities the document requires: ScopeSignalling. "
+            + "Offending elements (combined across all missing capabilities above, not attributable to any one of them): Gateway_1.";
+
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var localizer = Services.GetRequiredService<ILocalizer>();
+        var interchangeService = new FakeBpmnInterchangeService
+        {
+            AnalyzeResult = new(new BpmnImportAnalysisModel { ProcessIds = ["only-process"] }),
+            ImportResult = new(new ValidationErrors([new ValidationError(message)], HttpStatusCode.UnprocessableEntity))
+        };
+        var definitionService = new FakeWorkflowDefinitionService();
+        var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
+        var file = new FakeBrowserFile("process.bpmn");
+
+        var importTask = _dialogProvider.InvokeAsync(() => service.ImportFileAsync(file, definitionId: null));
+
+        // The findings dialog.
+        _dialogProvider.WaitForElement("button");
+        await _dialogProvider.InvokeAsync(() => ImportButton().ClickAsync(new MouseEventArgs()));
+
+        // The refusal dialog, shown exactly once; closing it lets the import finish.
+        _dialogProvider.WaitForElement("button");
+        Assert.Contains("ScopeSignalling", _dialogProvider.Markup);
+        Assert.Contains("Gateway_1", _dialogProvider.Markup);
+        await _dialogProvider.InvokeAsync(() => CloseButton().ClickAsync(new MouseEventArgs()));
+
+        var result = await importTask.WaitAsync(Timeout);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsSuccess);
+        Assert.Equal(WorkflowImportFailureType.CapabilityRefusal, result.Failure!.FailureType);
+        Assert.Null(definitionService.RequestedDefinitionId);
+
+        // The caller-side summary path excludes a result already reported in its own dialog.
+        Assert.Empty(BpmnImportBatch.ReportableResults([result]));
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_DoesNotTreatA500AsACapabilityRefusal_EvenWithTheRefusalWording()
+    {
+        const string message =
+            "This deployment does not declare the following BPMN host capabilities the document requires: ScopeSignalling. "
+            + "Offending elements (combined across all missing capabilities above, not attributable to any one of them): Gateway_1.";
+
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var localizer = Services.GetRequiredService<ILocalizer>();
+        var interchangeService = new FakeBpmnInterchangeService
+        {
+            AnalyzeResult = new(new BpmnImportAnalysisModel { ProcessIds = ["only-process"] }),
+            ImportResult = new(new ValidationErrors([new ValidationError(message)], HttpStatusCode.InternalServerError))
+        };
+        var definitionService = new FakeWorkflowDefinitionService();
+        var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
+        var file = new FakeBrowserFile("process.bpmn");
+
+        var importTask = _dialogProvider.InvokeAsync(() => service.ImportFileAsync(file, definitionId: null));
+
+        // The findings dialog; there is no refusal dialog to close afterwards because a 500 never counts as one.
+        _dialogProvider.WaitForElement("button");
+        await _dialogProvider.InvokeAsync(() => ImportButton().ClickAsync(new MouseEventArgs()));
+
+        var result = await importTask.WaitAsync(Timeout);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsSuccess);
+        Assert.Equal(WorkflowImportFailureType.Exception, result.Failure!.FailureType);
+    }
+
     private AngleSharp.Dom.IElement ImportButton() => _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Import");
+    private AngleSharp.Dom.IElement CloseButton() => _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Close");
 
     private sealed class FakeBrowserFile(string name) : IBrowserFile
     {
