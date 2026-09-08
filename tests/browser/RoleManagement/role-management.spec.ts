@@ -436,8 +436,10 @@ test.describe('role management against a real Core host', () => {
         '/diagnostics/console',
         '/diagnostics/structured-logs',
         '/security/secrets'
-      ])
-        await expect(navigation.locator(`a[href$="${href}"]`)).toHaveCount(0);
+      ]) {
+        const path = href.replace(/^\/+/, '');
+        await expect(navigation.locator(`a[href$="/${path}"], a[href$="${path}"]`)).toHaveCount(0);
+      }
 
       await page.goto('/security/roles/new');
       await expect(page.getByText('You can view roles, but your current sign-in cannot create a role.')).toBeVisible();

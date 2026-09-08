@@ -42,6 +42,10 @@ public sealed class CurrentUserPermissionService(
     private async ValueTask<IReadOnlySet<string>?> GetGrantsAsync(CancellationToken cancellationToken)
     {
         var user = (await authenticationStateProvider!.GetAuthenticationStateAsync()).User;
+
+        if (user.Identity?.IsAuthenticated != true)
+            return null;
+
         var claims = user.FindAll(PermissionClaimType).Select(x => x.Value).ToHashSet(StringComparer.Ordinal);
 
         // Claims are authoritative when present. This preserves the existing claim-based behavior and prevents an
@@ -49,7 +53,7 @@ public sealed class CurrentUserPermissionService(
         if (claims.Count > 0)
             return claims;
 
-        if (user.Identity?.IsAuthenticated != true || effectivePermissionSource is null)
+        if (effectivePermissionSource is null)
             return null;
 
         // OIDC principals may carry no Elsa claims because their backend access token is authorized separately.

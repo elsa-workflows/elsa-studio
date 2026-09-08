@@ -92,6 +92,14 @@ public class MenuPermissionTests
     }
 
     [Fact]
+    public async Task CurrentUserPermissionService_DoesNotTrustPermissionClaimsFromUnauthenticatedPrincipal()
+    {
+        var service = new CurrentUserPermissionService(new UnauthenticatedStateProvider("workflows/definitions:view"));
+
+        Assert.False(await service.HasAsync("workflows/definitions:view"));
+    }
+
+    [Fact]
     public async Task DefaultMenuService_FiltersProtectedChildrenAndKeepsAccessibleSiblings()
     {
         var protectedChild = new MenuItem
@@ -235,9 +243,12 @@ public class MenuPermissionTests
         }
     }
 
-    private sealed class UnauthenticatedStateProvider : AuthenticationStateProvider
+    private sealed class UnauthenticatedStateProvider(params string[] permissions) : AuthenticationStateProvider
     {
-        public override Task<AuthenticationState> GetAuthenticationStateAsync() =>
-            Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+        public override Task<AuthenticationState> GetAuthenticationStateAsync()
+        {
+            var claims = permissions.Select(x => new Claim("permissions", x));
+            return Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims))));
+        }
     }
 }
