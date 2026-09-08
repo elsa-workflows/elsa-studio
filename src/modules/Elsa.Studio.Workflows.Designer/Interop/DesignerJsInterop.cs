@@ -61,6 +61,20 @@ public class DesignerJsInterop(
     }
 
     /// <summary>
+    /// Creates a new read-only BPMN graph and returns its API wrapper. The graph id is the container id.
+    /// </summary>
+    /// <param name="containerId">The ID of the container element.</param>
+    /// <param name="componentRef">A reference to the <see cref="BpmnDesigner"/> component.</param>
+    public async ValueTask<BpmnGraphApi> CreateBpmnGraphAsync(string containerId, DotNetObjectReference<BpmnDesigner> componentRef)
+    {
+        return await TryInvokeAsync(async module =>
+        {
+            var graphId = await module.InvokeAsync<string>("createBpmnGraph", containerId, componentRef);
+            return new BpmnGraphApi(module, graphId);
+        });
+    }
+
+    /// <summary>
     /// Provides the task.
     /// </summary>
     public async Task UpdateActivitySizeAsync(string elementId, JsonObject activity, Elsa.Api.Client.Shared.Models.Size? size = null, int? portCount = null)

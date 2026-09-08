@@ -8,6 +8,7 @@ using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Model
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Extensions;
+using Elsa.Studio.Workflows.DiagramDesigners.Bpmn;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 using Elsa.Studio.Workflows.DiagramDesigners.Sequences;
@@ -50,7 +51,8 @@ public static class ServiceCollectionExtensions
             .AddDiagramDesignerProvider<FallbackDesignerProvider>()
             .AddDiagramDesignerProvider<StateMachineDiagramDesignerProvider>()
             .AddDiagramDesignerProvider<FlowchartDiagramDesignerProvider>()
-            .AddDiagramDesignerProvider<SequenceDiagramDesignerProvider>();
+            .AddDiagramDesignerProvider<SequenceDiagramDesignerProvider>()
+            .AddDiagramDesignerProvider<BpmnDiagramDesignerProvider>();
 
         services.AddNotificationHandler<RefreshActivityRegistry>();
         services.AddScoped<IWidget, WorkflowDefinitionMetadataWidget>();
