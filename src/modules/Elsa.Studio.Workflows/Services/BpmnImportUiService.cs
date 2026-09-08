@@ -101,6 +101,24 @@ public class BpmnImportUiService(
 
         var results = new List<WorkflowImportResult>();
 
+        // When updating an already-open workflow, a batch may contain at most one BPMN file: importing more than
+        // one would import each into the same definition, silently replacing the earlier ones.
+        if (definitionId != null && bpmnFiles.Count > 1)
+        {
+            var message = (string)localizer["Select a single BPMN file to update the open workflow; {0} were selected", bpmnFiles.Count];
+
+            foreach (var bpmnFile in bpmnFiles)
+            {
+                results.Add(new()
+                {
+                    FileName = bpmnFile.Name,
+                    Failure = new(message, WorkflowImportFailureType.Exception)
+                });
+            }
+
+            return new(results, otherFiles);
+        }
+
         foreach (var bpmnFile in bpmnFiles)
         {
             var result = await ImportFileAsync(bpmnFile, definitionId, cancellationToken);
@@ -142,7 +160,7 @@ public class BpmnImportUiService(
         var dialog = await dialogService.ShowAsync<BpmnImportFindingsDialog>(localizer["Import BPMN"], parameters, options);
         var result = await dialog.Result;
 
-        if (result?.Canceled != false)
+        if (result is null || result.Canceled)
             return (true, null);
 
         return (false, result.Data as string);

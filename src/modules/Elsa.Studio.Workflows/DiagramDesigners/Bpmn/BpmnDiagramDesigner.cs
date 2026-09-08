@@ -150,7 +150,7 @@ public class BpmnDiagramDesigner(
         var dialog = await dialogService.ShowAsync<ExportBpmnDialog>(localizer["Export BPMN"], options);
         var result = await dialog.Result;
 
-        if (result?.Canceled != false)
+        if (result?.Canceled is not false)
             return;
 
         var exportResult = await bpmnInterchangeService.ExportAsync(_workflowDefinition.DefinitionId);

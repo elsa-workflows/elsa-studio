@@ -706,9 +706,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         if (bpmnBatch.OtherFiles.Count > 0)
             importResults.AddRange(await WorkflowDefinitionImporter.ImportFilesAsync(bpmnBatch.OtherFiles, options));
 
-        foreach (var bpmnResult in bpmnBatch.Results.Where(x => x.IsSuccess))
-            if (bpmnResult.WorkflowDefinition is { } workflowDefinition)
-                await SetImportedWorkflowDefinitionAsync(workflowDefinition);
+        foreach (var bpmnResult in bpmnBatch.Results.Where(x => x.IsSuccess && x.WorkflowDefinition != null))
+            await SetImportedWorkflowDefinitionAsync(bpmnResult.WorkflowDefinition!);
 
         var reportableResults = BpmnImportBatch.ReportableResults(importResults);
         var failedImports = reportableResults.Where(x => !x.IsSuccess).ToList();

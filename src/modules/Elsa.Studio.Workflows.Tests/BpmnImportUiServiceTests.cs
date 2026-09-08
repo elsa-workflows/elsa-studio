@@ -111,6 +111,58 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task ImportBpmnFilesAsync_FailsEveryFile_WhenMoreThanOneBpmnFileTargetsAnOpenDefinition()
+    {
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var localizer = Services.GetRequiredService<ILocalizer>();
+        var interchangeService = new FakeBpmnInterchangeService();
+        var definitionService = new FakeWorkflowDefinitionService();
+        var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
+        var files = new IBrowserFile[]
+        {
+            new FakeBrowserFile("a.bpmn"),
+            new FakeBrowserFile("b.bpmn")
+        };
+
+        var batch = await service.ImportBpmnFilesAsync(files, definitionId: "wf-1");
+
+        Assert.Equal(2, batch.Results.Count);
+        Assert.All(batch.Results, result => Assert.False(result.IsSuccess));
+        Assert.Equal("a.bpmn", batch.Results[0].FileName);
+        Assert.Equal("b.bpmn", batch.Results[1].FileName);
+        Assert.Equal(0, interchangeService.AnalyzeCallCount);
+        Assert.Equal(0, interchangeService.ImportCallCount);
+        Assert.Null(definitionService.RequestedDefinitionId);
+    }
+
+    [Fact]
+    public async Task ImportBpmnFilesAsync_ImportsTheSingleBpmnFile_IntoTheOpenDefinition()
+    {
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var localizer = Services.GetRequiredService<ILocalizer>();
+        var interchangeService = new FakeBpmnInterchangeService
+        {
+            AnalyzeResult = new(new BpmnImportAnalysisModel { ProcessIds = ["only-process"] }),
+            ImportResult = new(new BpmnImportResultModel { DefinitionId = "wf-1", Version = 1 })
+        };
+        var definitionService = new FakeWorkflowDefinitionService { DefinitionToReturn = new WorkflowDefinition { DefinitionId = "wf-1" } };
+        var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
+        var files = new IBrowserFile[] { new FakeBrowserFile("a.bpmn") };
+
+        var batchTask = _dialogProvider.InvokeAsync(() => service.ImportBpmnFilesAsync(files, definitionId: "wf-1"));
+
+        _dialogProvider.WaitForElement("button");
+        await _dialogProvider.InvokeAsync(() => ImportButton().ClickAsync(new MouseEventArgs()));
+
+        var batch = await batchTask.WaitAsync(Timeout);
+
+        var result = Assert.Single(batch.Results);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, interchangeService.ImportCallCount);
+        Assert.Equal("wf-1", interchangeService.LastImportDefinitionId);
+    }
+
+    [Fact]
     public async Task ImportFileAsync_ShowsTheRefusalDialogOnce_AndReturnsACapabilityRefusalResult_On422()
     {
         const string message =
@@ -198,12 +250,22 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
     {
         public Result<BpmnImportAnalysisModel, ValidationErrors> AnalyzeResult { get; set; } = new(new BpmnImportAnalysisModel());
         public Result<BpmnImportResultModel, ValidationErrors> ImportResult { get; set; } = new(new BpmnImportResultModel());
+        public int AnalyzeCallCount { get; private set; }
+        public int ImportCallCount { get; private set; }
+        public string? LastImportDefinitionId { get; private set; }
 
-        public Task<Result<BpmnImportAnalysisModel, ValidationErrors>> AnalyzeAsync(Stream content, string fileName, CancellationToken cancellationToken = default) =>
-            Task.FromResult(AnalyzeResult);
+        public Task<Result<BpmnImportAnalysisModel, ValidationErrors>> AnalyzeAsync(Stream content, string fileName, CancellationToken cancellationToken = default)
+        {
+            AnalyzeCallCount++;
+            return Task.FromResult(AnalyzeResult);
+        }
 
-        public Task<Result<BpmnImportResultModel, ValidationErrors>> ImportAsync(Stream content, string fileName, string? definitionId, string? name, string? processId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(ImportResult);
+        public Task<Result<BpmnImportResultModel, ValidationErrors>> ImportAsync(Stream content, string fileName, string? definitionId, string? name, string? processId, CancellationToken cancellationToken = default)
+        {
+            ImportCallCount++;
+            LastImportDefinitionId = definitionId;
+            return Task.FromResult(ImportResult);
+        }
 
         public Task<Result<FileDownload, BpmnExportFailure>> ExportAsync(string definitionId, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();

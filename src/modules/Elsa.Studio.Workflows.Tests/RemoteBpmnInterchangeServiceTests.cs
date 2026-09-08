@@ -15,7 +15,7 @@ namespace Elsa.Studio.Workflows.Tests;
 /// message a user needs to see (capability names, offending element ids, or one of the two export refusals), so
 /// this pins that those messages actually reach the caller rather than being replaced by a generic failure.
 /// </summary>
-public class RemoteBpmnInterchangeServiceTests
+public class RemoteBpmnInterchangeServiceTests : IDisposable
 {
     private readonly FakeBpmnInterchangeApi _api = new();
     private readonly RemoteBpmnInterchangeService _service;
@@ -24,6 +24,8 @@ public class RemoteBpmnInterchangeServiceTests
     {
         _service = new(new TestBackendApiClientProvider(_api));
     }
+
+    public void Dispose() => _api.Dispose();
 
     [Fact]
     public async Task AnalyzeAsync_ReturnsTheServersErrorMessage_WhenTheApiThrows()
@@ -36,7 +38,8 @@ public class RemoteBpmnInterchangeServiceTests
         }
         """);
 
-        var result = await _service.AnalyzeAsync(new MemoryStream(), "process.bpmn");
+        using var stream = new MemoryStream();
+        var result = await _service.AnalyzeAsync(stream, "process.bpmn");
 
         Assert.True(result.IsFailed);
         var error = Assert.Single(result.Failure!.Errors);
@@ -58,7 +61,8 @@ public class RemoteBpmnInterchangeServiceTests
         }
         """);
 
-        var result = await _service.ImportAsync(new MemoryStream(), "process.bpmn", definitionId: null, name: null, processId: null);
+        using var stream = new MemoryStream();
+        var result = await _service.ImportAsync(stream, "process.bpmn", definitionId: null, name: null, processId: null);
 
         Assert.True(result.IsFailed);
         var error = Assert.Single(result.Failure!.Errors);
@@ -141,8 +145,10 @@ public class RemoteBpmnInterchangeServiceTests
         return await ApiException.Create(request, HttpMethod.Post, response, new RefitSettings());
     }
 
-    private class FakeBpmnInterchangeApi : IBpmnInterchangeApi
+    private class FakeBpmnInterchangeApi : IBpmnInterchangeApi, IDisposable
     {
+        private readonly HttpResponseMessage _defaultExportResponse = new(HttpStatusCode.OK) { Content = new StringContent("") };
+
         public ApiException? AnalyzeException { get; set; }
         public ApiException? ImportException { get; set; }
         public HttpResponseMessage? ExportResponse { get; set; }
@@ -154,7 +160,13 @@ public class RemoteBpmnInterchangeServiceTests
             ImportException != null ? throw ImportException : Task.FromResult(new BpmnImportResultModel());
 
         public Task<HttpResponseMessage> ExportAsync(string definitionId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(ExportResponse ?? new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("") });
+            Task.FromResult(ExportResponse ?? _defaultExportResponse);
+
+        public void Dispose()
+        {
+            _defaultExportResponse.Dispose();
+            ExportResponse?.Dispose();
+        }
     }
 
     private class TestBackendApiClientProvider(IBpmnInterchangeApi api) : IBackendApiClientProvider
