@@ -182,6 +182,54 @@ public class BpmnDocumentSessionTests
     }
 
     [Fact]
+    public async Task SaveAsync_CalledAgainWhileASaveIsInFlight_SendsOnlyOnePut_AndBothCallsSeeItsResult()
+    {
+        await _session.EnsureLoadedAsync();
+        var gate = new TaskCompletionSource();
+        _service.PutGate = gate;
+        _service.AcceptsPut("\"REVISION-2\"").ReturnsDocument(Document(), "\"REVISION-2\"");
+        BindHttpRequest();
+
+        var firstSave = _session.SaveAsync();
+        var secondSave = _session.SaveAsync();
+
+        Assert.Same(firstSave, secondSave);
+        Assert.True(_session.IsSaving);
+
+        gate.SetResult();
+        var firstResult = await firstSave;
+        var secondResult = await secondSave;
+
+        Assert.True(firstResult.IsSuccess);
+        Assert.Equal(firstResult.Success, secondResult.Success);
+        Assert.Single(_service.Puts);
+        Assert.False(_session.IsSaving);
+    }
+
+    [Fact]
+    public async Task RefreshRevisionAfterOrdinarySaveAsync_WhenASaveIsInFlight_WaitsForIt_ThenSucceedsAgainstTheReloadedRevision()
+    {
+        await _session.EnsureLoadedAsync();
+        var gate = new TaskCompletionSource();
+        _service.PutGate = gate;
+        _service.AcceptsPut("\"REVISION-2\"").ReturnsDocument(Document(), "\"REVISION-2\"");
+        BindHttpRequest();
+
+        var saveTask = _session.SaveAsync();
+        var refreshTask = _session.RefreshRevisionAfterOrdinarySaveAsync();
+
+        Assert.False(refreshTask.IsCompleted);
+
+        gate.SetResult();
+        var saveResult = await saveTask;
+        var refreshed = await refreshTask;
+
+        Assert.True(saveResult.IsSuccess);
+        Assert.True(refreshed);
+        Assert.Null(_session.SaveFailure);
+    }
+
+    [Fact]
     public async Task RefreshRevisionAfterOrdinarySaveAsync_WhenTheContentIsUnchanged_AdoptsTheNewETag_SoTheSaveGoesThrough()
     {
         await _session.EnsureLoadedAsync();

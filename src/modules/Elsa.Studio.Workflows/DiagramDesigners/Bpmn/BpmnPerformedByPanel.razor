@@ -100,7 +100,7 @@
                             }
                             else if (_draft != null)
                             {
-                                @if (_draft.Descriptor.Inputs.Any(input => input.IsBrowsable != false))
+                                @if (_draft.Descriptor.Inputs.Any(input => input.IsBrowsable is not false))
                                 {
                                     <InputsTab @key="_draftGeneration" WorkflowDefinition="WorkflowDefinition" Activity="_draft.Activity" ActivityDescriptor="_draft.Descriptor" OnActivityUpdated="OnDraftUpdatedAsync" />
                                 }

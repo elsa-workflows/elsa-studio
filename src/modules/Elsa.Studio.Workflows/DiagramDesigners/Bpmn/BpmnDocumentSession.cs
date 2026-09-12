@@ -34,6 +34,7 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     private readonly SortedSet<string> _editedElementIds = new(StringComparer.Ordinal);
     private BpmnDocumentRevision? _revision;
     private Task? _loadTask;
+    private Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>>? _saveTask;
     private bool _isSaving;
 
     /// <summary>The workflow definition whose document this is.</summary>
@@ -132,26 +133,41 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     /// set for the whole of that window, so an edit attempted while it runs is refused rather than silently lost to the
     /// reload; see <see cref="SetBinding"/>.
     /// </summary>
+    /// <remarks>
+    /// Single-flight: a call made while a save is already in flight does not send a second <c>PUT</c>. It returns the
+    /// same task as the call already running, so both callers observe the one save's outcome. This is exact, not a
+    /// lossy best-effort, because <see cref="SetBinding"/> refuses edits for as long as <see cref="IsSaving"/> is
+    /// <see langword="true"/>: the working copy cannot have changed since the in-flight <c>PUT</c> was sent, so there is
+    /// nothing a second <c>PUT</c> could carry that the first one does not already.
+    /// </remarks>
     /// <returns>The server's result on success, or why the document was not saved.</returns>
-    public async Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>> SaveAsync(CancellationToken cancellationToken = default)
+    public Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>> SaveAsync(CancellationToken cancellationToken = default)
     {
+        if (_saveTask != null)
+            return _saveTask;
+
         if (Document == null || _revision == null)
-            return Refuse(new(BpmnDocumentFailureReason.Unknown, "The BPMN document has not been read, so there is nothing to save."));
+            return Task.FromResult(Refuse(new(BpmnDocumentFailureReason.Unknown, "The BPMN document has not been read, so there is nothing to save.")));
 
         if (SubProcessIds.Count > 0)
         {
-            return Refuse(new(
+            return Task.FromResult(Refuse(new(
                 BpmnDocumentFailureReason.SubProcessContentNotCarried,
-                $"The BPMN document declares the subprocess(es) {string.Join(", ", SubProcessIds.Select(id => $"'{id}'"))}, whose content the document does not carry, so saving it would empty them."));
+                $"The BPMN document declares the subprocess(es) {string.Join(", ", SubProcessIds.Select(id => $"'{id}'"))}, whose content the document does not carry, so saving it would empty them.")));
         }
 
+        return _saveTask = SaveCoreAsync(Document, _revision, cancellationToken);
+    }
+
+    private async Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>> SaveCoreAsync(JsonObject document, BpmnDocumentRevision revision, CancellationToken cancellationToken)
+    {
         SavedButReloadFailed = false;
         _isSaving = true;
         Changed?.Invoke();
 
         try
         {
-            var result = await TryAsync(() => bpmnInterchangeService.PutDocumentAsync(DefinitionId, Document, _revision.ETag, cancellationToken));
+            var result = await TryAsync(() => bpmnInterchangeService.PutDocumentAsync(DefinitionId, document, revision.ETag, cancellationToken));
 
             if (!result.IsSuccess)
                 return Refuse(result.Failure!);
@@ -166,6 +182,7 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
         finally
         {
             _isSaving = false;
+            _saveTask = null;
             Changed?.Invoke();
         }
     }
@@ -182,6 +199,12 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     /// <returns><see langword="true"/> if <see cref="SaveAsync"/> may proceed; otherwise the refusal is in <see cref="SaveFailure"/>.</returns>
     public async Task<bool> RefreshRevisionAfterOrdinarySaveAsync(CancellationToken cancellationToken = default)
     {
+        // A save already in flight will itself re-read the document and adopt the revision it finds; racing a second
+        // read against that PUT could compare against a revision the PUT is about to make stale, and refuse this save
+        // for a change nobody but the in-flight save itself made. Waiting for it first compares against what it left.
+        if (_saveTask != null)
+            await _saveTask;
+
         if (Document == null || _revision == null)
             return false;
 
