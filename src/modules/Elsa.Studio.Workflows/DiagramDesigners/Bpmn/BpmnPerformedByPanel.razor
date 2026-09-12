@@ -17,11 +17,6 @@
                 <MudAlert Severity="Severity.Warning" data-testid="bpmn-document-load-failure">@DescribeLoadFailure(loadFailure)</MudAlert>
             }
 
-            @if (Session.SubProcessIds.Count > 0)
-            {
-                <MudAlert Severity="Severity.Info" data-testid="bpmn-document-subprocesses">@Localizer["This process contains subprocesses ({0}). Studio cannot yet save its BPMN document without emptying them, so its bindings are shown here but cannot be saved.", string.Join(", ", Session.SubProcessIds)]</MudAlert>
-            }
-
             @if (Session.SaveFailure is { } saveFailure)
             {
                 <MudAlert Severity="Severity.Error" data-testid="bpmn-document-save-failure">@DescribeSaveFailure(saveFailure)</MudAlert>
@@ -40,7 +35,7 @@
                     <MudText Typo="Typo.body2">@Localizer["Unsaved binding changes"]</MudText>
                     <MudSpacer />
                     <MudButton Variant="Variant.Text" Size="Size.Small" Disabled="_isSaving" OnClick="OnDiscardClicked" data-testid="bpmn-discard">@Localizer["Discard"]</MudButton>
-                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Disabled="@(_isSaving || Session.SubProcessIds.Count > 0)" OnClick="OnSaveClicked" data-testid="bpmn-save">@Localizer["Save"]</MudButton>
+                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Disabled="_isSaving" OnClick="OnSaveClicked" data-testid="bpmn-save">@Localizer["Save"]</MudButton>
                 </MudStack>
             }
 
@@ -73,7 +68,14 @@
                 {
                     @if (_element == null)
                     {
-                        <MudAlert Severity="Severity.Warning" data-testid="bpmn-element-not-in-document">@Localizer["'{0}' is not part of this workflow's BPMN document, so its binding cannot be edited here.", ElementLabel]</MudAlert>
+                        @if (ElementIsInSubprocess)
+                        {
+                            <MudAlert Severity="Severity.Warning" data-testid="bpmn-element-not-in-document">@Localizer["'{0}' is inside a subprocess, whose content Studio cannot see, so its binding cannot be edited here — a server limitation tracked in elsa-workflows/elsa-core#8076.", ElementLabel]</MudAlert>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Warning" data-testid="bpmn-element-missing">@Localizer["'{0}' is not in the BPMN document Studio loaded. Reload the document; if it persists, re-import the BPMN file.", ElementLabel]</MudAlert>
+                        }
                     }
                     else
                     {

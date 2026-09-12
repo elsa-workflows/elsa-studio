@@ -73,7 +73,18 @@ public partial class BpmnPerformedByPanel : IDisposable
     private string? BoundActivityName => _draft != null ? DescribeDescriptor(_draft.Descriptor) : _binding?.ActivityType;
 
     /// <summary>Whether a binding edit could be saved at all; while it could not, none is offered.</summary>
-    private bool CanEdit => Session.Document != null && Session.SubProcessIds.Count == 0;
+    private bool CanEdit => Session.Document != null;
+
+    /// <summary>
+    /// Whether the selected element's absence from the document (<see cref="_element"/> is <see langword="null"/>) is
+    /// explained by it living in a nested scope — a subprocess, transaction, or event subprocess — whose body the
+    /// document never carries (elsa-workflows/elsa-core#8076), rather than some other mismatch between the canvas and
+    /// the document (a stale or unknown element id).
+    /// </summary>
+    private bool ElementIsInSubprocess =>
+        Selection != null
+        && Session.Document != null
+        && !BpmnDefinitionsDocument.HasTopLevelProcess(Session.Document, Selection.ScopeId);
 
     /// <summary>
     /// Leaf work: an activity that performs one unit of work itself. A container or a composite schedules other
@@ -282,7 +293,6 @@ public partial class BpmnPerformedByPanel : IDisposable
         BpmnDocumentFailureReason.PreconditionRequired => Localizer["The server refused the save because it did not name the revision it replaces, so nothing was saved. Reload and make the change again."],
         BpmnDocumentFailureReason.BindingInvalid => Localizer["The server refused the binding of {0}, so nothing was saved: {1}", string.Join(", ", Session.EditedElementIds.Select(id => $"'{id}'")), failure.Message],
         BpmnDocumentFailureReason.CapabilityUnsupported => Localizer["The server cannot run this process, so nothing was saved: {0}", failure.Message],
-        BpmnDocumentFailureReason.SubProcessContentNotCarried => Localizer["Nothing was saved: this process contains subprocesses, and saving its BPMN document from Studio would empty them."],
         BpmnDocumentFailureReason.NotFound => Localizer["This workflow definition no longer exists."],
         _ => Localizer["The binding changes could not be saved: {0}", failure.Message]
     };
