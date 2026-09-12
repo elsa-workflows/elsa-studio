@@ -87,28 +87,32 @@
                             <MudSpacer />
                             @if (CanEdit)
                             {
-                                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="OnPickActivityClicked" data-testid="bpmn-pick-activity">@(BoundActivityName == null ? Localizer["Choose activity"] : Localizer["Change activity"])</MudButton>
+                                <MudButton Variant="Variant.Outlined" Size="Size.Small" Disabled="Session.IsSaving" OnClick="OnPickActivityClicked" data-testid="bpmn-pick-activity">@(BoundActivityName == null ? Localizer["Choose activity"] : Localizer["Change activity"])</MudButton>
                             }
                         </MudStack>
 
-                        @if (!CanEdit)
+                        @if (CanEdit)
                         {
-                            @* Nothing is offered that could not be saved; the alert above says why. *@
-                        }
-                        else if (_draft != null)
-                        {
-                            @if (_draft.Descriptor.Inputs.Any(input => input.IsBrowsable != false))
+                            @if (Session.IsSaving)
                             {
-                                <InputsTab @key="_draftGeneration" WorkflowDefinition="WorkflowDefinition" Activity="_draft.Activity" ActivityDescriptor="_draft.Descriptor" OnActivityUpdated="OnDraftUpdatedAsync" />
+                                @* The document just sent is being read back; editing it now could be lost to that reload. *@
+                                <MudText Typo="Typo.body2" data-testid="bpmn-saving">@Localizer["Saving…"]</MudText>
                             }
-                            else
+                            else if (_draft != null)
                             {
-                                <MudText Typo="Typo.body2">@Localizer["This activity does not have any input properties."]</MudText>
+                                @if (_draft.Descriptor.Inputs.Any(input => input.IsBrowsable != false))
+                                {
+                                    <InputsTab @key="_draftGeneration" WorkflowDefinition="WorkflowDefinition" Activity="_draft.Activity" ActivityDescriptor="_draft.Descriptor" OnActivityUpdated="OnDraftUpdatedAsync" />
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.body2">@Localizer["This activity does not have any input properties."]</MudText>
+                                }
                             }
-                        }
-                        else if (_binding != null)
-                        {
-                            <MudAlert Severity="Severity.Warning" data-testid="bpmn-activity-type-unavailable">@Localizer["The activity type '{0}' is not available in this Studio, so its inputs cannot be edited here.", _binding.ActivityType]</MudAlert>
+                            else if (_binding != null)
+                            {
+                                <MudAlert Severity="Severity.Warning" data-testid="bpmn-activity-type-unavailable">@Localizer["The activity type '{0}' is not available in this Studio, so its inputs cannot be edited here.", _binding.ActivityType]</MudAlert>
+                            }
                         }
                     }
                 }

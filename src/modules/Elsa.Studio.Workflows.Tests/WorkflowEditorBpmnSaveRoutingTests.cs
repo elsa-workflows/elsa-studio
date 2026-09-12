@@ -120,6 +120,72 @@ public sealed class WorkflowEditorBpmnSaveRoutingTests : BunitContext, IAsyncLif
         Assert.Single(_documentService.Puts);
     }
 
+    /// <summary>
+    /// The ordinary save re-serializes the root and, after a publish, may open a new draft version: either can advance
+    /// the document's own ETag (which the graph's serialized text feeds into) without changing what a BPMN import of it
+    /// would produce. Sending the binding PUT with the ETag the session read before that save would then be refused for
+    /// a change nobody made, so the session re-reads the document first and, finding it unchanged, adopts the new ETag.
+    /// </summary>
+    [Fact]
+    public async Task SavingOtherPropertiesAndABindingChange_WhenTheOrdinarySaveOnlyAdvancesTheETag_SendsThePutWithTheRefreshedETag()
+    {
+        var definition = BpmnDefinition();
+        var cut = RenderEditor(definition);
+        await EditBindingAsync(cut);
+        definition.Name = "Renamed";
+        await cut.InvokeAsync(() => cut.Instance.NotifyWorkflowChangedAsync());
+        _documentService.ReturnsDocument(Document(), "\"REVISION-1B\"").AcceptsPut("\"REVISION-2\"").ReturnsDocument(Document(), "\"REVISION-2\"");
+        _definitionService.Latest = BpmnDefinition();
+
+        await InvokeAsync(cut, "OnSaveClick");
+
+        var put = Assert.Single(_documentService.Puts);
+        Assert.Equal("\"REVISION-1B\"", put.IfMatch);
+        Assert.False(Session(cut).IsDirty);
+        Assert.Contains(_messages.Messages, message => message.Contains("Workflow saved", StringComparison.Ordinal));
+    }
+
+    /// <summary>The document the ordinary save's re-read turns up may genuinely have changed; that is still a conflict.</summary>
+    [Fact]
+    public async Task SavingOtherPropertiesAndABindingChange_WhenTheOrdinarySavesReReadFindsARealChange_ReportsTheConflict_WithoutSendingThePut()
+    {
+        var definition = BpmnDefinition();
+        var cut = RenderEditor(definition);
+        await EditBindingAsync(cut);
+        definition.Name = "Renamed";
+        await cut.InvokeAsync(() => cut.Instance.NotifyWorkflowChangedAsync());
+        var changedOnTheServer = Document();
+        TaskElement(changedOnTheServer)["name"] = "Changed by someone else";
+        _documentService.ReturnsDocument(changedOnTheServer, "\"REVISION-1B\"");
+        _definitionService.Latest = BpmnDefinition();
+
+        await InvokeAsync(cut, "OnSaveClick");
+
+        Assert.Single(_editorService.Saves);
+        Assert.Empty(_documentService.Puts);
+        Assert.Equal(BpmnDocumentFailureReason.PreconditionFailed, Session(cut).SaveFailure!.Reason);
+        Assert.True(Session(cut).IsDirty);
+        Assert.Contains(_messages.Messages, message => message.Contains("were not saved", StringComparison.Ordinal));
+    }
+
+    /// <summary>A PUT that succeeds is not the whole story if the read that should confirm it fails: saying only
+    /// "Workflow saved" would hide that the document panel now shows a load failure.</summary>
+    [Fact]
+    public async Task SavingABindingChange_WhenThePutSucceedsButTheFollowUpReadFails_SaysSoRatherThanJustThatItSaved()
+    {
+        var cut = RenderEditor(BpmnDefinition());
+        await EditBindingAsync(cut);
+        _documentService.AcceptsPut("\"REVISION-2\"").RefusesGet(BpmnDocumentFailureReason.SourceStale);
+        _definitionService.Latest = BpmnDefinition();
+
+        await InvokeAsync(cut, "OnSaveClick");
+
+        Assert.Single(_documentService.Puts);
+        Assert.True(Session(cut).SavedButReloadFailed);
+        Assert.Contains(_messages.Messages, message => message.Contains("could not be reloaded", StringComparison.Ordinal));
+        Assert.DoesNotContain(_messages.Messages, message => message == "Workflow saved");
+    }
+
     [Fact]
     public async Task AnOrdinarySaveThatWouldChangeTheGraph_IsRefused_AndNothingIsSent()
     {

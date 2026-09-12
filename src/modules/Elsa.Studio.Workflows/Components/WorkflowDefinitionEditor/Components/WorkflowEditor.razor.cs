@@ -696,14 +696,16 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     {
         _serverRoot = (JsonObject?)workflowDefinition?.Root?.DeepClone();
 
-        if (!IsBpmnDocumentBacked(workflowDefinition))
+        // workflowDefinition is never null once it is BPMN-document-backed: IsBpmnDocumentBacked is null-safe and
+        // returns false for a null definition, so the flow analysis below can treat it as non-null from here on.
+        if (workflowDefinition is null || !IsBpmnDocumentBacked(workflowDefinition))
         {
             _bpmnDocumentSession = null;
             _selectedBpmnElement = null;
             return;
         }
 
-        if (_bpmnDocumentSession?.DefinitionId == workflowDefinition!.DefinitionId)
+        if (_bpmnDocumentSession?.DefinitionId == workflowDefinition.DefinitionId)
             return;
 
         _bpmnDocumentSession = new(BpmnInterchangeService, workflowDefinition.DefinitionId);
@@ -723,6 +725,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     private async Task SaveBpmnDocumentBackedDefinitionAsync()
     {
         var session = _bpmnDocumentSession!;
+        var ordinarySavePerformed = false;
 
         if (_isDirty || !session.IsDirty)
         {
@@ -743,10 +746,22 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
                 return;
             }
+
+            ordinarySavePerformed = true;
         }
 
         await ProgressAsync(async () =>
         {
+            // The ordinary save above may have advanced the document's ETag without changing what it describes — it
+            // re-serializes the root, and a publish opens a new draft version — so the PUT below would otherwise carry
+            // a stale If-Match and be refused for a change nobody made. Adopting the new ETag first, when the content
+            // is unchanged, avoids that; a genuine conflict is still reported as one.
+            if (ordinarySavePerformed && !await session.RefreshRevisionAfterOrdinarySaveAsync())
+            {
+                UserMessageService.ShowSnackbarTextMessage(Localizer["The binding changes were not saved."], Severity.Error);
+                return;
+            }
+
             var result = await session.SaveAsync();
 
             if (_disposed)
@@ -758,7 +773,12 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
                 return;
             }
 
-            if (await ReloadDefinitionFromServerAsync())
+            if (!await ReloadDefinitionFromServerAsync())
+                return;
+
+            if (session.SavedButReloadFailed)
+                UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow saved, but its BPMN document could not be reloaded. Use Reload in the Performed by panel to see its current bindings."], Severity.Warning);
+            else
                 UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow saved"], Severity.Success);
         });
     }

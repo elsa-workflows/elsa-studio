@@ -137,6 +137,81 @@ public class BpmnDocumentSessionTests
         Assert.Equal(1, _service.GetCount);
     }
 
+    [Fact]
+    public async Task SaveAsync_WhileTheEditIsBeingSentAndReadBack_RefusesFurtherEdits_AndAllowsThemAgainOnceItFinishes()
+    {
+        await _session.EnsureLoadedAsync();
+        var gate = new TaskCompletionSource();
+        _service.PutGate = gate;
+        _service.AcceptsPut("\"REVISION-2\"").ReturnsDocument(Document(), "\"REVISION-2\"");
+        BindHttpRequest();
+
+        var saveTask = _session.SaveAsync();
+
+        Assert.True(_session.IsSaving);
+        Assert.Throws<InvalidOperationException>(() => BindHttpRequest());
+
+        gate.SetResult();
+        var result = await saveTask;
+
+        Assert.True(result.IsSuccess);
+        Assert.False(_session.IsSaving);
+        Assert.False(_session.IsDirty);
+
+        // Refused while busy, not silently accepted and then lost to the reload: the session takes an edit again now.
+        var binding = BindHttpRequest();
+        Assert.True(JsonNode.DeepEquals(binding, BpmnActivityBindingFormat.Find(BpmnDocumentFixtures.TaskElement(_session.Document!))));
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenThePutSucceedsButTheFollowUpReadFails_ReportsItSavedButNotReloaded_RatherThanJustSucceeding()
+    {
+        await _session.EnsureLoadedAsync();
+        _service.AcceptsPut("\"REVISION-2\"").RefusesGet(BpmnDocumentFailureReason.SourceStale);
+        BindHttpRequest();
+
+        var result = await _session.SaveAsync();
+
+        Assert.True(result.IsSuccess);
+        Assert.True(_session.SavedButReloadFailed);
+        Assert.Equal(BpmnDocumentFailureReason.SourceStale, _session.LoadFailure!.Reason);
+        Assert.Null(_session.SaveFailure);
+    }
+
+    [Fact]
+    public async Task RefreshRevisionAfterOrdinarySaveAsync_WhenTheContentIsUnchanged_AdoptsTheNewETag_SoTheSaveGoesThrough()
+    {
+        await _session.EnsureLoadedAsync();
+        BindHttpRequest();
+        _service.ReturnsDocument(Document(), "\"REVISION-2\"").AcceptsPut("\"REVISION-3\"").ReturnsDocument(Document(), "\"REVISION-3\"");
+
+        var refreshed = await _session.RefreshRevisionAfterOrdinarySaveAsync();
+        Assert.True(refreshed);
+
+        var result = await _session.SaveAsync();
+
+        Assert.True(result.IsSuccess);
+        var put = Assert.Single(_service.Puts);
+        Assert.Equal("\"REVISION-2\"", put.IfMatch);
+    }
+
+    [Fact]
+    public async Task RefreshRevisionAfterOrdinarySaveAsync_WhenTheContentChanged_ReportsTheConflict_WithoutSendingAnything()
+    {
+        await _session.EnsureLoadedAsync();
+        BindHttpRequest();
+        var changedOnTheServer = Document();
+        BpmnDocumentFixtures.TaskElement(changedOnTheServer)["name"] = "Renamed on the server";
+        _service.ReturnsDocument(changedOnTheServer, "\"REVISION-2\"");
+
+        var refreshed = await _session.RefreshRevisionAfterOrdinarySaveAsync();
+
+        Assert.False(refreshed);
+        Assert.Equal(BpmnDocumentFailureReason.PreconditionFailed, _session.SaveFailure!.Reason);
+        Assert.Empty(_service.Puts);
+        Assert.True(_session.IsDirty);
+    }
+
     private JsonObject BindHttpRequest()
     {
         var binding = BpmnActivityBindingFormat.Create("Elsa.HttpRequest", [KeyValuePair.Create<string, JsonNode?>("url", JsonNode.Parse("""{"typeName":"Uri","expression":{"type":"JavaScript","value":"getUrl()"}}"""))]);

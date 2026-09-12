@@ -24,6 +24,9 @@ internal sealed class FakeBpmnDocumentService : IBpmnInterchangeService
     /// <summary>When set, every GET throws it, as a transport failure would.</summary>
     public Exception? GetException { get; set; }
 
+    /// <summary>When set, a PUT awaits it before answering, so a test can hold one open to observe the session mid-save.</summary>
+    public TaskCompletionSource? PutGate { get; set; }
+
     public FakeBpmnDocumentService ReturnsDocument(JsonObject document, string eTag) => ReturnsOnGet(new(new BpmnDocumentRevision(document, eTag)));
     public FakeBpmnDocumentService RefusesGet(BpmnDocumentFailureReason reason, string message = "refused") => ReturnsOnGet(new(new BpmnDocumentFailure(reason, message)));
     public FakeBpmnDocumentService AcceptsPut(string newETag) => ReturnsOnPut(new(new BpmnDocumentSaveResult(new BpmnImportResultModel(), newETag)));
@@ -37,10 +40,14 @@ internal sealed class FakeBpmnDocumentService : IBpmnInterchangeService
         return Task.FromResult(Next(_getResults, GetCount++));
     }
 
-    public Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>> PutDocumentAsync(string definitionId, JsonObject document, string eTag, CancellationToken cancellationToken = default)
+    public async Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>> PutDocumentAsync(string definitionId, JsonObject document, string eTag, CancellationToken cancellationToken = default)
     {
         Puts.Add((definitionId, (JsonObject)document.DeepClone(), eTag));
-        return Task.FromResult(Next(_putResults, Puts.Count - 1));
+
+        if (PutGate != null)
+            await PutGate.Task;
+
+        return Next(_putResults, Puts.Count - 1);
     }
 
     public Task<Result<BpmnImportAnalysisModel, ValidationErrors>> AnalyzeAsync(Stream content, string fileName, CancellationToken cancellationToken = default) => throw new NotSupportedException();

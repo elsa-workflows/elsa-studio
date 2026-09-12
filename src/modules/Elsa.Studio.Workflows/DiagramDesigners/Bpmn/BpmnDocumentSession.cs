@@ -34,6 +34,7 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     private readonly SortedSet<string> _editedElementIds = new(StringComparer.Ordinal);
     private BpmnDocumentRevision? _revision;
     private Task? _loadTask;
+    private bool _isSaving;
 
     /// <summary>The workflow definition whose document this is.</summary>
     public string DefinitionId { get; } = definitionId;
@@ -44,11 +45,26 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     /// <summary>Whether a read is in flight.</summary>
     public bool IsLoading => _loadTask is { IsCompleted: false };
 
+    /// <summary>
+    /// Whether the working copy is being written back through the document <c>PUT</c>, or the read <see cref="SaveAsync"/>
+    /// follows it with. Set for that whole window, so an edit made after the body was serialized cannot be silently lost
+    /// to the reload that follows a successful <c>PUT</c>: <see cref="SetBinding"/> refuses while this is
+    /// <see langword="true"/>.
+    /// </summary>
+    public bool IsSaving => _isSaving;
+
     /// <summary>Why the last read failed, or <see langword="null"/> when it did not.</summary>
     public BpmnDocumentFailure? LoadFailure { get; private set; }
 
     /// <summary>Why the last save failed, or <see langword="null"/> when it did not or an edit has been made since.</summary>
     public BpmnDocumentFailure? SaveFailure { get; private set; }
+
+    /// <summary>
+    /// Whether the last <see cref="SaveAsync"/> wrote the edit successfully — it is on the server — but the read that
+    /// should have refreshed the working copy with the server's own view of it then failed, leaving <see cref="Document"/>
+    /// cleared and <see cref="LoadFailure"/> set. Nothing was lost; only the local view of it could not be confirmed.
+    /// </summary>
+    public bool SavedButReloadFailed { get; private set; }
 
     /// <summary>The subprocesses the document declares; while there are any, <see cref="SaveAsync"/> refuses.</summary>
     public IReadOnlyList<string> SubProcessIds { get; private set; } = [];
@@ -72,9 +88,15 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     /// Makes <paramref name="binding"/> the activity binding of the element with <paramref name="elementId"/> in the
     /// working copy. Nothing else in the document changes, and nothing is sent until <see cref="SaveAsync"/>.
     /// </summary>
-    /// <exception cref="InvalidOperationException">The working copy has no such element.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// The working copy has no such element, or a save is in flight (<see cref="IsSaving"/>): the document just sent is
+    /// being read back, and an edit applied to it now would be overwritten by that read without ever being saved.
+    /// </exception>
     public void SetBinding(string elementId, JsonObject binding)
     {
+        if (_isSaving)
+            throw new InvalidOperationException("The BPMN document is being saved, so its binding cannot be changed until the save finishes.");
+
         var element = FindElement(elementId) ?? throw new InvalidOperationException($"The BPMN document has no element '{elementId}'.");
 
         BpmnActivityBindingFormat.Attach(element, binding);
@@ -90,11 +112,14 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
 
         _editedElementIds.Clear();
         SaveFailure = null;
+        SavedButReloadFailed = false;
     }
 
     /// <summary>
     /// Writes the working copy back through the document <c>PUT</c>, against the revision it was edited from, then reads
-    /// the document back so the session holds the server's own view and the new <c>ETag</c>.
+    /// the document back so the session holds the server's own view and the new <c>ETag</c>. <see cref="IsSaving"/> is
+    /// set for the whole of that window, so an edit attempted while it runs is refused rather than silently lost to the
+    /// reload; see <see cref="SetBinding"/>.
     /// </summary>
     /// <returns>The server's result on success, or why the document was not saved.</returns>
     public async Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>> SaveAsync(CancellationToken cancellationToken = default)
@@ -109,13 +134,65 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
                 $"The BPMN document declares the subprocess(es) {string.Join(", ", SubProcessIds.Select(id => $"'{id}'"))}, whose content the document does not carry, so saving it would empty them."));
         }
 
-        var result = await TryAsync(() => bpmnInterchangeService.PutDocumentAsync(DefinitionId, Document, _revision.ETag, cancellationToken));
+        SavedButReloadFailed = false;
+        _isSaving = true;
+
+        try
+        {
+            var result = await TryAsync(() => bpmnInterchangeService.PutDocumentAsync(DefinitionId, Document, _revision.ETag, cancellationToken));
+
+            if (!result.IsSuccess)
+                return Refuse(result.Failure!);
+
+            await ReloadAsync(cancellationToken);
+
+            // The PUT is on the server; only the read that was to confirm it locally failed. That is not the failure
+            // SaveFailure reports — a retry would resend an edit the server already has — so it is reported separately.
+            SavedButReloadFailed = LoadFailure != null;
+            return result;
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    /// <summary>
+    /// Called after an ordinary workflow-definition save that may have advanced this document's revision without
+    /// changing what it describes — re-serializing the graph, or a publish that opens a new draft, can move the
+    /// <c>ETag</c> without changing the content a BPMN import would produce from it. Re-reads the document and, if its
+    /// content still equals the revision the working copy was built from, adopts the new <c>ETag</c> so
+    /// <see cref="SaveAsync"/> does not carry a stale one and get refused for a change nobody made. If the content
+    /// differs, that is a genuine conflict, reported the same way a stale <c>PUT</c> would be, without sending anything.
+    /// If the re-read itself fails, that failure is reported instead.
+    /// </summary>
+    /// <returns><see langword="true"/> if <see cref="SaveAsync"/> may proceed; otherwise the refusal is in <see cref="SaveFailure"/>.</returns>
+    public async Task<bool> RefreshRevisionAfterOrdinarySaveAsync(CancellationToken cancellationToken = default)
+    {
+        if (Document == null || _revision == null)
+            return false;
+
+        var result = await TryAsync(() => bpmnInterchangeService.GetDocumentAsync(DefinitionId, cancellationToken));
 
         if (!result.IsSuccess)
-            return Refuse(result.Failure!);
+        {
+            Refuse(result.Failure!);
+            return false;
+        }
 
-        await ReloadAsync(cancellationToken);
-        return result;
+        var fetched = result.Success!;
+
+        if (!JsonNode.DeepEquals(fetched.Document, _revision.Document))
+        {
+            Refuse(new(
+                BpmnDocumentFailureReason.PreconditionFailed,
+                "This workflow was changed since its BPMN document was read, by another save or another user, so the binding changes were not saved."));
+            return false;
+        }
+
+        _revision = fetched;
+        SaveFailure = null;
+        return true;
     }
 
     private async Task LoadAsync(CancellationToken cancellationToken)
@@ -127,6 +204,7 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
         SubProcessIds = _revision == null ? [] : BpmnDefinitionsDocument.FindSubProcessIds(_revision.Document);
         LoadFailure = result.Failure;
         SaveFailure = null;
+        SavedButReloadFailed = false;
         _editedElementIds.Clear();
     }
 
