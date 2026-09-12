@@ -339,6 +339,12 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
 
         public Task<Result<FileDownload, BpmnExportFailure>> ExportAsync(string definitionId, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
+
+        public Task<Result<BpmnDocumentRevision, BpmnDocumentFailure>> GetDocumentAsync(string definitionId, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>> PutDocumentAsync(string definitionId, System.Text.Json.Nodes.JsonObject document, string eTag, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
     }
 
     /// <summary>

@@ -1,10 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
+using System.Text.Json.Nodes;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Workflows.Client;
 using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Elsa.Studio.Workflows.Domain.Services;
+using Elsa.Studio.Workflows.Tests.Support;
 using Refit;
 using Xunit;
 
@@ -173,6 +175,114 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
         Assert.Equal(xml, await reader.ReadToEndAsync());
     }
 
+    [Fact]
+    public async Task GetDocumentAsync_ReturnsTheDocumentAndItsETagVerbatim()
+    {
+        _api.GetDocumentResponse = Json(HttpStatusCode.OK, BpmnDocumentFixtures.Document().ToJsonString(), eTag: "\"ABC123\"");
+
+        var result = await _service.GetDocumentAsync("wf-1");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("\"ABC123\"", result.Success!.ETag);
+        Assert.True(JsonNode.DeepEquals(BpmnDocumentFixtures.Document(), result.Success.Document));
+    }
+
+    /// <summary>
+    /// A document read without its ETag could never be written back (the PUT would be refused 428); across origins that
+    /// is what a CORS policy that does not expose the header produces, so it is reported as such, not as success.
+    /// </summary>
+    [Fact]
+    public async Task GetDocumentAsync_RefusesADocumentThatCameWithoutAnETag()
+    {
+        _api.GetDocumentResponse = Json(HttpStatusCode.OK, BpmnDocumentFixtures.Document().ToJsonString());
+
+        var result = await _service.GetDocumentAsync("wf-1");
+
+        Assert.Equal(BpmnDocumentFailureReason.MissingETag, result.Failure!.Reason);
+    }
+
+    [Fact]
+    public async Task GetDocumentAsync_ClassifiesAStaleDocumentByItsCode()
+    {
+        const string message = "Workflow definition 'wf-1' has changed since it was imported from BPMN.";
+        _api.GetDocumentResponse = UnprocessableEntity(message, BpmnErrorCodes.ExportSourceStale);
+
+        var result = await _service.GetDocumentAsync("wf-1");
+
+        Assert.Equal(BpmnDocumentFailureReason.SourceStale, result.Failure!.Reason);
+        Assert.Equal(message, result.Failure.Message);
+    }
+
+    [Fact]
+    public async Task PutDocumentAsync_SendsTheDocumentAsPlainJson_WithTheETagAsIfMatch()
+    {
+        var document = BpmnDocumentFixtures.Document();
+        _api.PutDocumentResponse = Json(HttpStatusCode.OK, """{"id":"v2","definitionId":"wf-1","version":2,"analysis":{"processIds":["order-process"]}}""", eTag: "\"NEW\"");
+
+        var result = await _service.PutDocumentAsync("wf-1", document, "\"OLD\"");
+
+        Assert.Equal(("wf-1", "\"OLD\"", "application/json"), (_api.PutDefinitionId, _api.PutIfMatch, _api.PutContentType));
+        Assert.Equal(document.ToJsonString(), _api.PutBody);
+        Assert.Equal("\"NEW\"", result.Success!.ETag);
+        Assert.Equal(("v2", 2, "order-process"), (result.Success.Import.Id, result.Success.Import.Version, result.Success.Import.Analysis.ProcessIds.Single()));
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.PreconditionFailed, BpmnErrorCodes.DocumentPreconditionFailed, BpmnDocumentFailureReason.PreconditionFailed)]
+    [InlineData(HttpStatusCode.PreconditionRequired, BpmnErrorCodes.DocumentPreconditionRequired, BpmnDocumentFailureReason.PreconditionRequired)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, BpmnErrorCodes.ImportBindingInvalid, BpmnDocumentFailureReason.BindingInvalid)]
+    [InlineData(HttpStatusCode.NotFound, BpmnErrorCodes.DocumentNotFound, BpmnDocumentFailureReason.NotFound)]
+    [InlineData(HttpStatusCode.PreconditionFailed, null, BpmnDocumentFailureReason.PreconditionFailed)]
+    [InlineData(HttpStatusCode.NotFound, null, BpmnDocumentFailureReason.NotFound)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, null, BpmnDocumentFailureReason.Unknown)]
+    [InlineData(HttpStatusCode.UnprocessableEntity, "bpmn.import.some-future-code", BpmnDocumentFailureReason.Unknown)]
+    public async Task PutDocumentAsync_ClassifiesARefusalByItsCode_FallingBackToTheStatus(HttpStatusCode status, string? code, BpmnDocumentFailureReason expected)
+    {
+        const string message = "The server's own words.";
+        _api.PutDocumentResponse = Refusal(status, message, code);
+
+        var result = await _service.PutDocumentAsync("wf-1", BpmnDocumentFixtures.Document(), "\"OLD\"");
+
+        Assert.Equal(expected, result.Failure!.Reason);
+        Assert.Equal(message, result.Failure.Message);
+    }
+
+    [Fact]
+    public async Task PutDocumentAsync_CarriesTheCapabilityRefusalsData()
+    {
+        _api.PutDocumentResponse = new(HttpStatusCode.UnprocessableEntity)
+        {
+            Content = new StringContent($$"""
+            {
+              "errors": { "generalErrors": ["Missing capabilities."] },
+              "code": "{{BpmnErrorCodes.ImportCapabilityUnsupported}}",
+              "data": { "capabilities": ["ScopeSignalling"], "elementIds": ["Gateway_1"] }
+            }
+            """)
+        };
+
+        var result = await _service.PutDocumentAsync("wf-1", BpmnDocumentFixtures.Document(), "\"OLD\"");
+
+        Assert.Equal(BpmnDocumentFailureReason.CapabilityUnsupported, result.Failure!.Reason);
+        Assert.Equal(["Gateway_1"], result.Failure.CapabilityRefusal!.ElementIds);
+    }
+
+    private static HttpResponseMessage Json(HttpStatusCode status, string body, string? eTag = null)
+    {
+        var response = new HttpResponseMessage(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+
+        if (eTag != null)
+            response.Headers.ETag = new(eTag);
+
+        return response;
+    }
+
+    private static HttpResponseMessage Refusal(HttpStatusCode status, string message, string? code)
+    {
+        var codeProperty = code is null ? "" : $$""", "code": "{{code}}" """;
+        return new(status) { Content = new StringContent($$"""{ "errors": { "generalErrors": ["{{message}}"] }{{codeProperty}} }""") };
+    }
+
     private static HttpResponseMessage UnprocessableEntity(string message, string? code)
     {
         var codeProperty = code is null ? "" : $$""", "code": "{{code}}" """;
@@ -208,6 +318,12 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
         public ApiException? AnalyzeException { get; set; }
         public ApiException? ImportException { get; set; }
         public HttpResponseMessage? ExportResponse { get; set; }
+        public HttpResponseMessage? GetDocumentResponse { get; set; }
+        public HttpResponseMessage? PutDocumentResponse { get; set; }
+        public string? PutDefinitionId { get; private set; }
+        public string? PutIfMatch { get; private set; }
+        public string? PutBody { get; private set; }
+        public string? PutContentType { get; private set; }
 
         public Task<BpmnImportAnalysisModel> AnalyzeAsync(StreamPart file, CancellationToken cancellationToken = default) =>
             AnalyzeException != null ? throw AnalyzeException : Task.FromResult(new BpmnImportAnalysisModel());
@@ -217,6 +333,18 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
 
         public Task<HttpResponseMessage> ExportAsync(string definitionId, CancellationToken cancellationToken = default) =>
             Task.FromResult(ExportResponse ?? _defaultExportResponse);
+
+        public Task<HttpResponseMessage> GetDocumentAsync(string definitionId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(GetDocumentResponse ?? throw new InvalidOperationException("No document response was set."));
+
+        public async Task<HttpResponseMessage> PutDocumentAsync(string definitionId, HttpContent document, string ifMatch, CancellationToken cancellationToken = default)
+        {
+            PutDefinitionId = definitionId;
+            PutIfMatch = ifMatch;
+            PutBody = await document.ReadAsStringAsync(cancellationToken);
+            PutContentType = document.Headers.ContentType?.MediaType;
+            return PutDocumentResponse ?? throw new InvalidOperationException("No document response was set.");
+        }
 
         public void Dispose()
         {
