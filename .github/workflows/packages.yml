@@ -101,11 +101,31 @@ jobs:
           npm version $VERSION --allow-same-version
           npm pack
       
-      # Build npm react wrapper package
+      # Build npm react wrapper package against the just-packed local wasm tarball.
+      # react-wrapper lives in the src/wrappers npm workspace. `npm version` /
+      # `npm run build` there re-resolves package-lock.json, which is still pinned
+      # to @elsa-workflows/elsa-studio-wasm@3.4.0 on feedz. That tarball 404s
+      # (3.8.0 succeeded while feedz still served it). Install the $VERSION tgz
+      # produced by the previous step so pack never hits the registry for wasm.
       - name: Pack elsa-studio-wasm-react npm package
         run: |
-          cd ./src/wrappers/wrappers/react-wrapper
-          npm version $VERSION --allow-same-version
+          set -euo pipefail
+          WASM_TGZ="${GITHUB_WORKSPACE}/packages/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-${VERSION}.tgz"
+          if [[ ! -f "$WASM_TGZ" ]]; then
+            echo "Expected local wasm tarball at $WASM_TGZ" >&2
+            ls -la "${GITHUB_WORKSPACE}/packages/wasm/wwwroot" >&2 || true
+            exit 1
+          fi
+
+          cd ./src/wrappers
+          npm install "$WASM_TGZ" --workspace=@elsa-workflows/elsa-studio-wasm-react
+
+          cd ./wrappers/react-wrapper
+          # Avoid `npm version` here: in this workspace it refreshes the lockfile
+          # and can re-fetch the stale feedz pin. Set the packed versions directly.
+          npm pkg set "version=${VERSION}"
+          npm pkg set "dependencies.@elsa-workflows/elsa-studio-wasm=${VERSION}"
+          npm run copy:elsa-studio-wasm
           npm run build
           npm pack
       
