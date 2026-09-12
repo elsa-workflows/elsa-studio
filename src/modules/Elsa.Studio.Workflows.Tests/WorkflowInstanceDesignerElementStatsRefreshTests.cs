@@ -141,7 +141,7 @@ public sealed class WorkflowInstanceDesignerElementStatsRefreshTests : BunitCont
     {
         public int RefreshElementStatsCallCount { get; private set; }
 
-        public override Task RefreshElementStatsAsync()
+        internal override Task RefreshElementStatsAsync()
         {
             RefreshElementStatsCallCount++;
             return Task.CompletedTask;

@@ -36,8 +36,10 @@ public partial class DiagramDesignerWrapper
     private List<BreadcrumbItem> _breadcrumbItems = new();
     private IDictionary<string, ActivityStats> _activityStats =
         new Dictionary<string, ActivityStats>();
-    private IReadOnlyDictionary<string, BpmnElementStats> _elementStats =
-        new Dictionary<string, BpmnElementStats>();
+    private readonly Dictionary<string, BpmnElementStats> _elementStats = new();
+    private string? _elementStatsInstanceId;
+    private HashSet<string> _elementStatsBpmnProcessActivityIds = new();
+    private int _elementStatsHighWaterMark;
     private ActivityGraph _activityGraph = null!;
     private IDictionary<string, ActivityNode> _indexedActivityNodes =
         new Dictionary<string, ActivityNode>();
@@ -226,13 +228,13 @@ public partial class DiagramDesignerWrapper
     /// <see cref="Components.WorkflowInstanceViewer.Components.WorkflowInstanceDesigner"/> already refreshes
     /// <see cref="ActivityStats"/> on, so the two overlays stay in step.
     /// </remarks>
-    public virtual async Task RefreshElementStatsAsync()
+    internal virtual async Task RefreshElementStatsAsync()
     {
         if (WorkflowInstanceId == null || _diagramDesigner is not IBpmnElementStatsSink sink)
             return;
 
-        _elementStats = await FetchElementStatsAsync(WorkflowInstanceId);
-        await sink.UpdateElementStatsAsync(_elementStats);
+        var elementStats = await FetchElementStatsAsync(WorkflowInstanceId);
+        await sink.UpdateElementStatsAsync(elementStats);
     }
 
     /// <summary>
@@ -241,6 +243,17 @@ public partial class DiagramDesignerWrapper
     /// scope's own activity, and BPMN element and flow ids are unique across the whole document), and folds them
     /// into an element-keyed stats map.
     /// </summary>
+    /// <remarks>
+    /// Incremental: <see cref="_elementStatsHighWaterMark"/> is the number of matching journal records already
+    /// folded into <see cref="_elementStats"/>, so a tick only ever fetches the records that arrived since the
+    /// previous one, rather than re-fetching and re-folding the whole journal from the start every time. This is
+    /// only safe because the journal is append-only in the order the API returns it (see the <c>Sequence</c> on
+    /// <see cref="WorkflowExecutionLogRecord"/>): the high-water mark is a plain count of already-folded records,
+    /// not an id or timestamp, because <see cref="JournalFilter"/> has no way to filter by either. The map and
+    /// mark are reset whenever the displayed instance or the set of <c>Elsa.BpmnProcess</c> scope activity ids
+    /// changes, since a high-water mark from a different instance or a different filter has nothing to do with
+    /// the one about to be fetched.
+    /// </remarks>
     private async Task<IReadOnlyDictionary<string, BpmnElementStats>> FetchElementStatsAsync(string workflowInstanceId)
     {
         var bpmnProcessActivityIds = GetBpmnProcessActivityIds();
@@ -248,24 +261,34 @@ public partial class DiagramDesignerWrapper
         if (bpmnProcessActivityIds.Count == 0)
             return _elementStats;
 
+        if (workflowInstanceId != _elementStatsInstanceId
+            || !_elementStatsBpmnProcessActivityIds.SetEquals(bpmnProcessActivityIds))
+        {
+            _elementStats.Clear();
+            _elementStatsHighWaterMark = 0;
+            _elementStatsInstanceId = workflowInstanceId;
+            _elementStatsBpmnProcessActivityIds = new HashSet<string>(bpmnProcessActivityIds);
+        }
+
         var filter = new JournalFilter { ActivityIds = bpmnProcessActivityIds };
         var entries = new List<WorkflowExecutionLogRecord>();
         const int pageSize = 200;
-        const int maxPages = 50; // Bounded: at most 10,000 entries per refresh, regardless of instance size.
-        var skip = 0;
+        var skip = _elementStatsHighWaterMark;
 
-        for (var page = 0; page < maxPages; page++)
+        while (true)
         {
             var response = await WorkflowInstanceService.GetJournalAsync(workflowInstanceId, filter, skip, pageSize);
             entries.AddRange(response.Items);
+            skip += response.Items.Count;
 
             if (response.Items.Count < pageSize)
                 break;
-
-            skip += pageSize;
         }
 
-        return BpmnElementStatsProjector.Project(entries);
+        _elementStatsHighWaterMark = skip;
+        BpmnElementStatsProjector.Fold(entries, _elementStats);
+
+        return _elementStats;
     }
 
     /// <summary>

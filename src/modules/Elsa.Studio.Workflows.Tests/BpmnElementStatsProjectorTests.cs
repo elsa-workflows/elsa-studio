@@ -167,6 +167,19 @@ public class BpmnElementStatsProjectorTests
         Assert.True(stats["join"].Blocked);
     }
 
+    [Fact(DisplayName = "Fold mutates an already-populated map in place, combining new entries with what was already folded")]
+    public void Fold_AlreadyPopulatedMap_CombinesNewEntriesWithExistingOnes()
+    {
+        var stats = new Dictionary<string, BpmnElementStats>();
+        BpmnElementStatsProjector.Fold([DiagnosticEntry(BpmnDiagnosticEventNames.Waiting, elementId: "join")], stats);
+
+        BpmnElementStatsProjector.Fold([DiagnosticEntry(BpmnDiagnosticEventNames.TokenEmitted, elementId: "task")], stats);
+
+        Assert.Equal(2, stats.Count);
+        Assert.True(stats["join"].Blocked);
+        Assert.Equal(1, stats["task"].Started);
+    }
+
     private static bool IsTaken(BpmnElementStats stats) => (stats.Started ?? 0) > 0 || (stats.Completed ?? 0) > 0;
 
     private static WorkflowExecutionLogRecord DiagnosticEntry(

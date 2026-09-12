@@ -28,7 +28,17 @@ public static class BpmnElementStatsProjector
     public static IReadOnlyDictionary<string, BpmnElementStats> Project(IEnumerable<WorkflowExecutionLogRecord> journalEntries)
     {
         var stats = new Dictionary<string, BpmnElementStats>();
+        Fold(journalEntries, stats);
+        return stats;
+    }
 
+    /// <summary>
+    /// Folds <paramref name="journalEntries"/> into an already-populated element-keyed stats map, mutating it in
+    /// place, so a caller that has already folded earlier journal pages need only fold the new ones rather than
+    /// re-fold the whole history on every refresh.
+    /// </summary>
+    public static void Fold(IEnumerable<WorkflowExecutionLogRecord> journalEntries, Dictionary<string, BpmnElementStats> stats)
+    {
         foreach (var entry in journalEntries)
         {
             if (entry.Source != BpmnDiagnosticEventNames.Source)
@@ -45,8 +55,6 @@ public static class BpmnElementStatsProjector
             if (!string.IsNullOrEmpty(payload.FlowId))
                 ApplyToFlow(GetOrAdd(stats, payload.FlowId));
         }
-
-        return stats;
     }
 
     private static BpmnElementStats GetOrAdd(Dictionary<string, BpmnElementStats> stats, string id)

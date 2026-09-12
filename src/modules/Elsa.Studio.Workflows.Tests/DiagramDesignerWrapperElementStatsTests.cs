@@ -106,6 +106,52 @@ public class DiagramDesignerWrapperElementStatsTests
         Assert.Equal(201, sink.ReceivedStats!.Count);
     }
 
+    [Fact(DisplayName = "A second refresh after new records arrive requests only the new records, and folds them alongside the old ones")]
+    public async Task RefreshElementStatsAsync_SecondRefreshWithNewRecords_RequestsOnlyTheNewRecordsAndFoldsBoth()
+    {
+        var firstEntry = DiagnosticEntry(BpmnDiagnosticEventNames.Waiting, elementId: "join");
+        var secondEntry = DiagnosticEntry(BpmnDiagnosticEventNames.TokenEmitted, elementId: "task");
+        var journal = new RecordingWorkflowInstanceService(
+            new PagedListResponse<WorkflowExecutionLogRecord> { Items = [firstEntry] },
+            new PagedListResponse<WorkflowExecutionLogRecord> { Items = [secondEntry] });
+        var sink = new RecordingSinkDesigner();
+        var wrapper = CreateWrapper(journal, sink, workflowInstanceId: "instance-1");
+
+        await wrapper.RefreshElementStatsAsync();
+        await wrapper.RefreshElementStatsAsync();
+
+        Assert.Equal(2, journal.Calls.Count);
+        Assert.Equal(0, journal.Calls[0].Skip);
+        Assert.Equal(1, journal.Calls[1].Skip);
+        Assert.True(sink.ReceivedStats!["join"].Blocked);
+        Assert.Equal(1, sink.ReceivedStats!["task"].Started);
+    }
+
+    [Fact(DisplayName = "A refresh after the displayed instance changes starts over, rather than carrying over the previous instance's high-water mark or stats")]
+    public async Task RefreshElementStatsAsync_InstanceChanges_StartsOver()
+    {
+        var firstInstanceEntry = DiagnosticEntry(BpmnDiagnosticEventNames.Waiting, elementId: "join");
+        var secondInstanceEntry = DiagnosticEntry(BpmnDiagnosticEventNames.TokenEmitted, elementId: "task");
+        var journal = new RecordingWorkflowInstanceService(
+            new PagedListResponse<WorkflowExecutionLogRecord> { Items = [firstInstanceEntry] },
+            new PagedListResponse<WorkflowExecutionLogRecord> { Items = [secondInstanceEntry] });
+        var sink = new RecordingSinkDesigner();
+        var wrapper = CreateWrapper(journal, sink, workflowInstanceId: "instance-1");
+
+        await wrapper.RefreshElementStatsAsync();
+
+        typeof(DiagramDesignerWrapper)
+            .GetProperty(nameof(DiagramDesignerWrapper.WorkflowInstanceId))!
+            .SetValue(wrapper, "instance-2");
+        await wrapper.RefreshElementStatsAsync();
+
+        Assert.Equal(2, journal.Calls.Count);
+        Assert.Equal(0, journal.Calls[0].Skip);
+        Assert.Equal(0, journal.Calls[1].Skip);
+        Assert.DoesNotContain("join", sink.ReceivedStats!.Keys);
+        Assert.Equal(1, sink.ReceivedStats!["task"].Started);
+    }
+
     private static WorkflowExecutionLogRecord DiagnosticEntry(string kind, string? elementId = null, string? flowId = null) => new(
         Id: Guid.NewGuid().ToString(),
         ActivityInstanceId: "instance-1",
