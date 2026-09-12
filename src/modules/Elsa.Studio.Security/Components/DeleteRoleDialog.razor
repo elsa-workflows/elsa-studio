@@ -1,4 +1,44 @@
 <style>
+    .delete-role-dialog-content {
+        max-height: min(70vh, 44rem);
+        overflow-y: auto;
+    }
+
+    .delete-role-dialog-actions {
+        gap: .5rem;
+    }
+
+    .delete-role-dialog .role-deletion-reference-row,
+    .delete-role-dialog .role-deletion-reference-copy,
+    .delete-role-dialog .role-deletion-reference-check,
+    .delete-role-dialog .role-deletion-path,
+    .delete-role-dialog .role-deletion-version {
+        min-width: 0;
+    }
+
+    .delete-role-dialog .role-deletion-reference-copy,
+    .delete-role-dialog .role-deletion-reference-check .mud-checkbox-label,
+    .delete-role-dialog .role-deletion-path,
+    .delete-role-dialog .role-deletion-path .mud-chip-content,
+    .delete-role-dialog .role-deletion-version {
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .delete-role-dialog .role-deletion-path {
+        height: auto;
+        max-width: 100%;
+    }
+
+    .delete-role-dialog .role-deletion-path,
+    .delete-role-dialog .role-deletion-version {
+        font-family: var(--mud-font-family-monospace, monospace);
+    }
+
+    .delete-role-dialog .mud-alert-message {
+        width: 100%;
+    }
+
     @@media (max-width: 600px) {
         .mud-dialog.delete-role-dialog {
             width: 100vw;
@@ -6,6 +46,31 @@
             height: 100vh;
             max-height: 100vh;
             margin: 0;
+        }
+
+        .delete-role-dialog-content {
+            max-height: none;
+        }
+
+        .delete-role-dialog-actions {
+            align-items: stretch;
+            flex-direction: column-reverse !important;
+        }
+
+        .delete-role-dialog-actions .mud-button {
+            width: 100%;
+        }
+
+        .delete-role-dialog .role-deletion-reference-row {
+            align-items: stretch !important;
+            flex-direction: column !important;
+            gap: .5rem;
+            width: 100%;
+        }
+
+        .delete-role-dialog .role-deletion-reference-check {
+            max-width: 100%;
+            width: 100%;
         }
     }
 </style>
@@ -102,12 +167,13 @@
                 @foreach (var reference in EditableReferences)
                 {
                     <MudPaper Outlined="true" Elevation="0" Class="pa-3">
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudStack Spacing="0">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="role-deletion-reference-row">
+                            <MudStack Spacing="0" Class="role-deletion-reference-copy">
                                 <MudText Typo="Typo.body1">@GetReferenceName(reference)</MudText>
                                 <MudText Typo="Typo.caption">@reference.Source @GetPolicyBranch(reference)</MudText>
                             </MudStack>
                             <MudCheckBox T="bool"
+                                         Class="role-deletion-reference-check"
                                          Value="@IsReferenceSelected(reference)"
                                          ValueChanged="@((bool selected) => SetReferenceSelection(reference, selected))"
                                          Disabled="@_isSubmitting"

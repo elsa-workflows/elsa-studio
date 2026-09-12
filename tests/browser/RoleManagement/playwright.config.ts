@@ -48,7 +48,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: 'list',
-  preserveOutput: 'failures-only',
+  preserveOutput: 'never',
   use: {
     trace: 'off',
     video: 'off',

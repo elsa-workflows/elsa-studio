@@ -4,6 +4,7 @@ using Elsa.Studio.Security.Client;
 using Elsa.Studio.Security.Contracts;
 using Elsa.Studio.Security.Extensions;
 using Elsa.Studio.Security.Menu;
+using Elsa.Studio.Security.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -22,6 +23,8 @@ public sealed class SecurityServiceRegistrationTests
         Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IMenuProvider>(services).Lifetime);
         Assert.Equal(typeof(SecurityMenu), FindDescriptor<IMenuProvider>(services).ImplementationType);
         Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IIdentityPermissionContext>(services).Lifetime);
+        Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<ICurrentUserPermissionSource>(services).Lifetime);
+        Assert.Equal(typeof(IdentityPermissionSource), FindDescriptor<ICurrentUserPermissionSource>(services).ImplementationType);
         Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IUserAdministrationAccessService>(services).Lifetime);
         Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IRoleAdministrationAccessService>(services).Lifetime);
         Assert.Equal(ServiceLifetime.Scoped, FindDescriptor<IRoleDeletionService>(services).Lifetime);

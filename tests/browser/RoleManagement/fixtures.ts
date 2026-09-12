@@ -139,12 +139,25 @@ export async function signIn(page: Page, actor: ActorCredentials): Promise<void>
   if (!page.url().includes('/login'))
     return;
 
-  await page.getByLabel('User name').fill(actor.username);
-  await page.getByLabel('Password').fill(actor.password);
+  const usernameInput = page.getByLabel('User name');
+  const passwordInput = page.getByLabel('Password');
+  let inputsStable = false;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await usernameInput.fill(actor.username);
+    await passwordInput.fill(actor.password);
+    inputsStable = await usernameInput.inputValue() === actor.username && await passwordInput.inputValue() === actor.password;
+    if (inputsStable)
+      break;
+  }
+  if (!inputsStable) {
+    await passwordInput.fill('');
+    throw new Error('Studio sign-in fields did not retain their values.');
+  }
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   try {
     await expect(page).not.toHaveURL(/\/login(?:$|[?#])/);
   } catch {
+    await passwordInput.fill('').catch(() => undefined);
     const visibleAlerts = await page.getByRole('alert').allTextContents();
     const detail = visibleAlerts.length === 0 ? 'No actionable error was rendered.' : visibleAlerts.join(' ');
     throw new Error(`Studio sign-in did not complete. ${detail}`);

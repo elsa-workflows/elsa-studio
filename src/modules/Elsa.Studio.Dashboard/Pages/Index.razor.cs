@@ -35,21 +35,6 @@ public partial class Index : IAsyncDisposable
         RefreshAsync,
         NavigationManager);
 
-    private string BackendLabel
-    {
-        get
-        {
-            if (_snapshot == null)
-                return "Selected backend";
-
-            var overview = _snapshot.Overview;
-            var backendName = string.IsNullOrWhiteSpace(overview.BackendName) ? "Backend" : overview.BackendName;
-            return string.IsNullOrWhiteSpace(overview.EnvironmentName) ? backendName : $"{backendName} / {overview.EnvironmentName}";
-        }
-    }
-
-    private string LastRefreshedLabel => _lastRefreshedAt == null ? "Not refreshed yet" : $"Refreshed {DashboardMetricFormatter.RelativeTimestamp(_lastRefreshedAt)}";
-
     private string StatusLabel => _status switch
     {
         DashboardLoadStatus.Unauthorized => "No access",

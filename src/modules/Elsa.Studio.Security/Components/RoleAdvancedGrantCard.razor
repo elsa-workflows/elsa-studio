@@ -3,34 +3,82 @@
 <style>
     .role-reach-header { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem .75rem; justify-content: space-between; }
     .role-reach-title { align-items: center; display: flex; flex-wrap: wrap; gap: .4rem .65rem; min-width: 0; }
+    .role-reach-actions { align-items: center; display: flex; gap: .25rem; }
     .role-reach-summary { align-items: center; display: flex; flex-wrap: wrap; gap: .25rem .75rem; }
     .role-reach-future { color: var(--mud-palette-text-secondary); margin-top: .35rem; }
     .role-reach-examples { border-top: 1px solid var(--mud-palette-lines-default); margin-top: .5rem; padding-top: .5rem; }
+    .role-advanced-edit { align-items: end; display: grid; gap: .75rem; grid-template-columns: minmax(0, 1fr) auto; width: 100%; }
+    .role-advanced-edit-actions { align-items: center; display: flex; gap: .25rem; }
     .role-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+
+    @@media (max-width: 599.98px) {
+        .role-advanced-edit { grid-template-columns: 1fr; }
+        .role-advanced-edit-actions .mud-button-root { flex: 1 1 50%; }
+    }
 </style>
 
 @if (RolePermissionAuthoring.TryParse(Grant, out var pattern))
 {
     <MudPaper Outlined="true" Elevation="0" Class="pa-3">
         <div class="role-reach-header">
-            <div class="role-reach-title">
-                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">@GrantType(pattern)</MudChip>
-                <MudText Typo="Typo.subtitle1" Class="role-code"><strong>@Grant</strong></MudText>
-                <MudChip T="string" Size="Size.Small" Color="Color.Warning">Broad access</MudChip>
-                @if (Reach != null)
-                {
-                    <MudText Typo="Typo.caption"><strong>@Reach.Count</strong> resources today</MudText>
-                }
-            </div>
-            @if (!IsReadOnly)
+            @if (IsEditing)
             {
-                <MudIconButton Icon="@Icons.Material.Outlined.Delete"
-                               Color="Color.Error"
-                               Size="Size.Small"
-                               OnClick="OnRemove"
-                               aria-label="@($"Remove advanced grant {Grant}")" />
+                <div class="role-advanced-edit">
+                    <MudTextField T="string"
+                                  Label="Grant expression"
+                                  Value="@_editDraft"
+                                  ValueChanged="@(value => _editDraft = value)"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Immediate="true"
+                                  aria-label="@($"Grant expression for {Grant}")" />
+                    <div class="role-advanced-edit-actions">
+                        <MudButton Variant="Variant.Text"
+                                   OnClick="CancelEdit"
+                                   aria-label="@($"Cancel editing advanced grant {Grant}")">
+                            Cancel
+                        </MudButton>
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Primary"
+                                   OnClick="SaveEditAsync"
+                                   aria-label="@($"Save advanced grant {Grant}")">
+                            Save
+                        </MudButton>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="role-reach-title">
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">@GrantType(pattern)</MudChip>
+                    <MudText Typo="Typo.subtitle1" Class="role-code"><strong>@Grant</strong></MudText>
+                    @if (Reach != null)
+                    {
+                        <MudText Typo="Typo.caption"><strong>@Reach.Count</strong> resources today</MudText>
+                    }
+                </div>
+                @if (!IsReadOnly)
+                {
+                    <div class="role-reach-actions" role="group" aria-label="@($"Actions for advanced grant {Grant}")">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       Disabled="@EditDisabled"
+                                       OnClick="BeginEdit"
+                                       aria-label="@($"Edit advanced grant {Grant}")" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.Delete"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="OnRemove"
+                                       aria-label="@($"Remove advanced grant {Grant}")" />
+                    </div>
+                }
             }
         </div>
+        @if (_editError != null)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error" Class="mt-1" Role="alert">@_editError</MudText>
+        }
         <MudText Typo="Typo.caption" Class="role-reach-future"><strong>Future reach:</strong> @GetFutureReach(pattern)</MudText>
         @if (MaterializedDuplicates > 0)
         {
@@ -58,7 +106,7 @@
                 <MudStack Spacing="1" Class="role-reach-examples">
                     @foreach (var permission in RolePermissionAuthoring.GetReachedPermissions(pattern, Reach).Take(5))
                     {
-                        <MudText Typo="Typo.caption" Class="role-code">@permission · Covered, not stored</MudText>
+                        <MudText Typo="Typo.caption" Class="role-code">@permission</MudText>
                     }
                     <MudText Typo="Typo.caption">Reach is calculated for this wildcard only.</MudText>
                 </MudStack>
@@ -78,9 +126,51 @@
     [Parameter] public string? ReachError { get; set; }
     [Parameter] public int MaterializedDuplicates { get; set; }
     [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public bool IsEditing { get; set; }
+    [Parameter] public bool EditDisabled { get; set; }
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnCancelEdit { get; set; }
     [Parameter] public EventCallback OnRemove { get; set; }
     [Parameter] public EventCallback OnLoadReach { get; set; }
+    [Parameter] public Func<string, Task<string?>>? OnSave { get; set; }
     private bool _showCoverage;
+    private bool _wasEditing;
+    private string _editDraft = string.Empty;
+    private string? _editError;
+
+    protected override void OnParametersSet()
+    {
+        if (IsEditing && !_wasEditing)
+        {
+            _editDraft = Grant;
+            _editError = null;
+        }
+        else if (!IsEditing)
+        {
+            _editError = null;
+        }
+
+        _wasEditing = IsEditing;
+    }
+
+    private Task BeginEdit() => OnEdit.InvokeAsync();
+
+    private async Task CancelEdit()
+    {
+        _editDraft = Grant;
+        _editError = null;
+        await OnCancelEdit.InvokeAsync();
+    }
+
+    private async Task SaveEditAsync()
+    {
+        if (OnSave is null)
+            return;
+
+        _editError = await OnSave(_editDraft);
+        if (_editError is null)
+            await OnCancelEdit.InvokeAsync();
+    }
 
     private void ToggleCoverage() => _showCoverage = !_showCoverage;
 

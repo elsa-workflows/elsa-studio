@@ -28,6 +28,7 @@ public class OpenTelemetryMenuTests
         var item = Assert.Single(items);
         Assert.Equal("diagnostics/opentelemetry", item.Href);
         Assert.Equal("OpenTelemetry", item.Text);
+        Assert.Equal("diagnostics/opentelemetry:view", item.RequiredPermission);
     }
 
     [Fact]

@@ -23,7 +23,8 @@ public class OpenTelemetryMenu(IRemoteFeatureProvider remoteFeatureProvider) : I
                 Icon = Icons.Material.Filled.Timeline,
                 Href = "diagnostics/opentelemetry",
                 Text = "OpenTelemetry",
-                GroupName = MenuItemGroups.Diagnostics.Name
+                GroupName = MenuItemGroups.Diagnostics.Name,
+                RequiredPermission = "diagnostics/opentelemetry:view"
             }
         ];
 

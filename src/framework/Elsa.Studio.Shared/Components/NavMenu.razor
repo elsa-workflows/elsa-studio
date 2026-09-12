@@ -1,6 +1,12 @@
 ﻿@using Elsa.Studio.Contracts
 @using Elsa.Studio.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Logging
+@implements IDisposable
 @inject IMenuService MenuService;
+@inject IServiceProvider ServiceProvider
+@inject ILogger<NavMenu> Logger
 
 <MudNavMenu Color="Color.Primary" Margin="Margin.Dense" Class="studio-nav">
     @foreach (var menuItemGroup in _menuItemsGroups.Values)
@@ -23,11 +29,150 @@
 {
     private IDictionary<string, MenuItemGroup> _menuItemsGroups = new Dictionary<string, MenuItemGroup>();
     private IEnumerable<MenuItem> _menuItems = new List<MenuItem>();
+    private readonly CancellationTokenSource _lifetime = new();
+    private readonly object _refreshSync = new();
+    private CancellationTokenSource? _refreshCancellation;
+    private AuthenticationStateProvider? _authenticationStateProvider;
+    private long _authenticationGeneration;
+    private bool _disposed;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        _menuItemsGroups = (await MenuService.GetMenuItemGroupsAsync()).ToDictionary(x => x.Name);
-        _menuItems = await MenuService.GetMenuItemsAsync();
+        _authenticationStateProvider = ServiceProvider.GetService<AuthenticationStateProvider>();
+        if (_authenticationStateProvider is not null)
+            _authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        CancellationToken lifetimeToken;
+        lock (_refreshSync)
+        {
+            if (_disposed)
+                return;
+
+            lifetimeToken = _lifetime.Token;
+        }
+
+        var generation = Volatile.Read(ref _authenticationGeneration);
+        var menu = await LoadMenuAsync(lifetimeToken);
+
+        if (IsCurrentGeneration(generation))
+            PublishMenu(menu);
+    }
+
+    private async Task<(IDictionary<string, MenuItemGroup> Groups, IEnumerable<MenuItem> Items)> LoadMenuAsync(CancellationToken cancellationToken)
+    {
+        var groups = (await MenuService.GetMenuItemGroupsAsync(cancellationToken)).ToDictionary(x => x.Name);
+        var items = await MenuService.GetMenuItemsAsync(cancellationToken);
+        return (groups, items);
+    }
+
+    private void OnAuthenticationStateChanged(Task<AuthenticationState> authenticationStateTask)
+    {
+        CancellationTokenSource refreshCancellation;
+        CancellationTokenSource? previousRefreshCancellation;
+        long generation;
+
+        lock (_refreshSync)
+        {
+            if (_disposed)
+                return;
+
+            generation = ++_authenticationGeneration;
+            previousRefreshCancellation = _refreshCancellation;
+            _refreshCancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+            refreshCancellation = _refreshCancellation;
+        }
+
+        TryCancel(previousRefreshCancellation);
+        _ = RefreshMenuAsync(authenticationStateTask, generation, refreshCancellation);
+    }
+
+    private async Task RefreshMenuAsync(
+        Task<AuthenticationState> authenticationStateTask,
+        long generation,
+        CancellationTokenSource refreshCancellation)
+    {
+        try
+        {
+            await authenticationStateTask.WaitAsync(refreshCancellation.Token);
+            await InvokeAsync(async () =>
+            {
+                if (!IsCurrentGeneration(generation))
+                    return;
+
+                _menuItems = [];
+                StateHasChanged();
+                var menu = await LoadMenuAsync(refreshCancellation.Token);
+
+                if (IsCurrentGeneration(generation))
+                {
+                    PublishMenu(menu);
+                    StateHasChanged();
+                }
+            });
+        }
+        catch (OperationCanceledException) when (refreshCancellation.IsCancellationRequested)
+        {
+            Logger.LogDebug("Skipping a stale navigation menu refresh");
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            Logger.LogWarning(exception, "Reloading the navigation menu after an authentication change failed");
+        }
+        finally
+        {
+            lock (_refreshSync)
+            {
+                if (ReferenceEquals(_refreshCancellation, refreshCancellation))
+                    _refreshCancellation = null;
+            }
+
+            refreshCancellation.Dispose();
+        }
+    }
+
+    private bool IsCurrentGeneration(long generation)
+    {
+        lock (_refreshSync)
+        {
+            return !_disposed &&
+                   Volatile.Read(ref _authenticationGeneration) == generation &&
+                   !_lifetime.IsCancellationRequested;
+        }
+    }
+
+    private void PublishMenu((IDictionary<string, MenuItemGroup> Groups, IEnumerable<MenuItem> Items) menu)
+    {
+        _menuItemsGroups = menu.Groups;
+        _menuItems = menu.Items;
+    }
+
+    public void Dispose()
+    {
+        if (_authenticationStateProvider is not null)
+            _authenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+
+        lock (_refreshSync)
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+        }
+
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+    }
+
+    private void TryCancel(CancellationTokenSource? cancellation)
+    {
+        try
+        {
+            cancellation?.Cancel();
+        }
+        catch (ObjectDisposedException exception)
+        {
+            Logger.LogDebug(exception, "A completed navigation menu refresh was already disposed");
+        }
     }
 }

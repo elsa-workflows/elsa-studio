@@ -50,7 +50,8 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
                         DisplayName = "Definitions",
                         Description = "Workflow definitions.",
                         Category = "Workflows",
-                        SupportedVerbs = ["view", "update"],
+                        SupportedVerbs = ["view", "update", "publish"],
+                        NonCoreVerbs = ["publish"],
                         Verified = false
                     }
                 ]
@@ -66,9 +67,30 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         {
             Assert.Contains("Edit role — Auditors", cut.Markup);
             Assert.Equal("Edit role — Auditors", cut.Find("h1").TextContent.Trim());
-            Assert.Contains("Direct grant", cut.Markup);
+            Assert.Contains("role-editor-title", cut.Find("h1").ClassList);
+            Assert.Equal("Roles", cut.Find(".role-editor-back").TextContent.Trim());
+            var summary = cut.Find(".role-editor-summary");
+            var actions = cut.Find(".role-editor-actions");
+            Assert.Null(summary.QuerySelector(".role-editor-actions"));
+            var actionButtons = actions.QuerySelectorAll("button");
+            Assert.Equal(["Cancel", "Save changes"], actionButtons.Select(button => button.TextContent.Trim()));
+            Assert.All(actionButtons, button => Assert.Contains("mud-button-text", button.ClassList));
+            Assert.Contains("mud-button-text-primary", actionButtons[1].ClassList);
+            Assert.Contains("role-editor-primary-action", actionButtons[1].ClassList);
+            Assert.DoesNotContain("mud-breadcrumbs", cut.Markup);
+            Assert.DoesNotContain("Direct grant", cut.Markup);
+            var details = cut.Find(".role-editor-details");
+            Assert.Equal("The role ID is read-only.", details.Children[1].TextContent.Trim());
+            Assert.Contains("role-editor-id-note", details.Children[1].ClassList);
+            Assert.True(cut.Find("input[aria-label='workflows/definitions:update']").HasAttribute("checked"));
+            var coveredPermission = cut.Find("input[aria-label='workflows/definitions:view']");
+            Assert.True(coveredPermission.HasAttribute("checked"));
+            Assert.True(coveredPermission.HasAttribute("disabled"));
             Assert.Contains("Covered by workflows/*:view", cut.Markup);
+            Assert.Contains("role-covered-grant", cut.Markup);
             Assert.Contains("Unverified · verified:false", cut.Markup);
+            Assert.DoesNotContain("Non-core:", cut.Markup);
+            Assert.NotNull(cut.Find("input[aria-label='workflows/definitions:publish']"));
             Assert.Contains("WorkflowDefinitions:Publish", cut.Markup);
             Assert.Contains("Save changes is disabled until issues are resolved", cut.Markup);
         });
@@ -148,6 +170,9 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
 
         var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
         cut.WaitForAssertion(() => Assert.Contains("New role", cut.Markup));
+        Assert.Equal("New role", cut.Find("h1").TextContent.Trim());
+        Assert.Equal("Roles", cut.Find(".role-editor-back").TextContent.Trim());
+        Assert.Empty(cut.FindAll(".role-editor-id"));
         cut.Find("input[aria-label='Role name']").Input("New role");
         var save = cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal));
 
@@ -227,6 +252,188 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void GlobalBulkActionSelectsAndClearsEveryExactPermission()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi { Response = CreateBulkPermissionCatalog() });
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("button[aria-label='Select all exact permissions']")));
+
+        cut.Find("input[aria-label='ai/chat:execute']").Change(true);
+        cut.Find("button[aria-label='Select all exact permissions']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.All(cut.FindAll(".role-verb-option input"), checkbox => Assert.True(checkbox.HasAttribute("checked")));
+            Assert.NotNull(cut.Find("button[aria-label='Clear all exact permissions']"));
+        });
+
+        cut.Find("button[aria-label='Clear all exact permissions']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.All(cut.FindAll(".role-verb-option input"), checkbox => Assert.False(checkbox.HasAttribute("checked")));
+            Assert.NotNull(cut.Find("button[aria-label='Select all exact permissions']"));
+        });
+    }
+
+    [Fact]
+    public void CategoryBulkActionOnlyTogglesPermissionsInThatCategory()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi { Response = CreateBulkPermissionCatalog() });
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("button[aria-label='Select all permissions in Workflows']")));
+
+        var selectButton = cut.Find("button[aria-label='Select all permissions in Workflows']");
+        Assert.DoesNotContain("mud-panel-expanded", selectButton.Closest(".mud-expand-panel")!.ClassList);
+        selectButton.Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.True(cut.Find("input[aria-label='workflows/definitions:view']").HasAttribute("checked"));
+            Assert.True(cut.Find("input[aria-label='workflows/definitions:write']").HasAttribute("checked"));
+            Assert.False(cut.Find("input[aria-label='ai/chat:execute']").HasAttribute("checked"));
+            var clearButton = cut.Find("button[aria-label='Clear all permissions in Workflows']");
+            Assert.DoesNotContain("mud-panel-expanded", clearButton.Closest(".mud-expand-panel")!.ClassList);
+        });
+
+        cut.Find("button[aria-label='Clear all permissions in Workflows']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.False(cut.Find("input[aria-label='workflows/definitions:view']").HasAttribute("checked"));
+            Assert.False(cut.Find("input[aria-label='workflows/definitions:write']").HasAttribute("checked"));
+        });
+    }
+
+    [Fact]
+    public void ClearingCategoryPermissionsDoesNotCollapseAnExpandedCategory()
+    {
+        var roles = CreateRoleFixture(
+            ["workflows/definitions:view", "workflows/definitions:write"],
+            []);
+        Register(roles, new StubPermissionsApi { Response = CreateBulkPermissionCatalog() });
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "operators")
+            .Add(x => x.Access, ReadyAccess));
+
+        cut.WaitForAssertion(() =>
+        {
+            var clearButton = cut.Find("button[aria-label='Clear all permissions in Workflows']");
+            Assert.Contains("mud-panel-expanded", clearButton.Closest(".mud-expand-panel")!.ClassList);
+        });
+
+        cut.Find("button[aria-label='Clear all permissions in Workflows']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            var selectButton = cut.Find("button[aria-label='Select all permissions in Workflows']");
+            Assert.Contains("mud-panel-expanded", selectButton.Closest(".mud-expand-panel")!.ClassList);
+        });
+    }
+
+    [Fact]
+    public void BulkActionOnlyChangesPermissionsMatchingTheCurrentFilter()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi { Response = CreateBulkPermissionCatalog() });
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("button[aria-label='Select all exact permissions']")));
+
+        cut.Find("input[placeholder='Search by name, ID, or permission']").Input("AI chat");
+        cut.Find("button[aria-label='Select all matching exact permissions']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.True(cut.Find("input[aria-label='ai/chat:execute']").HasAttribute("checked"));
+            Assert.Empty(cut.FindAll("input[aria-label='workflows/definitions:view']"));
+            Assert.NotNull(cut.Find("button[aria-label='Clear all matching exact permissions']"));
+        });
+
+        cut.Find("input[placeholder='Search by name, ID, or permission']").Input(string.Empty);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.True(cut.Find("input[aria-label='ai/chat:execute']").HasAttribute("checked"));
+            Assert.False(cut.Find("input[aria-label='workflows/definitions:view']").HasAttribute("checked"));
+            Assert.False(cut.Find("input[aria-label='workflows/definitions:write']").HasAttribute("checked"));
+        });
+    }
+
+    [Fact]
+    public void BulkSelectionDoesNotMaterializePermissionsCoveredByAnAdvancedGrant()
+    {
+        var roles = CreateRoleFixture(
+            ["workflows/*:view"],
+            ["workflows/*:view", "workflows/definitions:write"]);
+        Register(roles, CreateWorkflowPermissionCatalogApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "operators")
+            .Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Covered by workflows/*:view", cut.Markup);
+            var coveredPermission = cut.Find("input[aria-label='workflows/definitions:view']");
+            Assert.True(coveredPermission.HasAttribute("checked"));
+            Assert.True(coveredPermission.HasAttribute("disabled"));
+        });
+
+        cut.Find("button[aria-label='Select all exact permissions']").Click();
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.UpdateCalls));
+        Assert.Equal(["workflows/*:view", "workflows/definitions:write"], roles.LastUpdate!.Permissions);
+    }
+
+    [Fact]
+    public void BulkClearRemovesPreExistingExactPermissionsCoveredByAnAdvancedGrant()
+    {
+        var roles = CreateRoleFixture(
+            ["workflows/*:view", "workflows/definitions:view", "workflows/definitions:write"],
+            ["workflows/*:view", "workflows/definitions:view"]);
+        Register(roles, CreateWorkflowPermissionCatalogApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "operators")
+            .Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.NotNull(cut.Find("button[aria-label='Clear all exact permissions']"));
+            var directCoveredPermission = cut.Find("input[aria-label='workflows/definitions:view']");
+            Assert.True(directCoveredPermission.HasAttribute("checked"));
+            Assert.False(directCoveredPermission.HasAttribute("disabled"));
+        });
+
+        cut.Find("button[aria-label='Clear all exact permissions']").Click();
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.UpdateCalls));
+        Assert.Equal(["workflows/*:view"], roles.LastUpdate!.Permissions);
+    }
+
+    [Fact]
+    public void BulkClearRemovesDirectCoveredPermissionsWhenAllCatalogPermissionsAreCovered()
+    {
+        var roles = CreateRoleFixture(
+            ["workflows/*:*", "workflows/definitions:view"],
+            ["workflows/*:*"]);
+        Register(roles, CreateWorkflowPermissionCatalogApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "operators")
+            .Add(x => x.Access, ReadyAccess));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.NotNull(cut.Find("button[aria-label='Clear all exact permissions']"));
+            var directCoveredPermission = cut.Find("input[aria-label='workflows/definitions:view']");
+            Assert.True(directCoveredPermission.HasAttribute("checked"));
+            Assert.False(directCoveredPermission.HasAttribute("disabled"));
+        });
+
+        cut.Find("button[aria-label='Clear all exact permissions']").Click();
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Save changes", StringComparison.Ordinal)).Click();
+
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.UpdateCalls));
+        Assert.Equal(["workflows/*:*"], roles.LastUpdate!.Permissions);
+    }
+
+    [Fact]
     public void EditDeleteAction_OpensTheSameSharedDeletionDialog()
     {
         var roles = new StubRolesApi
@@ -243,7 +450,10 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
             .Add(x => x.Access, ReadyAccess with { CanDelete = true }));
         cut.WaitForAssertion(() => Assert.Contains("Edit role — Auditors", cut.Markup));
 
-        cut.FindAll("button").Single(x => x.TextContent.Contains("Delete role", StringComparison.Ordinal)).Click();
+        var delete = cut.FindAll("button").Single(x => x.TextContent.Contains("Delete role", StringComparison.Ordinal));
+        Assert.Contains("mud-button-text", delete.ClassList);
+        Assert.Contains("mud-button-text-error", delete.ClassList);
+        delete.Click();
 
         provider.WaitForAssertion(() =>
             Assert.Equal("auditors", provider.FindComponent<DeleteRoleDialog>().Instance.RoleId));
@@ -269,6 +479,93 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         {
             Assert.DoesNotContain("Enter a valid grant", cut.Markup);
             Assert.Contains("workflows/*:view", cut.Markup);
+        });
+    }
+
+    [Fact]
+    public void AdvancedGrantCanBeEditedInPlaceAndSubmitted()
+    {
+        var roles = new StubRolesApi
+        {
+            Created = new CreateRoleResponse { Id = "workflow-admin", Name = "Workflow admin" }
+        };
+        Register(roles, new StubPermissionsApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.Contains("New role", cut.Markup));
+
+        cut.Find("input[aria-label='Role name']").Input("Workflow admin");
+        cut.FindAll("[role='tab']").Single(x => x.TextContent.Contains("Advanced grants", StringComparison.OrdinalIgnoreCase)).Click();
+        cut.Find("input[placeholder='workflows/*:view or *']").Change("workflows/*:view");
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Add advanced grant", StringComparison.OrdinalIgnoreCase)).Click();
+        Assert.DoesNotContain("Broad access", cut.Markup);
+        cut.Find("button[aria-label='Edit advanced grant workflows/*:view']").Click();
+        Assert.True(cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal)).HasAttribute("disabled"));
+        cut.Find("input[aria-label='Grant expression for workflows/*:view']").Input(" workflows/*:* ");
+        cut.Find("button[aria-label='Save advanced grant workflows/*:view']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("workflows/*:*", cut.Markup);
+            Assert.Empty(cut.FindAll("button[aria-label='Edit advanced grant workflows/*:view']"));
+            Assert.NotNull(cut.Find("button[aria-label='Edit advanced grant workflows/*:*']"));
+            Assert.False(cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal)).HasAttribute("disabled"));
+        });
+
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Create role", StringComparison.Ordinal)).Click();
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.CreateCalls));
+        Assert.Equal(["workflows/*:*"], roles.LastCreate!.Permissions);
+    }
+
+    [Fact]
+    public void AdvancedGrantCoverageListsPermissionIdentifiersWithoutRepeatingStorageState()
+    {
+        var cut = Render<RoleAdvancedGrantCard>(parameters => parameters
+            .Add(x => x.Grant, "*")
+            .Add(x => x.Reach, new PermissionReachResponse
+            {
+                Covers = ["ai/capabilities", "ai/chat"],
+                Count = 2
+            }));
+
+        cut.Find("button[aria-label='Show current coverage for *']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("ai/capabilities:*", cut.Markup);
+            Assert.Contains("ai/chat:*", cut.Markup);
+            Assert.Contains("Reach is calculated for this wildcard only", cut.Markup);
+            Assert.DoesNotContain("Covered, not stored", cut.Markup);
+        });
+    }
+
+    [Fact]
+    public void AdvancedGrantEditRejectsInvalidAndDuplicateValuesAndCanBeCancelled()
+    {
+        Register(new StubRolesApi(), new StubPermissionsApi());
+        var cut = Render<RoleEditorSurface>(parameters => parameters.Add(x => x.Access, ReadyAccess));
+        cut.WaitForAssertion(() => Assert.Contains("New role", cut.Markup));
+        cut.FindAll("[role='tab']").Single(x => x.TextContent.Contains("Advanced grants", StringComparison.OrdinalIgnoreCase)).Click();
+
+        AddAdvancedGrant(cut, "identity/roles:*");
+        AddAdvancedGrant(cut, "workflows/*:view");
+        cut.Find("button[aria-label='Edit advanced grant workflows/*:view']").Click();
+        var editor = cut.Find("input[aria-label='Grant expression for workflows/*:view']");
+
+        editor.Input("workflows/definitions:view");
+        cut.Find("button[aria-label='Save advanced grant workflows/*:view']").Click();
+        cut.WaitForAssertion(() => Assert.Contains("This is an exact permission", cut.Markup));
+
+        editor = cut.Find("input[aria-label='Grant expression for workflows/*:view']");
+        editor.Input("identity/roles:*");
+        cut.Find("button[aria-label='Save advanced grant workflows/*:view']").Click();
+        cut.WaitForAssertion(() => Assert.Contains("This advanced grant already exists", cut.Markup));
+
+        cut.Find("button[aria-label='Cancel editing advanced grant workflows/*:view']").Click();
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Empty(cut.FindAll("input[aria-label='Grant expression for workflows/*:view']"));
+            Assert.NotNull(cut.Find("button[aria-label='Edit advanced grant workflows/*:view']"));
+            Assert.NotNull(cut.Find("button[aria-label='Edit advanced grant identity/roles:*']"));
         });
     }
 
@@ -301,11 +598,111 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("input[aria-label='workflows/definitions/labels:view']")));
     }
 
+    [Fact]
+    public void ResponsiveLayout_ExposesStableHooksForPermissionTabsAndLegacyRepair()
+    {
+        var roles = new StubRolesApi
+        {
+            Response = new ListRolesResponse
+            {
+                Roles =
+                [
+                    new RoleSummary
+                    {
+                        Id = "auditors",
+                        Name = "Auditors",
+                        Permissions = ["legacy:grant"]
+                    }
+                ]
+            }
+        };
+        Register(roles, new StubPermissionsApi());
+
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "auditors")
+            .Add(x => x.Access, ReadyAccess));
+
+        cut.WaitForAssertion(() => Assert.Contains("Edit role — Auditors", cut.Markup));
+
+        var tabs = cut.Find(".role-permissions-tabs");
+        Assert.Equal(2, tabs.QuerySelectorAll("[role='tab']").Length);
+        Assert.Contains("Exact permissions", tabs.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Advanced grants", tabs.TextContent, StringComparison.Ordinal);
+
+        var repairActions = cut.Find(".role-unresolved-repair-actions");
+        Assert.NotNull(repairActions.QuerySelector("input[placeholder='resource:verb or wildcard']"));
+        Assert.Equal(
+            ["Replace", "Remove"],
+            repairActions.QuerySelectorAll("button").Select(x => x.TextContent.Trim()).ToArray());
+    }
+
     private void Register(IRolesApi roles, IPermissionsApi permissions)
     {
         Services.AddSingleton<IBackendApiClientProvider>(new StubBackendApiClientProvider(roles, permissions));
         Services.AddSingleton<IRoleDeletionService>(new StubRoleDeletionService());
         Render<MudPopoverProvider>();
+    }
+
+    private static PermissionCatalogResponse CreateBulkPermissionCatalog() =>
+        new()
+        {
+            Resources =
+            [
+                new PermissionResourceDescriptor
+                {
+                    Resource = "ai/chat",
+                    DisplayName = "AI chat",
+                    Category = "AI",
+                    SupportedVerbs = ["execute"]
+                },
+                new PermissionResourceDescriptor
+                {
+                    Resource = "workflows/definitions",
+                    DisplayName = "Workflow definitions",
+                    Category = "Workflows",
+                    SupportedVerbs = ["view", "write"]
+                }
+            ]
+        };
+
+    private static StubRolesApi CreateRoleFixture(string[] permissions, string[] updatedPermissions) =>
+        new()
+        {
+            Response = new ListRolesResponse
+            {
+                Roles = [new RoleSummary { Id = "operators", Name = "Operators", Permissions = permissions }]
+            },
+            Updated = new UpdateRoleResponse
+            {
+                Id = "operators",
+                Name = "Operators",
+                Permissions = updatedPermissions
+            }
+        };
+
+    private static StubPermissionsApi CreateWorkflowPermissionCatalogApi() =>
+        new()
+        {
+            Response = new PermissionCatalogResponse
+            {
+                Resources =
+                [
+                    new PermissionResourceDescriptor
+                    {
+                        Resource = "workflows/definitions",
+                        DisplayName = "Workflow definitions",
+                        Category = "Workflows",
+                        SupportedVerbs = ["view", "write"]
+                    }
+                ]
+            }
+        };
+
+    private static void AddAdvancedGrant(IRenderedComponent<RoleEditorSurface> cut, string grant)
+    {
+        cut.Find("input[placeholder='workflows/*:view or *']").Change(grant);
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Add advanced grant", StringComparison.OrdinalIgnoreCase)).Click();
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find($"button[aria-label='Edit advanced grant {grant}']")));
     }
 
     private static RoleAdministrationAccess ReadyAccess =>

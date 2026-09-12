@@ -22,7 +22,8 @@ public class WeaverMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuPro
                 Icon = Icons.Material.Filled.AutoAwesome,
                 Href = "ai/weaver",
                 Text = "Weaver",
-                GroupName = MenuItemGroups.General.Name
+                GroupName = MenuItemGroups.General.Name,
+                RequiredPermission = "ai/capabilities:view"
             }
         ];
 

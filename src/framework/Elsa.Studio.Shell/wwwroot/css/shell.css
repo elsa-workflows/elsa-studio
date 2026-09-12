@@ -42,6 +42,7 @@
     --elsa-text: var(--mud-palette-text-primary);
     --elsa-text-muted: var(--mud-palette-text-secondary);
     --elsa-accent: var(--mud-palette-primary);
+    --elsa-accent-aa: color-mix(in srgb, var(--elsa-accent), var(--elsa-text) 40%);
     --elsa-radius-sm: var(--mud-default-borderradius);
     --elsa-radius-md: calc(var(--mud-default-borderradius) + 2px);
     background: var(--elsa-canvas);
@@ -276,10 +277,10 @@
     color: var(--elsa-text);
 }
 
-.studio-nav .mud-nav-link.active {
+.studio-nav.mud-navmenu-primary .mud-nav-link.active:not(.mud-nav-link-disabled) {
     background: color-mix(in srgb, var(--elsa-accent) 10%, var(--elsa-surface-inset));
     border-color: color-mix(in srgb, var(--elsa-accent) 22%, transparent);
-    color: var(--elsa-accent);
+    color: var(--elsa-accent-aa);
     font-weight: 600;
 }
 
