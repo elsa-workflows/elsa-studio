@@ -39,6 +39,13 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     /// <summary>The workflow definition whose document this is.</summary>
     public string DefinitionId { get; } = definitionId;
 
+    /// <summary>
+    /// Raised whenever <see cref="IsSaving"/> flips, so a component holding this session across an <see langword="await"/>
+    /// — one that would otherwise not re-render until the whole operation that changed it has finished — can answer with
+    /// its own <c>InvokeAsync(StateHasChanged)</c> and show the saving state while it is current.
+    /// </summary>
+    public event Action? Changed;
+
     /// <summary>The working copy, with every unsaved edit applied, or <see langword="null"/> until a read succeeds.</summary>
     public JsonObject? Document { get; private set; }
 
@@ -88,20 +95,24 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     /// Makes <paramref name="binding"/> the activity binding of the element with <paramref name="elementId"/> in the
     /// working copy. Nothing else in the document changes, and nothing is sent until <see cref="SaveAsync"/>.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// The working copy has no such element, or a save is in flight (<see cref="IsSaving"/>): the document just sent is
-    /// being read back, and an edit applied to it now would be overwritten by that read without ever being saved.
-    /// </exception>
-    public void SetBinding(string elementId, JsonObject binding)
+    /// <returns>
+    /// <see langword="false"/>, leaving the working copy unchanged, while a save is in flight (<see cref="IsSaving"/>):
+    /// the document just sent is being read back, and an edit applied to it now would be overwritten by that read
+    /// without ever being saved. The UI is expected to disable editing for that window; this is only the backstop for
+    /// an edit that reaches the session anyway. Otherwise <see langword="true"/>.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">The working copy has no element with <paramref name="elementId"/>.</exception>
+    public bool SetBinding(string elementId, JsonObject binding)
     {
         if (_isSaving)
-            throw new InvalidOperationException("The BPMN document is being saved, so its binding cannot be changed until the save finishes.");
+            return false;
 
         var element = FindElement(elementId) ?? throw new InvalidOperationException($"The BPMN document has no element '{elementId}'.");
 
         BpmnActivityBindingFormat.Attach(element, binding);
         _editedElementIds.Add(elementId);
         SaveFailure = null;
+        return true;
     }
 
     /// <summary>Throws away every unsaved edit, restoring the revision the server last returned.</summary>
@@ -136,6 +147,7 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
 
         SavedButReloadFailed = false;
         _isSaving = true;
+        Changed?.Invoke();
 
         try
         {
@@ -154,6 +166,7 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
         finally
         {
             _isSaving = false;
+            Changed?.Invoke();
         }
     }
 

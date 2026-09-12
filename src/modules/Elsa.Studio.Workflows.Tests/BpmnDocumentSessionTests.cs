@@ -147,9 +147,12 @@ public class BpmnDocumentSessionTests
         BindHttpRequest();
 
         var saveTask = _session.SaveAsync();
+        var documentBeingSaved = (JsonObject)_session.Document!.DeepClone();
 
         Assert.True(_session.IsSaving);
-        Assert.Throws<InvalidOperationException>(() => BindHttpRequest());
+        var refusedBinding = BpmnActivityBindingFormat.Create("Elsa.WriteLine", []);
+        Assert.False(_session.SetBinding(TaskId, refusedBinding));
+        Assert.True(JsonNode.DeepEquals(documentBeingSaved, _session.Document));
 
         gate.SetResult();
         var result = await saveTask;

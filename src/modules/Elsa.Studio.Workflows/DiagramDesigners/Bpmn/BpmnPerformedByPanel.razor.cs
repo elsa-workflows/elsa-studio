@@ -26,7 +26,7 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Bpmn;
 /// editors edit is a draft of the panel's own (<see cref="BpmnActivityBindingDraft"/>), never a node of the workflow's
 /// activity graph, so nothing here can change the graph an ordinary workflow-definition save sends.
 /// </remarks>
-public partial class BpmnPerformedByPanel
+public partial class BpmnPerformedByPanel : IDisposable
 {
     private readonly ExpressionDescriptorProvider _expressionDescriptorProvider = new();
     private bool _isInitialized;
@@ -37,6 +37,7 @@ public partial class BpmnPerformedByPanel
     private BpmnActivityBindingDraft? _draft;
     private int _draftGeneration;
     private bool _isSaving;
+    private BpmnDocumentSession? _subscribedSession;
 
     /// <summary>The workflow definition being edited, for input editors that read its variables.</summary>
     [Parameter] public WorkflowDefinition? WorkflowDefinition { get; set; }
@@ -95,8 +96,36 @@ public partial class BpmnPerformedByPanel
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
+        SubscribeToSession();
         await Session.EnsureLoadedAsync();
         SyncDraft();
+    }
+
+    /// <summary>
+    /// Keeps the panel subscribed to <see cref="Session"/>'s <see cref="BpmnDocumentSession.Changed"/> event, so it
+    /// re-renders while a save is in flight rather than only before and after — an editor around it that shows progress
+    /// with a single <c>StateHasChanged</c> before and after the whole save would otherwise never render the window
+    /// where <see cref="BpmnDocumentSession.IsSaving"/> is <see langword="true"/>.
+    /// </summary>
+    private void SubscribeToSession()
+    {
+        if (ReferenceEquals(_subscribedSession, Session))
+            return;
+
+        if (_subscribedSession != null)
+            _subscribedSession.Changed -= OnSessionChanged;
+
+        Session.Changed += OnSessionChanged;
+        _subscribedSession = Session;
+    }
+
+    private void OnSessionChanged() => InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_subscribedSession != null)
+            _subscribedSession.Changed -= OnSessionChanged;
     }
 
     /// <summary>
@@ -180,7 +209,11 @@ public partial class BpmnPerformedByPanel
 
     private async Task ApplyDraftAsync()
     {
-        Session.SetBinding(_elementId!, _draft!.ToBinding());
+        // The UI already disables editing while Session.IsSaving; this is only the backstop for an edit — a debounced
+        // input, a pending dialog result — that reaches here anyway. It is simply dropped: the working copy did not
+        // change, and the section already shows the saving state instead of the editors that produced it.
+        if (!Session.SetBinding(_elementId!, _draft!.ToBinding()))
+            return;
 
         if (DocumentChanged != null)
             await DocumentChanged();

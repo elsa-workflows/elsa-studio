@@ -160,6 +160,46 @@ public sealed class BpmnPerformedByPanelTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task WhileTheDocumentIsBeingSaved_DisablesEditing_AndShowsSaving_ThenEditableAgainOnceItFinishes()
+    {
+        var gate = new TaskCompletionSource();
+        _documentService.PutGate = gate;
+        _documentService.AcceptsPut("\"REVISION-2\"").ReturnsDocument(Document(), "\"REVISION-2\"");
+
+        // As in the real editor, the click's own async chain yields — through the ordinary property save's own HTTP
+        // round trip — before the document PUT this test gates ever starts, so Blazor's single per-event render (right
+        // after the handler first suspends) cannot show the saving state on its own; only the section's own reaction to
+        // Session.Changed can.
+        var cut = Render<BpmnPerformedByPanel>(parameters => parameters
+            .Add(x => x.Selection, TaskSelection)
+            .Add(x => x.RootActivity, RootActivity())
+            .Add(x => x.Session, Session)
+            .Add(x => x.DocumentChanged, () =>
+            {
+                _documentChangedCount++;
+                return Task.CompletedTask;
+            })
+            .Add(x => x.SaveRequested, async () =>
+            {
+                await Task.Yield();
+                await Session.SaveAsync();
+            })
+            .Add(x => x.ReloadRequested, () => Task.CompletedTask));
+        await EditAsync(cut);
+
+        await cut.InvokeAsync(() => cut.Find("[data-testid='bpmn-save']").Click());
+
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='bpmn-saving']")));
+        Assert.True(cut.Find("[data-testid='bpmn-pick-activity']").HasAttribute("disabled"));
+        Assert.Empty(cut.FindComponents<InputsTab>());
+
+        gate.SetResult();
+
+        cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("[data-testid='bpmn-saving']")));
+        Assert.False(cut.Find("[data-testid='bpmn-pick-activity']").HasAttribute("disabled"));
+    }
+
+    [Fact]
     public void AStaleDocument_SaysTheWorkflowNeedsReImporting_AndOffersNothingToEdit()
     {
         UseService(new FakeBpmnDocumentService().RefusesGet(BpmnDocumentFailureReason.SourceStale));
