@@ -1,6 +1,16 @@
 name: Packages
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Optional package version override (semver-ish, e.g. 3.8.1 or 3.8.0-preview.1). Required when publish is checked. Leave empty for default branch/tag versioning.'
+        required: false
+        type: string
+      publish:
+        description: 'Publish packed artifacts (feedz, nuget.org, npmjs). Requires a non-empty version override so a blank dispatch cannot ship 3.8.0-preview.N.'
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - 'main'
@@ -60,13 +70,33 @@ jobs:
             git branch --remote --contains | grep origin/${BRANCH_NAME}
           fi
       - name: Set VERSION variable
+        env:
+          # Dispatcher input via env — do not interpolate inputs.version into bash.
+          VERSION: ${{ github.event.inputs.version }}
+          PUBLISH: ${{ github.event.inputs.publish }}
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
+          set -euo pipefail
+          version_re='^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$'
+
+          if [[ "${PUBLISH:-}" == "true" ]]; then
+            if [[ -z "${VERSION:-}" || ! "$VERSION" =~ $version_re ]]; then
+              echo "publish requires a valid version (e.g. 3.8.1). Refusing to ship ${{ env.base_version }}-preview.N" >&2
+              exit 1
+            fi
+          fi
+
+          if [[ -n "${VERSION:-}" ]]; then
+            if [[ ! "$VERSION" =~ $version_re ]]; then
+              echo "Invalid version override. Expected a package version like 3.8.1 or 3.8.0-preview.1" >&2
+              exit 1
+            fi
+            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          elif [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
             TAG_NAME=${{ github.ref }} # e.g., refs/tags/3.0.0
             TAG_NAME=${TAG_NAME#refs/tags/} # remove the refs/tags/ prefix
-            echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
+            echo "VERSION=${TAG_NAME}" >> "$GITHUB_ENV"
           else
-            echo "VERSION=${{env.base_version}}-${PACKAGE_PREFIX}.${{github.run_number}}" >> $GITHUB_ENV
+            echo "VERSION=${{ env.base_version }}-${PACKAGE_PREFIX}.${{ github.run_number }}" >> "$GITHUB_ENV"
           fi
       - uses: actions/setup-dotnet@v4
         with:
@@ -101,11 +131,31 @@ jobs:
           npm version $VERSION --allow-same-version
           npm pack
       
-      # Build npm react wrapper package
+      # Build npm react wrapper package against the just-packed local wasm tarball.
+      # react-wrapper lives in the src/wrappers npm workspace. `npm version` /
+      # `npm run build` there re-resolves package-lock.json, which is still pinned
+      # to @elsa-workflows/elsa-studio-wasm@3.4.0 on feedz. That tarball 404s
+      # (3.8.0 succeeded while feedz still served it). Install the $VERSION tgz
+      # produced by the previous step so pack never hits the registry for wasm.
       - name: Pack elsa-studio-wasm-react npm package
         run: |
-          cd ./src/wrappers/wrappers/react-wrapper
-          npm version $VERSION --allow-same-version
+          set -euo pipefail
+          WASM_TGZ="${GITHUB_WORKSPACE}/packages/wasm/wwwroot/elsa-workflows-elsa-studio-wasm-${VERSION}.tgz"
+          if [[ ! -f "$WASM_TGZ" ]]; then
+            echo "Expected local wasm tarball at $WASM_TGZ" >&2
+            ls -la "${GITHUB_WORKSPACE}/packages/wasm/wwwroot" >&2 || true
+            exit 1
+          fi
+
+          cd ./src/wrappers
+          npm install "$WASM_TGZ" --workspace=@elsa-workflows/elsa-studio-wasm-react
+
+          cd ./wrappers/react-wrapper
+          # Avoid `npm version` here: in this workspace it refreshes the lockfile
+          # and can re-fetch the stale feedz pin. Set the packed versions directly.
+          npm pkg set "version=${VERSION}"
+          npm pkg set "dependencies.@elsa-workflows/elsa-studio-wasm=${VERSION}"
+          npm run copy:elsa-studio-wasm
           npm run build
           npm pack
       
@@ -135,7 +185,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+    if: ${{ github.event_name == 'release' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish && inputs.version != '') }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -208,7 +258,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    if: ${{ (github.event_name == 'release' && github.event.action == 'published') || (github.event_name == 'workflow_dispatch' && inputs.publish && inputs.version != '') }}
     permissions:
       contents: read
       id-token: write # Required: lets this job request the OIDC token npmjs.com exchanges for publish rights.
@@ -281,7 +331,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+    if: ${{ github.event_name == 'release' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish && inputs.version != '') }}
     steps:
       - name: Download Packages
         uses: actions/download-artifact@v4
@@ -297,7 +347,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    if: ${{ (github.event_name == 'release' && github.event.action == 'published') || (github.event_name == 'workflow_dispatch' && inputs.publish && inputs.version != '') }}
     permissions:
       contents: read
       id-token: write # Required: lets this job request the OIDC token that nuget.org exchanges for a temporary API key.
