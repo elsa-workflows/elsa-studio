@@ -2,6 +2,7 @@ using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Responses;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Extensions;
@@ -10,8 +11,11 @@ using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Activ
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.DiagramDesigners;
+using Elsa.Studio.Workflows.DiagramDesigners.Bpmn;
+using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Elsa.Studio.Workflows.Domain.Notifications;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
@@ -47,6 +51,21 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     private RadzenSplitterPane _activityPropertiesPane = null!;
     private int _activityPropertiesPaneHeight = 300;
     private DiagramDesignerWrapper _diagramDesigner = null!;
+
+    /// <summary>
+    /// The root activity exactly as the server last delivered it. For a BPMN-imported workflow it is the only graph the
+    /// ordinary save may send back; see <see cref="SaveAsync"/>.
+    /// </summary>
+    private JsonObject? _serverRoot;
+
+    /// <summary>
+    /// The BPMN document of a BPMN-imported workflow — the only place its bindings are edited — or <see langword="null"/>
+    /// for any other workflow. See <see cref="AdoptServerDefinition"/>.
+    /// </summary>
+    private BpmnDocumentSession? _bpmnDocumentSession;
+
+    private BpmnElementSelection? _selectedBpmnElement;
+    private EventCallback<BpmnElementSelection?> _bpmnElementSelected;
 
     /// <inheritdoc />
     public WorkflowEditor()
@@ -92,6 +111,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
     [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
     [Inject] private IBpmnImportUiService BpmnImportUiService { get; set; } = null!;
+    [Inject] private IBpmnInterchangeService BpmnInterchangeService { get; set; } = null!;
     [Inject] private IOptions<WorkflowDefinitionOptions> WorkflowDefinitionOptions { get; set; } = null!;
 
     /// <summary>
@@ -105,6 +125,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     [JSInvokable] public async Task OnHotKeysCtrlShiftS() => await OnSaveAsClick();
 
     private JsonObject? Activity => _workflowDefinition?.Root;
+    private bool IsDirty => _isDirty || _bpmnDocumentSession?.IsDirty == true;
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }
@@ -135,7 +156,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     /// <param name="workflowDefinition">The workflow definition to apply. Cannot be null.</param>
     public async Task ApplyWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition)
     {
-        await SetWorkflowDefinitionAsync(workflowDefinition, true);
+        await SetWorkflowDefinitionAsync(workflowDefinition, true, isServerDefinition: false);
         await HandleChangesAsync(false, true);
     }
 
@@ -150,7 +171,9 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     {
         Mediator.Subscribe<ImportedWorkflowDefinition>(this);
 
+        _bpmnElementSelected = EventCallback.Factory.Create<BpmnElementSelection?>(this, OnBpmnElementSelectedAsync);
         _workflowDefinition = WorkflowDefinition;
+        AdoptServerDefinition(_workflowDefinition);
 
         await ActivityRegistry.EnsureLoadedAsync();
 
@@ -173,6 +196,7 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
         var workflowDefinition = _workflowDefinition = WorkflowDefinition;
         var expectedWorkflowDefinitionGeneration = _workflowDefinitionGeneration;
+        AdoptServerDefinition(workflowDefinition);
 
         if (workflowDefinition?.Root == null)
             return;
@@ -247,7 +271,17 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
     {
         var workflowDefinition = _workflowDefinition ?? new WorkflowDefinition();
 
-        if (readDiagram)
+        if (_bpmnDocumentSession != null)
+        {
+            // A BPMN-imported workflow's graph is derived from its BPMN document, and elsa-core refuses to read or export
+            // that document once an ordinary save has rewritten the graph behind it. Bindings are edited in the document
+            // and saved through the document PUT (SaveBpmnDocumentBackedDefinitionAsync); this save may carry the other
+            // properties only, sending the graph back exactly as the server delivered it. The designer is never read:
+            // the BPMN canvas cannot edit the graph, so it could only ever hand back this same root.
+            if (!JsonNode.DeepEquals(workflowDefinition.Root, _serverRoot))
+                return new(new ValidationErrors([new(Localizer["This workflow's activities come from its BPMN document, and this save would change them outside it, so nothing was saved. Bind tasks in the Performed by panel instead, and reload the workflow to discard the other activity changes."])]));
+        }
+        else if (readDiagram)
         {
             var root = await _diagramDesigner.GetActivityAsync();
 
@@ -364,6 +398,12 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
                 if (!IsCurrentWorkflowOperation(expectedWorkflowDefinitionGeneration))
                     return;
 
+                // The save may have moved what the document's ETag covers (a new draft version, say), or left the
+                // document stale; reading it again says which, rather than letting the next binding save find out. A
+                // working copy with unsaved edits is left alone: its save reports a moved ETag as a conflict itself.
+                if (_bpmnDocumentSession is { IsDirty: false } bpmnDocumentSession)
+                    await bpmnDocumentSession.ReloadAsync();
+
                 if (!string.IsNullOrEmpty(currentSelectedActivityId))
                 {
                     await RefreshSelectedActivityAsync(currentSelectedActivityId);
@@ -477,12 +517,16 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition, bool isExternalReplacement = false)
+    private async Task SetWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition, bool isExternalReplacement = false, bool isServerDefinition = true)
     {
         if (isExternalReplacement)
             InvalidateWorkflowDefinitionOperations();
 
         _workflowDefinition = WorkflowDefinition = workflowDefinition;
+
+        if (isServerDefinition)
+            AdoptServerDefinition(workflowDefinition);
+
         if (isExternalReplacement && WorkflowDefinitionReloaded != null)
             await WorkflowDefinitionReloaded();
         else if (WorkflowDefinitionUpdated != null)
@@ -575,6 +619,12 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnSaveClick()
     {
+        if (_bpmnDocumentSession != null)
+        {
+            await SaveBpmnDocumentBackedDefinitionAsync();
+            return;
+        }
+
         await SaveChangesAsync(true, true, false, _ =>
         {
             UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow saved"], Severity.Success);
@@ -596,6 +646,13 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private async Task OnPublishClicked()
     {
+        // Publishing would publish the graph the server has now, without the unsaved binding changes.
+        if (_bpmnDocumentSession?.IsDirty == true)
+        {
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Save or discard the binding changes before publishing."], Severity.Warning);
+            return;
+        }
+
         await ProgressAsync(async () => await PublishAsync(async response =>
         {
             // Depending on whether the workflow contains Not Found activities, display a different message.
@@ -628,6 +685,124 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
         }));
     }
     
+    /// <summary>
+    /// Records <paramref name="workflowDefinition"/> as the server delivered it. For a BPMN-imported workflow — one
+    /// whose root is an <c>Elsa.BpmnProcess</c> and that carries its BPMN source — that is two things: the root exactly
+    /// as sent, the only graph an ordinary save of it may send back, and the session holding its BPMN document, the
+    /// only place its bindings are edited. Never called for a definition edited locally, such as one applied from the
+    /// code view.
+    /// </summary>
+    private void AdoptServerDefinition(WorkflowDefinition? workflowDefinition)
+    {
+        _serverRoot = (JsonObject?)workflowDefinition?.Root?.DeepClone();
+
+        if (!IsBpmnDocumentBacked(workflowDefinition))
+        {
+            _bpmnDocumentSession = null;
+            _selectedBpmnElement = null;
+            return;
+        }
+
+        if (_bpmnDocumentSession?.DefinitionId == workflowDefinition!.DefinitionId)
+            return;
+
+        _bpmnDocumentSession = new(BpmnInterchangeService, workflowDefinition.DefinitionId);
+        _selectedBpmnElement = null;
+    }
+
+    private static bool IsBpmnDocumentBacked(WorkflowDefinition? workflowDefinition) =>
+        workflowDefinition?.Root?.GetTypeName() == BpmnProcessConstants.ActivityTypeName
+        && workflowDefinition.CustomProperties.ContainsKey(BpmnProcessConstants.SourceXmlCustomPropertyKey);
+
+    /// <summary>
+    /// Saves a BPMN-imported workflow: unsaved changes to its other properties first, through the ordinary save (which
+    /// sends the graph back unchanged), then unsaved binding changes through the document PUT, against the ETag of the
+    /// document they were made in. In that order because a successful PUT reloads the definition, which would otherwise
+    /// replace properties nobody had saved yet.
+    /// </summary>
+    private async Task SaveBpmnDocumentBackedDefinitionAsync()
+    {
+        var session = _bpmnDocumentSession!;
+
+        if (_isDirty || !session.IsDirty)
+        {
+            var saved = false;
+
+            await SaveChangesAsync(false, true, false, _ =>
+            {
+                saved = true;
+                return Task.CompletedTask;
+            });
+
+            // A refused save has already said why; saving the bindings after it would reload the definition over the
+            // properties it did not save.
+            if (!saved || !session.IsDirty)
+            {
+                if (saved)
+                    UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow saved"], Severity.Success);
+
+                return;
+            }
+        }
+
+        await ProgressAsync(async () =>
+        {
+            var result = await session.SaveAsync();
+
+            if (_disposed)
+                return;
+
+            if (!result.IsSuccess)
+            {
+                UserMessageService.ShowSnackbarTextMessage(Localizer["The binding changes were not saved."], Severity.Error);
+                return;
+            }
+
+            if (await ReloadDefinitionFromServerAsync())
+                UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow saved"], Severity.Success);
+        });
+    }
+
+    /// <summary>
+    /// Reloads a BPMN-imported workflow and its document from the server, discarding every unsaved change: what a user
+    /// does after the document was changed by someone else, or went stale.
+    /// </summary>
+    private async Task ReloadBpmnDocumentBackedDefinitionAsync()
+    {
+        await ProgressAsync(async () =>
+        {
+            if (await ReloadDefinitionFromServerAsync() && _bpmnDocumentSession != null)
+                await _bpmnDocumentSession.ReloadAsync();
+        });
+    }
+
+    /// <summary>
+    /// Replaces the edited definition with the server's latest version — after a document PUT, the graph it re-imported
+    /// — and redraws the designer from it, exactly as an import into this definition does.
+    /// </summary>
+    private async Task<bool> ReloadDefinitionFromServerAsync()
+    {
+        var definition = await WorkflowDefinitionService.FindByDefinitionIdAsync(_workflowDefinition!.DefinitionId, VersionOptions.Latest);
+
+        if (definition == null)
+        {
+            UserMessageService.ShowSnackbarTextMessage(Localizer["The workflow definition could not be reloaded."], Severity.Error);
+            return false;
+        }
+
+        _isDirty = false;
+        await SetImportedWorkflowDefinitionAsync(definition);
+        return true;
+    }
+
+    private async Task OnBpmnElementSelectedAsync(BpmnElementSelection? selection)
+    {
+        _selectedBpmnElement = selection;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnBpmnDocumentChangedAsync() => InvokeAsync(StateHasChanged);
+
     private async Task OnGraphUpdated() => await HandleChangesAsync(true);
     
     private async Task OnActivityUpdated(JsonObject activity)

@@ -1,4 +1,5 @@
 @using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties
+@using Elsa.Studio.Workflows.DiagramDesigners.Bpmn
 @using Orientation = Radzen.Orientation
 @using Variant = MudBlazor.Variant
 @inherits WorkflowEditorComponentBase
@@ -6,6 +7,7 @@
 
 <RadzenSplitter Orientation="Orientation.Vertical" Style="height: calc(100vh - var(--mud-appbar-height) - 50px);" Resize="@OnResize">
     <RadzenSplitterPane Size="70%">
+        <CascadingValue Name="@BpmnDesignerWrapper.ElementSelectedCascadeName" Value="_bpmnElementSelected" IsFixed="true">
         <DiagramDesignerWrapper @ref="_diagramDesigner"
                                 WorkflowDefinitionVersionId="@_workflowDefinition?.Id"
                                 WorkflowDefinition="@_workflowDefinition"
@@ -19,7 +21,7 @@
                     <MudSwitch T="bool?" Value="@AutoSave" Color="Color.Primary" Label="@Localizer["Auto-save"]" LabelPlacement="Placement.Start" ValueChanged="@OnAutoSaveChanged" />
                 </MudTooltip>
                 <MudTooltip Text="@Localizer["Save"]" Delay="500">
-                    <MudBadge Color="@(_isDirty? Color.Warning: Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
+                    <MudBadge Color="@(IsDirty ? Color.Warning: Color.Success)" Dot="true" Overlap="true" Origin="Origin.BottomRight" Bordered="true" Class="elsa-toolbar-icon">
                         <MudIconButton Icon="@Icons.Material.Outlined.Save" OnClick="@OnSaveClick" />
                     </MudBadge>
                 </MudTooltip>
@@ -58,9 +60,21 @@
                 </MudTooltip>
             </CustomToolbarItems>
         </DiagramDesignerWrapper>
+        </CascadingValue>
     </RadzenSplitterPane>
     <RadzenSplitterPane Size="30%" @ref="ActivityPropertiesPane">
-        <ActivityPropertiesPanel @key="@SelectedActivityId" @ref="ActivityPropertiesPanel" WorkflowDefinition="@_workflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight" />
+        @if (_bpmnDocumentSession is { } bpmnDocumentSession)
+        {
+            @* A BPMN-imported workflow's activities come from its BPMN document: they are bound in the document, never
+               edited in the activity properties panel, whose edits only the ordinary save could persist. *@
+            <BpmnPerformedByPanel WorkflowDefinition="@_workflowDefinition" RootActivity="@Activity" Selection="@_selectedBpmnElement" Session="@bpmnDocumentSession"
+                                  DocumentChanged="@OnBpmnDocumentChangedAsync" SaveRequested="@SaveBpmnDocumentBackedDefinitionAsync" ReloadRequested="@ReloadBpmnDocumentBackedDefinitionAsync"
+                                  VisiblePaneHeight="@_activityPropertiesPaneHeight" />
+        }
+        else
+        {
+            <ActivityPropertiesPanel @key="@SelectedActivityId" @ref="ActivityPropertiesPanel" WorkflowDefinition="@_workflowDefinition" Activity="@SelectedActivity" ActivityDescriptor="@ActivityDescriptor" OnActivityUpdated="@OnSelectedActivityUpdated" VisiblePaneHeight="@_activityPropertiesPaneHeight" />
+        }
     </RadzenSplitterPane>
 </RadzenSplitter>
 

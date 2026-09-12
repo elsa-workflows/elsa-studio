@@ -239,10 +239,35 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         Assert.False(dialog.Result.IsCompleted);
     }
 
+    /// <summary>
+    /// A host other than the StateMachine designer can narrow what the picker offers and say what the choice is for; the
+    /// default offering (browsable activities plus designer-backed roots) must not leak past the filter.
+    /// </summary>
+    [Fact]
+    public async Task Picker_OffersOnlyWhatTheHostsFilterAccepts_InTheHostsOwnContext()
+    {
+        var dialog = await ShowDialogAsync(configure: parameters =>
+        {
+            parameters.Add(x => x.DescriptorFilter, descriptor => descriptor.TypeName is "Elsa.WriteLine" or "Elsa.InternalActivity");
+            parameters.Add(x => x.ContextLabel, "PERFORMED BY");
+            parameters.Add(x => x.ContextHint, "Runs when the process reaches 'Notify Warehouse'");
+        });
+
+        _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-testid='state-machine-activity-option']")));
+        Assert.Equal(["Elsa.InternalActivity", "Elsa.WriteLine"], _dialogProvider.FindAll("[data-activity-type]").Select(x => x.GetAttribute("data-activity-type")).Order());
+        Assert.Contains("PERFORMED BY", _dialogProvider.Markup);
+        Assert.Contains("Runs when the process reaches 'Notify Warehouse'", _dialogProvider.Markup);
+        Assert.DoesNotContain("THEN", _dialogProvider.Markup);
+
+        _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Cancel").Click();
+        Assert.True((await dialog.Result)?.Canceled);
+    }
+
     private async Task<IDialogReference> ShowDialogAsync(
         string slotName = "action",
         IReadOnlyCollection<string>? recentActivityTypes = null,
-        bool isReplacing = false)
+        bool isReplacing = false,
+        Action<DialogParameters<StateMachineActivityPickerDialog>>? configure = null)
     {
         var dialogService = Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters<StateMachineActivityPickerDialog>
@@ -251,6 +276,7 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
             { x => x.IsReplacing, isReplacing },
             { x => x.RecentActivityTypes, recentActivityTypes ?? [] }
         };
+        configure?.Invoke(parameters);
         var article = slotName == "trigger" ? "a" : "an";
         return await _dialogProvider.InvokeAsync(() => dialogService.ShowAsync<StateMachineActivityPickerDialog>($"Choose {article} {slotName} activity", parameters));
     }
