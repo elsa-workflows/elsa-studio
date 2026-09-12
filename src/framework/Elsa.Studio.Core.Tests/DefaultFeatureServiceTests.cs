@@ -56,15 +56,19 @@ public class DefaultFeatureServiceTests
     public async Task InitializeFeatures_SkipsCompanionsWhenCatalogLastSegmentIsNotElsaPrefixed()
     {
         var dashboard = new WorkflowRuntimeDashboardFeature();
+        var identity = new IdentityFeature();
         var service = new DefaultFeatureService(
-            [dashboard],
+            [dashboard, identity],
             new CatalogRemoteFeatureProvider(
                 new FeatureDescriptor { FullName = "Acme.WorkflowRuntimeDashboard" },
-                new FeatureDescriptor { Name = "WorkflowRuntimeDashboard", Namespace = "Acme" }));
+                new FeatureDescriptor { Name = "WorkflowRuntimeDashboard", Namespace = "Acme" },
+                new FeatureDescriptor { FullName = "Acme.Identity" },
+                new FeatureDescriptor { Name = "Identity", Namespace = "Acme" }));
 
         await service.InitializeFeaturesAsync();
 
         Assert.False(dashboard.Initialized);
+        Assert.False(identity.Initialized);
     }
 
     [Fact]
@@ -88,6 +92,9 @@ public class DefaultFeatureServiceTests
 
     [RemoteFeature("Elsa.Diagnostics.StructuredLogs.Dashboard.ShellFeatures.StructuredLogsDashboard")]
     private sealed class StructuredLogsDashboardFeature : TrackingFeature;
+
+    [RemoteFeature("Elsa.Identity.ShellFeatures.Identity")]
+    private sealed class IdentityFeature : TrackingFeature;
 
     private sealed class LocalFeature : TrackingFeature;
 

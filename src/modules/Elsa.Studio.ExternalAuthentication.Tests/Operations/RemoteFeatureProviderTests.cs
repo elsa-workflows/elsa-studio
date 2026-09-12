@@ -55,21 +55,22 @@ public class RemoteFeatureProviderTests
         Assert.True(await provider.IsEnabledAsync("Elsa.Workflows.Runtime.Dashboard.ShellFeatures.WorkflowRuntimeDashboard"));
     }
 
-    [Fact]
-    public async Task FeatureChecks_RejectNonElsaLastSegmentCollisions()
+    [Theory]
+    [InlineData("Elsa.Workflows.Runtime.Dashboard.ShellFeatures.WorkflowRuntimeDashboard", "Acme.WorkflowRuntimeDashboard", "WorkflowRuntimeDashboard")]
+    [InlineData("Elsa.Identity.ShellFeatures.Identity", "Acme.Identity", "Identity")]
+    public async Task FeatureChecks_RejectNonElsaLastSegmentCollisions(string requestedName, string foreignFullName, string foreignName)
     {
-        const string requestedName = "Elsa.Workflows.Runtime.Dashboard.ShellFeatures.WorkflowRuntimeDashboard";
-        var foreignFullName = new FeaturesApi
+        var fullNameCatalog = new FeaturesApi
         {
-            Features = new([new FeatureDescriptor { FullName = "Acme.WorkflowRuntimeDashboard" }], 1)
+            Features = new([new FeatureDescriptor { FullName = foreignFullName }], 1)
         };
-        var foreignNamespace = new FeaturesApi
+        var namespaceCatalog = new FeaturesApi
         {
-            Features = new([new FeatureDescriptor { Name = "WorkflowRuntimeDashboard", Namespace = "Acme" }], 1)
+            Features = new([new FeatureDescriptor { Name = foreignName, Namespace = "Acme" }], 1)
         };
 
-        Assert.False(await new RemoteFeatureProvider(new BackendApiClientProvider(foreignFullName)).IsEnabledAsync(requestedName));
-        Assert.False(await new RemoteFeatureProvider(new BackendApiClientProvider(foreignNamespace)).IsEnabledAsync(requestedName));
+        Assert.False(await new RemoteFeatureProvider(new BackendApiClientProvider(fullNameCatalog)).IsEnabledAsync(requestedName));
+        Assert.False(await new RemoteFeatureProvider(new BackendApiClientProvider(namespaceCatalog)).IsEnabledAsync(requestedName));
     }
 
     [Fact]
