@@ -199,6 +199,62 @@ public sealed class BpmnPerformedByPanelTests : BunitContext, IAsyncLifetime
         Assert.False(cut.Find("[data-testid='bpmn-pick-activity']").HasAttribute("disabled"));
     }
 
+    /// <summary>
+    /// The real editor replaces its <c>BpmnDocumentSession</c> outright when a different definition is opened while the
+    /// panel stays mounted (<c>WorkflowEditor.AdoptServerDefinition</c>), rather than mutating the one the panel already
+    /// holds. <see cref="BpmnPerformedByPanel.SubscribeToSession"/> exists to move the panel's <c>Changed</c>
+    /// subscription along with it; this is what would break if that unsubscribe were dropped or reordered.
+    /// </summary>
+    [Fact]
+    public async Task SwappingTheSession_UnsubscribesFromTheOldOne_SoOnlyTheNewOnesSaveRendersThePanel()
+    {
+        var oldSession = Session;
+        var cut = RenderPanel(TaskSelection);
+        _documentService.AcceptsPut("\"REVISION-2\"").ReturnsDocument(Document(), "\"REVISION-2\"");
+
+        var newDocumentService = new FakeBpmnDocumentService().ReturnsDocument(Document(), "\"REVISION-1\"");
+        var newGate = new TaskCompletionSource();
+        newDocumentService.PutGate = newGate;
+        newDocumentService.AcceptsPut("\"REVISION-2\"").ReturnsDocument(Document(), "\"REVISION-2\"");
+        var newSession = new BpmnDocumentSession(newDocumentService, DefinitionId);
+
+        cut.Render(parameters => parameters
+            .Add(x => x.Selection, TaskSelection)
+            .Add(x => x.RootActivity, RootActivity())
+            .Add(x => x.Session, newSession)
+            .Add(x => x.DocumentChanged, () =>
+            {
+                _documentChangedCount++;
+                return Task.CompletedTask;
+            })
+            .Add(x => x.SaveRequested, () => newSession.SaveAsync())
+            .Add(x => x.ReloadRequested, () =>
+            {
+                _reloadCount++;
+                return Task.CompletedTask;
+            }));
+        cut.WaitForAssertion(() => Assert.NotNull(newSession.Document));
+
+        // The panel is no longer subscribed to the old session: saving through it — flipping its IsSaving twice —
+        // never renders the panel, which shows neither the old nor the new session's binding.
+        var renderCountBeforeOldSave = cut.RenderCount;
+        await oldSession.SaveAsync();
+        Assert.Equal(renderCountBeforeOldSave, cut.RenderCount);
+
+        // The new session is what the panel is subscribed to now: saving through it re-renders the panel into its
+        // saving state, exactly as WhileTheDocumentIsBeingSaved shows for the session a panel starts mounted with.
+        await EditAsync(cut);
+        var renderCountBeforeNewSave = cut.RenderCount;
+        var saveTask = cut.InvokeAsync(() => cut.Find("[data-testid='bpmn-save']").Click());
+
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='bpmn-saving']")));
+        Assert.True(cut.RenderCount > renderCountBeforeNewSave);
+
+        newGate.SetResult();
+        await saveTask;
+        cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("[data-testid='bpmn-saving']")));
+    }
+
     [Fact]
     public void AStaleDocument_SaysTheWorkflowNeedsReImporting_AndOffersNothingToEdit()
     {
