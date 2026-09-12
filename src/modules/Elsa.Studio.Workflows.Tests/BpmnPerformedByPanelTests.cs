@@ -293,26 +293,30 @@ public sealed class BpmnPerformedByPanelTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void ADocumentWithASubprocess_SaysWhy_AndOffersNoEditItCouldNotSave()
+    public async Task ADocumentWithASubprocess_StillOffersEditingAndSavingTheTopLevelTask()
     {
         var document = Document();
         ((JsonArray)document["processes"]![0]!["elements"]!).Add(new JsonObject { ["elementId"] = "Fulfil", ["elementType"] = "subProcess" });
-        UseDocument(document);
+        var service = new FakeBpmnDocumentService().ReturnsDocument(document, "\"REVISION-1\"").AcceptsPut("\"REVISION-2\"");
+        UseService(service);
 
         var cut = RenderPanel(TaskSelection);
 
-        Assert.Contains("Fulfil", cut.Find("[data-testid='bpmn-document-subprocesses']").TextContent);
         Assert.Contains("Write Line (Elsa.WriteLine)", cut.Find("[data-testid='bpmn-bound-activity']").TextContent);
-        Assert.Empty(cut.FindAll("[data-testid='bpmn-pick-activity']"));
-        Assert.Empty(cut.FindComponents<InputsTab>());
+        Assert.NotEmpty(cut.FindAll("[data-testid='bpmn-pick-activity']"));
+        Assert.NotEmpty(cut.FindComponents<InputsTab>());
+
+        await EditAndSaveAsync(cut);
+
+        Assert.Single(service.Puts);
     }
 
     [Fact]
-    public void ATaskOutsideTheDocument_SaysItCannotBeEditedHere()
+    public void AnElementInsideASubprocess_IsStillNotEditable_AndNamesTheCoreLimitation()
     {
         var cut = RenderPanel(TaskSelection with { ElementId = "InsideASubprocess" });
 
-        Assert.NotEmpty(cut.FindAll("[data-testid='bpmn-element-not-in-document']"));
+        Assert.Contains("elsa-core#8076", cut.Find("[data-testid='bpmn-element-not-in-document']").TextContent);
         Assert.Empty(cut.FindAll("[data-testid='bpmn-pick-activity']"));
     }
 

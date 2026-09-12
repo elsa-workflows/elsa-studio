@@ -23,11 +23,6 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Bpmn;
 /// edit was made against. A refusal (<see cref="BpmnDocumentFailureReason.PreconditionFailed"/>) is reported, never
 /// retried: the working copy stays as it is until the user reloads, which discards it.
 /// </para>
-/// <para>
-/// <b>Subprocesses.</b> The document does not carry a subprocess's body, and elsa-core writes the XML from the document
-/// alone, so saving a document that declares a subprocess would empty it. <see cref="SaveAsync"/> refuses such a
-/// document before sending anything; see <see cref="BpmnDefinitionsDocument.FindSubProcessIds"/>.
-/// </para>
 /// </remarks>
 public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeService, string definitionId)
 {
@@ -73,9 +68,6 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     /// cleared and <see cref="LoadFailure"/> set. Nothing was lost; only the local view of it could not be confirmed.
     /// </summary>
     public bool SavedButReloadFailed { get; private set; }
-
-    /// <summary>The subprocesses the document declares; while there are any, <see cref="SaveAsync"/> refuses.</summary>
-    public IReadOnlyList<string> SubProcessIds { get; private set; } = [];
 
     /// <summary>The elements whose binding the working copy changed since the document was last read or discarded.</summary>
     public IReadOnlyCollection<string> EditedElementIds => _editedElementIds;
@@ -148,13 +140,6 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
 
         if (Document == null || _revision == null)
             return Task.FromResult(Refuse(new(BpmnDocumentFailureReason.Unknown, "The BPMN document has not been read, so there is nothing to save.")));
-
-        if (SubProcessIds.Count > 0)
-        {
-            return Task.FromResult(Refuse(new(
-                BpmnDocumentFailureReason.SubProcessContentNotCarried,
-                $"The BPMN document declares the subprocess(es) {string.Join(", ", SubProcessIds.Select(id => $"'{id}'"))}, whose content the document does not carry, so saving it would empty them.")));
-        }
 
         return _saveTask = SaveCoreAsync(Document, _revision, cancellationToken);
     }
@@ -237,7 +222,6 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
 
         _revision = result.Success;
         Document = (JsonObject?)_revision?.Document.DeepClone();
-        SubProcessIds = _revision == null ? [] : BpmnDefinitionsDocument.FindSubProcessIds(_revision.Document);
         LoadFailure = result.Failure;
         SaveFailure = null;
         SavedButReloadFailed = false;

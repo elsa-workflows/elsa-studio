@@ -9,9 +9,8 @@ namespace Elsa.Studio.Workflows.Tests;
 
 /// <summary>
 /// Covers <see cref="BpmnDocumentSession"/>: a binding edit is written back only through the document PUT, carrying the
-/// ETag of the revision it was made in; a refusal is reported and never retried; and a document whose subprocess bodies
-/// the PUT would empty is refused before anything is sent — in both directions, since a save that silently went through
-/// looks exactly like one that worked.
+/// ETag of the revision it was made in; a refusal is reported and never retried; and a document that declares a
+/// subprocess is saved like any other, since elsa-core keeps its body across the PUT.
 /// </summary>
 public class BpmnDocumentSessionTests
 {
@@ -61,7 +60,7 @@ public class BpmnDocumentSessionTests
     }
 
     [Fact]
-    public async Task SaveAsync_RefusesADocumentWithASubprocess_WithoutSendingIt()
+    public async Task SaveAsync_SendsADocumentWithASubprocess()
     {
         var document = Document();
         ((JsonArray)document["processes"]![0]!["elements"]!).Add(new JsonObject { ["elementId"] = "Fulfil", ["elementType"] = "subProcess" });
@@ -72,9 +71,8 @@ public class BpmnDocumentSessionTests
 
         var result = await session.SaveAsync();
 
-        Assert.Equal(BpmnDocumentFailureReason.SubProcessContentNotCarried, result.Failure!.Reason);
-        Assert.Empty(service.Puts);
-        Assert.Equal(["Fulfil"], session.SubProcessIds);
+        Assert.True(result.IsSuccess);
+        Assert.Single(service.Puts);
     }
 
     [Fact]

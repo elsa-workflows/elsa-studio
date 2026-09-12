@@ -158,13 +158,4 @@ public class BpmnActivityBindingFormatTests
         Assert.Null(BpmnDefinitionsDocument.FindElement(_document, "Nope"));
     }
 
-    [Fact]
-    public void FindSubProcessIds_ReportsEverySubprocess_AndNoneForAFlatProcess()
-    {
-        Assert.Empty(BpmnDefinitionsDocument.FindSubProcessIds(_document));
-
-        ((JsonArray)_document["processes"]![0]!["elements"]!).Add(new JsonObject { ["elementId"] = "Fulfil", ["elementType"] = BpmnDefinitionsDocument.SubProcessElementType });
-
-        Assert.Equal(["Fulfil"], BpmnDefinitionsDocument.FindSubProcessIds(_document));
-    }
 }

@@ -54,13 +54,6 @@ public enum BpmnDocumentFailureReason
     /// </summary>
     MissingETag,
 
-    /// <summary>
-    /// Refused by Studio before anything was sent: the document declares a subprocess, whose body the document does
-    /// not carry, so a <c>PUT</c> would have the server write that subprocess empty. See
-    /// <see cref="BpmnDefinitionsDocument.FindSubProcessIds"/>.
-    /// </summary>
-    SubProcessContentNotCarried,
-
     /// <summary>Any other failure; <see cref="BpmnDocumentFailure.Message"/> carries the server's own message.</summary>
     Unknown
 }

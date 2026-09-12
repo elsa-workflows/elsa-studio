@@ -11,9 +11,6 @@ namespace Elsa.Studio.Workflows.Domain.Models.Bpmn;
 /// </summary>
 public static class BpmnDefinitionsDocument
 {
-    /// <summary>The <c>elementType</c> of an embedded subprocess, a transaction and an event subprocess alike.</summary>
-    public const string SubProcessElementType = "subProcess";
-
     /// <summary>
     /// The BPMN element with <paramref name="elementId"/>, from any process's <c>elements</c>, or
     /// <see langword="null"/> when the document has none.
@@ -21,26 +18,11 @@ public static class BpmnDefinitionsDocument
     /// <remarks>
     /// Only the elements of the document's own <c>&lt;process&gt;</c> elements are here. The body of a subprocess is
     /// not part of this document at all — <c>Bpmn.Interchange</c>'s reader carries it only in the work bindings it
-    /// returns alongside, which the document endpoints do not send — so an element inside one is never found; see
-    /// <see cref="FindSubProcessIds"/>.
+    /// returns alongside, which the document endpoints do not send — so an element inside one is never found. Editing
+    /// such an element is a server limitation, tracked in elsa-workflows/elsa-core#8076.
     /// </remarks>
     public static JsonObject? FindElement(JsonObject document, string elementId) =>
         Elements(document).FirstOrDefault(element => element["elementId"]?.GetValue<string>() == elementId);
-
-    /// <summary>
-    /// The id of every subprocess — embedded, transaction or event subprocess — the document's processes declare.
-    /// </summary>
-    /// <remarks>
-    /// Writing such a document back through the document <c>PUT</c> loses every one of these bodies: the body is not
-    /// in the document (see <see cref="FindElement"/>), and elsa-core writes the XML from the document alone, which
-    /// <c>BpmnXmlWriter</c> documents as writing each subprocess empty. A caller that would <c>PUT</c> must refuse
-    /// while this is non-empty rather than discard the content silently.
-    /// </remarks>
-    public static IReadOnlyList<string> FindSubProcessIds(JsonObject document) =>
-        Elements(document)
-            .Where(element => element["elementType"]?.GetValue<string>() == SubProcessElementType)
-            .Select(element => element["elementId"]?.GetValue<string>() ?? string.Empty)
-            .ToList();
 
     private static IEnumerable<JsonObject> Elements(JsonObject document) =>
         (document["processes"] as JsonArray ?? [])
