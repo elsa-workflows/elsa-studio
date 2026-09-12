@@ -136,9 +136,25 @@ export type BpmnBindingState =
     /** The element declares a binding ref that `workBindings` -- or `activities` -- does not resolve. */
     | 'unresolved';
 
+/** Where the Elsa activity behind an element comes from. */
+export type BpmnBindingKind =
+    /**
+     * Authored: an `elsa:activityBinding` on the element declares the activity and its inputs
+     * (`Bpmn.Interchange`'s `BpmnWorkBinding.UnboundTask`). The only kind a user binds by hand.
+     */
+    | 'unboundTask'
+    /**
+     * Derived by elsa-core's binder from the document itself: a timer, message or signal wait, a
+     * message publish, a call activity or a nested process. An `elsa:activityBinding` on one of these
+     * is refused at import, so it is never edited as one.
+     */
+    | 'automatic';
+
 /** The bound Elsa activity behind one BPMN element, and how it should be named on the canvas. */
 export interface BpmnBinding {
     readonly state: BpmnBindingState;
+    /** Whether the activity is authored on the element or bound automatically; see {@link BpmnBindingKind}. */
+    readonly kind: BpmnBindingKind;
     /** The binding ref the document declares, or null when the element declares none. */
     readonly bindingRef: string | null;
     /** The Elsa activity id `workBindings` maps {@link bindingRef} to. */

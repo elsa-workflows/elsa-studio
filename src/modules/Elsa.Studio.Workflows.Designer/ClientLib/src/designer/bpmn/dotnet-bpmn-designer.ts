@@ -28,6 +28,11 @@ export interface BpmnElementSelection {
     readonly activityId: string | null;
     /** How the binding resolves, or null for an element that performs no work. */
     readonly bindingState: string | null;
+    /**
+     * `unboundTask` when the element's activity is authored on it (an `elsa:activityBinding` the user
+     * binds by hand), `automatic` when the binder derives it from the document, or null for no work.
+     */
+    readonly bindingKind: string | null;
     /** The process id of the scope the element lives in. */
     readonly scopeId: string;
     /** The `Elsa.BpmnProcess` activity that runs that scope. */

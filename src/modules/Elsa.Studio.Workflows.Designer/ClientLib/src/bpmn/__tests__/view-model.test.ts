@@ -322,6 +322,7 @@ describe('binding display', () => {
 
         expect(element(model, 'NotifyWarehouse').binding).toEqual({
             state: 'bound',
+            kind: 'unboundTask',
             bindingRef: 'node-NotifyWarehouse',
             activityId: 'order-process:node-NotifyWarehouse',
             activityType: 'Elsa.WriteLine',
@@ -379,6 +380,7 @@ describe('binding display', () => {
 
         expect(element(model, 'NotifyWarehouse').binding).toEqual({
             state: 'unbound',
+            kind: 'unboundTask',
             bindingRef: null,
             activityId: null,
             activityType: null,
@@ -421,6 +423,49 @@ describe('binding display', () => {
             state: 'unresolved',
             activityId: 'order-process:gone',
         });
+    });
+});
+
+// Which elements a user binds by hand. The dangerous direction is an automatically bound element that
+// looks authored: the "Performed by" section would offer to write an elsa:activityBinding onto it, and
+// elsa-core refuses that document at import. The opposite mistake -- an authored task shown as
+// automatic -- silently leaves the user with no way to bind it. Both directions are pinned here.
+describe('binding kind', () => {
+    it('marks every task that resolves no message as authored, and a message send or receive as automatic', () => {
+        const model = build('task-kinds-and-lanes');
+
+        for (const id of ['AbstractTask', 'ReviewOrder', 'ServiceWork', 'ScriptWork', 'PackBox', 'DecideRules']) {
+            expect(element(model, id).binding?.kind, id).toBe('unboundTask');
+        }
+
+        expect(element(model, 'SendShipped').binding?.kind).toBe('automatic');
+        expect(element(model, 'AwaitConfirm').binding?.kind).toBe('automatic');
+        expect(element(model, 'ArchiveOrder').binding?.kind).toBe('automatic');
+    });
+
+    it('marks a send or receive task that names no message as authored, the way the reader binds it', () => {
+        const fixture = loadFixture('task-kinds-and-lanes');
+        const activity = structuredClone(fixture.activity) as BpmnActivity;
+
+        for (const id of ['SendShipped', 'AwaitConfirm']) {
+            const task = activity.process!.elements.find(candidate => candidate.elementId === id)!;
+            (task as { properties: Record<string, string> }).properties = {};
+        }
+
+        const model = buildBpmnViewModel({ activity, sourceXml: fixture.sourceXml });
+
+        expect(element(model, 'SendShipped').binding?.kind).toBe('unboundTask');
+        expect(element(model, 'AwaitConfirm').binding?.kind).toBe('unboundTask');
+    });
+
+    it('marks timer and message boundaries, subprocesses and an event subprocess listener as automatic', () => {
+        const model = build('subprocess-boundary-events');
+
+        expect(element(model, 'Escalate').binding?.kind).toBe('unboundTask');
+        expect(element(model, 'Fulfil').binding?.kind).toBe('automatic');
+        expect(element(model, 'FulfilTimeout').binding?.kind).toBe('automatic');
+        expect(element(model, 'FulfilNudge').binding?.kind).toBe('automatic');
+        expect(element(model, 'OnRecall').listenerBinding?.kind).toBe('automatic');
     });
 });
 

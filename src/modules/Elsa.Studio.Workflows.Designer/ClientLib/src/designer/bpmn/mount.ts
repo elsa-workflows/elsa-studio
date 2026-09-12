@@ -253,6 +253,7 @@ function toSelection(data: BpmnElementCellData): BpmnElementSelection {
         name: data.name,
         activityId: data.activityId,
         bindingState: data.bindingState,
+        bindingKind: data.bindingKind,
         scopeId: data.scopeId,
         scopeActivityId: data.scopeActivityId,
         boundaryHostElementId: data.boundaryHostElementId,

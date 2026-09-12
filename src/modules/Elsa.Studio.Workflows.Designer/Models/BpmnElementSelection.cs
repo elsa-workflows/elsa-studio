@@ -15,6 +15,12 @@ namespace Elsa.Studio.Workflows.Designer.Models;
 /// <param name="ScopeActivityId">The <c>Elsa.BpmnProcess</c> activity that runs that scope.</param>
 /// <param name="BoundaryHostElementId">For a boundary event, the element it is attached to.</param>
 /// <param name="ChildScopeId">For a subprocess, the process id of the scope it contains.</param>
+/// <param name="BindingKind">
+/// Where the element's Elsa activity comes from: <see cref="BpmnBindingKinds.UnboundTask"/> when it is authored on
+/// the element (an <c>elsa:activityBinding</c> the user binds by hand), <see cref="BpmnBindingKinds.Automatic"/>
+/// when elsa-core's binder derives it from the document, or <see langword="null"/> for an element that performs no
+/// work.
+/// </param>
 public record BpmnElementSelection(
     string ElementId,
     string ElementType,
@@ -25,4 +31,28 @@ public record BpmnElementSelection(
     string ScopeId,
     string ScopeActivityId,
     string? BoundaryHostElementId,
-    string? ChildScopeId);
+    string? ChildScopeId,
+    string? BindingKind = null)
+{
+    /// <summary>Whether the element's activity is authored on it, so the user binds it by hand.</summary>
+    public bool IsUnboundTask => BindingKind == BpmnBindingKinds.UnboundTask;
+}
+
+/// <summary>
+/// The <see cref="BpmnElementSelection.BindingKind"/> values the BPMN canvas sends. Mirrors the ClientLib's
+/// canvas-neutral <c>BpmnBindingKind</c> (<c>src/bpmn/model.ts</c>), which owns the classification.
+/// </summary>
+public static class BpmnBindingKinds
+{
+    /// <summary>
+    /// Authored: an <c>elsa:activityBinding</c> on the element declares the activity (<c>Bpmn.Interchange</c>'s
+    /// <c>BpmnWorkBinding.UnboundTask</c>).
+    /// </summary>
+    public const string UnboundTask = "unboundTask";
+
+    /// <summary>
+    /// Derived by elsa-core's binder from the document itself: a timer, message or signal wait, a message
+    /// publish, a call activity or a nested process.
+    /// </summary>
+    public const string Automatic = "automatic";
+}

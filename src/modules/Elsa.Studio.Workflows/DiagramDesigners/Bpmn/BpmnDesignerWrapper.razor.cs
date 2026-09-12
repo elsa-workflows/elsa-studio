@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Models.Bpmn;
@@ -17,6 +18,11 @@ namespace Elsa.Studio.Workflows.DiagramDesigners.Bpmn;
 /// </summary>
 public partial class BpmnDesignerWrapper
 {
+    /// <summary>
+    /// The name an editor cascades its receiver of BPMN element selections under (see <see cref="ElementSelected"/>).
+    /// </summary>
+    public const string ElementSelectedCascadeName = "BpmnElementSelected";
+
     /// <summary>
     /// The root <c>Elsa.BpmnProcess</c> activity to display.
     /// </summary>
@@ -41,6 +47,13 @@ public partial class BpmnDesignerWrapper
     /// An event raised when an activity is double-clicked.
     /// </summary>
     [Parameter] public EventCallback<JsonObject> ActivityDoubleClick { get; set; }
+
+    /// <summary>
+    /// Receives the selected BPMN element itself, or <see langword="null"/> when nothing in particular is selected. An
+    /// editor that edits bindings — which has to know which element was clicked even when no activity is bound to it —
+    /// cascades one under <see cref="ElementSelectedCascadeName"/>; the viewers do not, so this stays unset there.
+    /// </summary>
+    [CascadingParameter(Name = ElementSelectedCascadeName)] public EventCallback<BpmnElementSelection?> ElementSelected { get; set; }
 
     [Inject] private IOptions<DesignerOptions> DesignerOptions { get; set; } = null!;
 
