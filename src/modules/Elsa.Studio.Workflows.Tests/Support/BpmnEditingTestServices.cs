@@ -7,7 +7,6 @@ using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
 using MudBlazor.Services;
 using static Elsa.Studio.Workflows.Tests.Support.BpmnDocumentFixtures;
 
@@ -35,8 +34,8 @@ internal static class BpmnEditingTestServices
         services.AddCoreInternal();
         services.AddRemoteBackend();
         services.AddWorkflowsModule();
-        services.AddSingleton<ILocalizer, PassThroughLocalizer>();
-        services.AddSingleton<IActivityRegistry>(new StubActivityRegistry([WriteLine(), HttpRequest, Sequence, If, Delay]));
+        services.AddSingleton<ILocalizer, TestLocalizer>();
+        services.AddSingleton<IActivityRegistry>(new TestActivityRegistry([WriteLine(), HttpRequest, Sequence, If, Delay]));
         services.AddSingleton<IExpressionService, StubExpressionService>();
         services.AddSingleton(documentService);
     }
@@ -47,30 +46,11 @@ internal static class BpmnEditingTestServices
         return descriptor with { Ports = [new Port { Name = "Body", Type = PortType.Embedded }] };
     }
 
-    private sealed class StubActivityRegistry(IReadOnlyCollection<ActivityDescriptor> descriptors) : IActivityRegistry
-    {
-        public Task RefreshAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task EnsureLoadedAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public IEnumerable<ActivityDescriptor> List() => descriptors;
-        public ActivityDescriptor? Find(string activityType, int? version = null) => descriptors.FirstOrDefault(x => x.TypeName == activityType);
-        public IEnumerable<ActivityDescriptor> FindAll(string activityType) => descriptors.Where(x => x.TypeName == activityType);
-
-        public void MarkStale()
-        {
-        }
-    }
-
     private sealed class StubExpressionService : IExpressionService
     {
         private static readonly ExpressionDescriptor[] Descriptors = [new("Literal", "Literal"), new("JavaScript", "JavaScript")];
 
         public Task<IEnumerable<ExpressionDescriptor>> ListDescriptorsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ExpressionDescriptor>>(Descriptors);
         public Task<ExpressionDescriptor?> GetByTypeAsync(string type, CancellationToken cancellationToken = default) => Task.FromResult(Descriptors.FirstOrDefault(x => x.Type == type));
-    }
-
-    private sealed class PassThroughLocalizer : ILocalizer
-    {
-        public LocalizedString this[string? key] => new(key ?? string.Empty, key ?? string.Empty);
-        public LocalizedString this[string? key, params object[] arguments] => new(key ?? string.Empty, string.Format(key ?? string.Empty, arguments));
     }
 }

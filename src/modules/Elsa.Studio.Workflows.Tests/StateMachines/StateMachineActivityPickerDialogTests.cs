@@ -4,8 +4,8 @@ using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Services;
+using Elsa.Studio.Workflows.Tests.Support;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
 using MudBlazor;
 using MudBlazor.Services;
 using Xunit;
@@ -81,7 +81,7 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         Services.AddMudServices();
         Services.AddSingleton<ILocalizer, TestLocalizer>();
         Services.AddSingleton<IWorkflowRootActivityTemplateProvider, DefaultWorkflowRootActivityTemplateProvider>();
-        Services.AddSingleton<IActivityRegistry>(new ActivityRegistryStub([_writeLine, _http, _sequence, _flowchart, _stateMachine, _internalActivity]));
+        Services.AddSingleton<IActivityRegistry>(new TestActivityRegistry([_writeLine, _http, _sequence, _flowchart, _stateMachine, _internalActivity]));
         Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
@@ -281,21 +281,4 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         return await _dialogProvider.InvokeAsync(() => dialogService.ShowAsync<StateMachineActivityPickerDialog>($"Choose {article} {slotName} activity", parameters));
     }
 
-    private sealed class ActivityRegistryStub(IEnumerable<ActivityDescriptor> activities) : IActivityRegistry
-    {
-        public Task RefreshAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task EnsureLoadedAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public IEnumerable<ActivityDescriptor> List() => activities;
-        public ActivityDescriptor? Find(string activityType, int? version = null) => activities.FirstOrDefault(x => x.TypeName == activityType);
-        public IEnumerable<ActivityDescriptor> FindAll(string activityType) => activities.Where(x => x.TypeName == activityType);
-        public void MarkStale()
-        {
-        }
-    }
-
-    private sealed class TestLocalizer : ILocalizer
-    {
-        public LocalizedString this[string? key] => new(key ?? string.Empty, key ?? string.Empty);
-        public LocalizedString this[string? key, params object[] arguments] => new(key ?? string.Empty, string.Format(key ?? string.Empty, arguments));
-    }
 }

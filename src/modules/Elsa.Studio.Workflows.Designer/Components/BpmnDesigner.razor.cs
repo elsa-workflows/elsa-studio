@@ -249,22 +249,7 @@ public partial class BpmnDesigner : IAsyncDisposable
             return null;
 
         var targetId = selection.ActivityId ?? selection.ScopeActivityId;
-        return FindActivityById(_activity, targetId);
-    }
-
-    /// <summary>
-    /// Finds the activity with the specified id, in <paramref name="root"/> itself or, recursively,
-    /// among the activities bound to it and to any nested BPMN scope. Used to resolve both a bound
-    /// element's activity and a scope's own <c>Elsa.BpmnProcess</c> activity by the same lookup.
-    /// </summary>
-    internal static JsonObject? FindActivityById(JsonObject root, string id)
-    {
-        if (root.GetId() == id)
-            return root;
-
-        return root.GetActivities()
-            .Select(activity => FindActivityById(activity, id))
-            .FirstOrDefault(found => found != null);
+        return _activity.FindActivity(targetId);
     }
 
     /// <summary>
