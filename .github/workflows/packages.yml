@@ -71,26 +71,26 @@ jobs:
           fi
       - name: Set VERSION variable
         env:
-          # Never interpolate dispatcher-controlled version into bash source.
-          INPUT_VERSION: ${{ github.event.inputs.version }}
-          INPUT_PUBLISH: ${{ github.event.inputs.publish }}
+          # Dispatcher input via env — do not interpolate inputs.version into bash.
+          VERSION: ${{ github.event.inputs.version }}
+          PUBLISH: ${{ github.event.inputs.publish }}
         run: |
           set -euo pipefail
-          # Semver-ish: 3.8.1, 3.8.0-rc1, 3.8.0-preview.1. Rejects shell metacharacters.
-          VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9]+(\.[A-Za-z0-9]+)*)?(\+[A-Za-z0-9.]+)?$'
+          version_re='^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$'
 
-          if [[ "${INPUT_PUBLISH:-}" == "true" && -z "${INPUT_VERSION:-}" ]]; then
-            echo "workflow_dispatch publish requires a non-empty version override" >&2
-            echo "Refusing to publish the fallback ${{ env.base_version }}-preview.N build" >&2
-            exit 1
+          if [[ "${PUBLISH:-}" == "true" ]]; then
+            if [[ -z "${VERSION:-}" || ! "$VERSION" =~ $version_re ]]; then
+              echo "publish requires a valid version (e.g. 3.8.1). Refusing to ship ${{ env.base_version }}-preview.N" >&2
+              exit 1
+            fi
           fi
 
-          if [[ -n "${INPUT_VERSION:-}" ]]; then
-            if [[ ! "$INPUT_VERSION" =~ $VERSION_PATTERN ]]; then
+          if [[ -n "${VERSION:-}" ]]; then
+            if [[ ! "$VERSION" =~ $version_re ]]; then
               echo "Invalid version override. Expected a package version like 3.8.1 or 3.8.0-preview.1" >&2
               exit 1
             fi
-            echo "VERSION=${INPUT_VERSION}" >> "$GITHUB_ENV"
+            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           elif [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
             TAG_NAME=${{ github.ref }} # e.g., refs/tags/3.0.0
             TAG_NAME=${TAG_NAME#refs/tags/} # remove the refs/tags/ prefix
