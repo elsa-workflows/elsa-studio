@@ -76,7 +76,7 @@ jobs:
           PUBLISH: ${{ github.event.inputs.publish }}
         run: |
           set -euo pipefail
-          version_re='^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$'
+          version_re='^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$'
 
           if [[ "${PUBLISH:-}" == "true" ]]; then
             if [[ -z "${VERSION:-}" || ! "$VERSION" =~ $version_re ]]; then
