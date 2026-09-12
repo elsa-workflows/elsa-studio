@@ -25,6 +25,36 @@ public class RemoteFeatureProviderTests
         Assert.Equal(0, api.GetCalls);
     }
 
+    [Theory]
+    [InlineData("Elsa.Workflows.Runtime.Dashboard.ShellFeatures.WorkflowRuntimeDashboard", "Elsa.WorkflowRuntimeDashboard")]
+    [InlineData("Elsa.Diagnostics.StructuredLogs.Dashboard.ShellFeatures.StructuredLogsDashboard", "Elsa.StructuredLogsDashboard")]
+    [InlineData("Elsa.Diagnostics.StructuredLogs.ShellFeatures.StructuredLogs", "Elsa.StructuredLogs")]
+    [InlineData("Elsa.ExternalAuthentication.ShellFeatures.ExternalAuthentication", "Elsa.ExternalAuthentication")]
+    [InlineData("Elsa.Workflows.Runtime.Dashboard.ShellFeatures.WorkflowRuntimeDashboard", "Elsa.Workflows.Runtime.Dashboard.ShellFeatures.WorkflowRuntimeDashboard")]
+    public async Task FeatureChecks_AcceptStaticCatalogNames(string requestedName, string catalogFullName)
+    {
+        var api = new FeaturesApi
+        {
+            Features = new([new FeatureDescriptor { FullName = catalogFullName }], 1)
+        };
+        var provider = new RemoteFeatureProvider(new BackendApiClientProvider(api));
+
+        Assert.True(await provider.IsEnabledAsync(requestedName));
+        Assert.False(await provider.IsEnabledAsync("Elsa.MissingFeature"));
+    }
+
+    [Fact]
+    public async Task FeatureChecks_AcceptCatalogNameAsFeatureId()
+    {
+        var api = new FeaturesApi
+        {
+            Features = new([new FeatureDescriptor { Name = "WorkflowRuntimeDashboard", Namespace = "Elsa" }], 1)
+        };
+        var provider = new RemoteFeatureProvider(new BackendApiClientProvider(api));
+
+        Assert.True(await provider.IsEnabledAsync("Elsa.Workflows.Runtime.Dashboard.ShellFeatures.WorkflowRuntimeDashboard"));
+    }
+
     [Fact]
     public async Task AnonymousFeatureChecks_DoNotProbeTheProtectedBackend()
     {
@@ -128,6 +158,7 @@ public class RemoteFeatureProviderTests
             [new FeatureDescriptor { FullName = "Elsa.ExternalAuthentication" }],
             1);
 
+        public ListResponse<FeatureDescriptor> Features { get; set; } = InstalledFeatures;
         public Queue<Func<CancellationToken, Task<ListResponse<FeatureDescriptor>>>> Responses { get; } = new();
         public int GetCalls { get; private set; }
         public int ListCalls { get; private set; }
@@ -144,7 +175,7 @@ public class RemoteFeatureProviderTests
             if (Responses.TryDequeue(out var response))
                 return response(cancellationToken);
 
-            return Task.FromResult(InstalledFeatures);
+            return Task.FromResult(Features);
         }
     }
 
