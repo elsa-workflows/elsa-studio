@@ -36,28 +36,7 @@
         </RadzenSplitter>
     </div>
 
-    @* Mount the drawer only while open so MudBlazor 9 applies mud-drawer--open on first render.
-       Persistent + @bind-Open left the parent flag true while the already-mounted drawer stayed closed/off-canvas. *@
-    @if (_isExecutionDetailsDrawerOpen)
-    {
-        <MudDrawer Open="true"
-                   Anchor="Anchor.End"
-                   Width="600px"
-                   Elevation="2"
-                   Overlay="true"
-                   OverlayAutoClose="true"
-                   Variant="@DrawerVariant.Temporary"
-                   Class="execution-details-drawer"
-                   OpenChanged="OnExecutionDetailsDrawerOpenChanged">
-            <MudDrawerHeader>
-                <MudText Typo="Typo.h6">@Localizer["Execution Details"]</MudText>
-                <MudSpacer />
-                <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@CloseExecutionDetailsDrawer" />
-            </MudDrawerHeader>
-            <MudDivider />
-            <div style="padding: 16px; overflow-y: auto; height: calc(100vh - var(--mud-appbar-height) - 64px);">
-                <ActivityExecutionDetails ActivityExecution="@_selectedExecutionForDrawer" />
-            </div>
-        </MudDrawer>
-    }
+    <ActivityExecutionDetailsDrawer Open="_isExecutionDetailsDrawerOpen"
+                                    ActivityExecution="_selectedExecutionForDrawer"
+                                    OpenChanged="OnExecutionDetailsDrawerOpenChanged"/>
 </MudDrawerContainer>

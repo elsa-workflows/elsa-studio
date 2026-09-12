@@ -234,11 +234,6 @@ public partial class WorkflowInstanceViewer : IAsyncDisposable
         StateHasChanged();
     }
 
-    private void CloseExecutionDetailsDrawer()
-    {
-        _isExecutionDetailsDrawerOpen = false;
-    }
-
     private void OnExecutionDetailsDrawerOpenChanged(bool open)
     {
         _isExecutionDetailsDrawerOpen = open;
