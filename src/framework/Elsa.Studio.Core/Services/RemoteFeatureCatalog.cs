@@ -11,6 +11,8 @@ namespace Elsa.Studio.Services;
 /// CShells feature id as <c>Elsa.{FeatureId}</c> (for example
 /// <c>Elsa.WorkflowRuntimeDashboard</c>). Studio modules request the ShellFeatures name,
 /// so both catalog forms must resolve as the same installed feature.
+/// Short-name fallback is restricted to the Elsa namespace so an unrelated
+/// <c>Acme.{FeatureId}</c> catalog entry cannot enable an Elsa Studio module.
 /// </remarks>
 internal static class RemoteFeatureCatalog
 {
@@ -25,11 +27,11 @@ internal static class RemoteFeatureCatalog
         var requestedId = GetFeatureId(featureName);
 
         if (!string.IsNullOrEmpty(feature.Name) &&
+            string.Equals(feature.Namespace, "Elsa", StringComparison.Ordinal) &&
             string.Equals(feature.Name, requestedId, StringComparison.Ordinal))
             return true;
 
-        return !string.IsNullOrEmpty(feature.FullName) &&
-               string.Equals(GetFeatureId(feature.FullName), requestedId, StringComparison.Ordinal);
+        return string.Equals(feature.FullName, $"Elsa.{requestedId}", StringComparison.Ordinal);
     }
 
     private static string GetFeatureId(string featureName)

@@ -53,6 +53,21 @@ public class DefaultFeatureServiceTests
     }
 
     [Fact]
+    public async Task InitializeFeatures_SkipsCompanionsWhenCatalogLastSegmentIsNotElsaPrefixed()
+    {
+        var dashboard = new WorkflowRuntimeDashboardFeature();
+        var service = new DefaultFeatureService(
+            [dashboard],
+            new CatalogRemoteFeatureProvider(
+                new FeatureDescriptor { FullName = "Acme.WorkflowRuntimeDashboard" },
+                new FeatureDescriptor { Name = "WorkflowRuntimeDashboard", Namespace = "Acme" }));
+
+        await service.InitializeFeaturesAsync();
+
+        Assert.False(dashboard.Initialized);
+    }
+
+    [Fact]
     public async Task InitializeFeatures_AlwaysInitializesUngatedFeatures()
     {
         var local = new LocalFeature();

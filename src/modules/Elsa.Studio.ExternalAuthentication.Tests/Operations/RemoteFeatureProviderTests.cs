@@ -56,6 +56,23 @@ public class RemoteFeatureProviderTests
     }
 
     [Fact]
+    public async Task FeatureChecks_RejectNonElsaLastSegmentCollisions()
+    {
+        const string requestedName = "Elsa.Workflows.Runtime.Dashboard.ShellFeatures.WorkflowRuntimeDashboard";
+        var foreignFullName = new FeaturesApi
+        {
+            Features = new([new FeatureDescriptor { FullName = "Acme.WorkflowRuntimeDashboard" }], 1)
+        };
+        var foreignNamespace = new FeaturesApi
+        {
+            Features = new([new FeatureDescriptor { Name = "WorkflowRuntimeDashboard", Namespace = "Acme" }], 1)
+        };
+
+        Assert.False(await new RemoteFeatureProvider(new BackendApiClientProvider(foreignFullName)).IsEnabledAsync(requestedName));
+        Assert.False(await new RemoteFeatureProvider(new BackendApiClientProvider(foreignNamespace)).IsEnabledAsync(requestedName));
+    }
+
+    [Fact]
     public async Task AnonymousFeatureChecks_DoNotProbeTheProtectedBackend()
     {
         var api = new FeaturesApi();
