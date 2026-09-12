@@ -143,7 +143,7 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
     /// <returns>The server's result on success, or why the document was not saved.</returns>
     public Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>> SaveAsync(CancellationToken cancellationToken = default)
     {
-        if (_saveTask != null)
+        if (_saveTask is { IsCompleted: false })
             return _saveTask;
 
         if (Document == null || _revision == null)
@@ -202,7 +202,7 @@ public sealed class BpmnDocumentSession(IBpmnInterchangeService bpmnInterchangeS
         // A save already in flight will itself re-read the document and adopt the revision it finds; racing a second
         // read against that PUT could compare against a revision the PUT is about to make stale, and refuse this save
         // for a change nobody but the in-flight save itself made. Waiting for it first compares against what it left.
-        if (_saveTask != null)
+        if (_saveTask is { IsCompleted: false })
             await _saveTask;
 
         if (Document == null || _revision == null)

@@ -207,6 +207,32 @@ public class BpmnDocumentSessionTests
     }
 
     [Fact]
+    public async Task SaveAsync_WhenTheFirstSaveCompletesSynchronously_StillSendsTheSecondEdit()
+    {
+        // No PutGate: the PUT and the reload it triggers both complete synchronously, so SaveCoreAsync's task can
+        // finish — and its `finally` clear _saveTask — before SaveAsync's `_saveTask = SaveCoreAsync(...)` assignment
+        // itself runs. A single-flight check that trusts `_saveTask != null` alone would then see the just-cleared
+        // null, look fine, but a check that instead trusted a stale non-null `_saveTask` left behind would wrongly
+        // treat the second save as already in flight and never send it.
+        await _session.EnsureLoadedAsync();
+        _service.AcceptsPut("\"REVISION-2\"").ReturnsDocument(Document(), "\"REVISION-2\"");
+        BindHttpRequest();
+
+        await _session.SaveAsync();
+
+        _service.AcceptsPut("\"REVISION-3\"").ReturnsDocument(Document(), "\"REVISION-3\"");
+        var secondBinding = BpmnActivityBindingFormat.Create("Elsa.WriteLine", []);
+        _session.SetBinding(TaskId, secondBinding);
+
+        var result = await _session.SaveAsync();
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, _service.Puts.Count);
+        var secondPut = _service.Puts[1];
+        Assert.True(JsonNode.DeepEquals(secondBinding, BpmnActivityBindingFormat.Find(BpmnDocumentFixtures.TaskElement(secondPut.Document))));
+    }
+
+    [Fact]
     public async Task RefreshRevisionAfterOrdinarySaveAsync_WhenASaveIsInFlight_WaitsForIt_ThenSucceedsAgainstTheReloadedRevision()
     {
         await _session.EnsureLoadedAsync();
