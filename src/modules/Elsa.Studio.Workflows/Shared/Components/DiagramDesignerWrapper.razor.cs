@@ -412,6 +412,14 @@ public partial class DiagramDesignerWrapper
 
     private JsonObject? GetEmbeddedActivity(JsonObject activity, string portName)
     {
+        // A container's own collection of activities (e.g. a flowchart's or a BPMN process's "Activities"
+        // property) is reported as a path segment port by elsa-core's path-segments endpoint, but it holds the
+        // container's children directly on the container's own JSON rather than as a single embedded activity.
+        // Resolving it as an ordinary named port would call into a port provider that never declares such a port
+        // for these containers, so the container is its own "embedded activity" for that port instead.
+        if (IsCollectionPort(activity, portName))
+            return activity;
+
         var activityTypeName = activity.GetTypeName();
         var activityVersion = activity.GetVersion();
         var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
@@ -421,6 +429,11 @@ public partial class DiagramDesignerWrapper
 
         return activityInPort;
     }
+
+    /// Returns true if <paramref name="portName"/> names a collection property on <paramref name="activity"/>
+    /// (such as a container's own list of child activities) rather than a single embedded activity.
+    private static bool IsCollectionPort(JsonObject activity, string portName) =>
+        activity[portName.Camelize()] is JsonArray;
 
     private async Task UpdateBreadcrumbItemsAsync()
     {
@@ -485,8 +498,13 @@ public partial class DiagramDesignerWrapper
                 var portProviderContext = new PortProviderContext(activityDescriptor, activity);
                 var portProvider = ActivityPortService.GetProvider(portProviderContext);
                 var ports = portProvider.GetPorts(portProviderContext);
-                var embeddedPort = ports.First(x => x.Name == segment.PortName);
-                breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName ?? embeddedPort.Name}";
+
+                // A container's own collection port (e.g. "Activities") never appears among a descriptor's declared
+                // ports, so there is nothing to suffix the breadcrumb with; fall back to the activity's own display
+                // name rather than throwing.
+                var embeddedPort = ports.FirstOrDefault(x => x.Name == segment.PortName);
+                if (embeddedPort != null)
+                    breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName ?? embeddedPort.Name}";
             }
 
             var activityBreadcrumbItem = new BreadcrumbItem(
