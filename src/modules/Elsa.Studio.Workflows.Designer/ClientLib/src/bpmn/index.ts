@@ -11,8 +11,10 @@ export {
     GATEWAY_ELEMENT_TYPES,
     SUB_PROCESS_ELEMENT_TYPE,
     TASK_ELEMENT_TYPES,
+    MESSAGE_NAME_PROPERTY_KEY,
     classifyElementType,
     defaultSizeFor,
+    isUnboundTask,
     requiresWorkBinding,
 } from './element-kinds';
 export type {
@@ -20,6 +22,7 @@ export type {
     BpmnActivityDescriptor,
     BpmnActivityStats,
     BpmnBinding,
+    BpmnBindingKind,
     BpmnBindingState,
     BpmnBoundaryAttachment,
     BpmnDiagnostic,

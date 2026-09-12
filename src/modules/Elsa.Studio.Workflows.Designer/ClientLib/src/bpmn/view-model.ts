@@ -13,6 +13,7 @@ import { readDiagramInterchange, type BpmnDiagramInterchange, type DiBounds } fr
 import {
     BOUNDARY_EVENT_ELEMENT_TYPE,
     classifyElementType,
+    isUnboundTask,
     requiresWorkBinding,
 } from './element-kinds';
 import { computeFallbackLayout, layoutKey, type LayoutRect, type LayoutScope } from './fallback-layout';
@@ -20,6 +21,7 @@ import type {
     BpmnActivity,
     BpmnActivityDescriptor,
     BpmnBinding,
+    BpmnBindingKind,
     BpmnBoundaryAttachment,
     BpmnDiagnostic,
     BpmnDiagnosticCode,
@@ -412,10 +414,10 @@ function buildElement(
     input: BpmnViewModelInput,
     report: Report): BpmnViewElement {
     const shape = diagram.shapes.get(element.elementId);
-    const binding = resolveBinding(element.bindingRef ?? null, element.elementType, scope, descriptorsByType);
+    const binding = resolveBinding(element.bindingRef ?? null, element, scope, descriptorsByType);
     const listenerBinding = element.listenerBindingRef == null
         ? null
-        : resolveBinding(element.listenerBindingRef, element.elementType, scope, descriptorsByType);
+        : resolveBinding(element.listenerBindingRef, element, scope, descriptorsByType);
 
     if (binding?.state === 'unbound') {
         report(
@@ -500,14 +502,17 @@ function buildElement(
  */
 function resolveBinding(
     bindingRef: string | null,
-    elementType: string,
+    element: BpmnElement,
     scope: ScopeNode,
     descriptorsByType: ReadonlyMap<string, BpmnActivityDescriptor>): BpmnBinding | null {
+    const kind: BpmnBindingKind = isUnboundTask(element.elementType, element.properties) ? 'unboundTask' : 'automatic';
+
     if (bindingRef == null) {
-        if (!requiresWorkBinding(elementType)) return null;
+        if (!requiresWorkBinding(element.elementType)) return null;
 
         return {
             state: 'unbound',
+            kind,
             bindingRef: null,
             activityId: null,
             activityType: null,
@@ -523,6 +528,7 @@ function resolveBinding(
     if (activity == null) {
         return {
             state: 'unresolved',
+            kind,
             bindingRef,
             activityId,
             activityType: null,
@@ -537,6 +543,7 @@ function resolveBinding(
 
     return {
         state: 'bound',
+        kind,
         bindingRef,
         activityId,
         activityType: activity.type,

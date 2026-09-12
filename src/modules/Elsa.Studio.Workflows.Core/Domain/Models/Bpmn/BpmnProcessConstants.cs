@@ -17,4 +17,11 @@ public static class BpmnProcessConstants
     /// which Studio cannot reference: the interpreter runs server-side and Studio never takes a dependency on it.
     /// </summary>
     public const string DoneOutcomeName = "Done";
+
+    /// <summary>
+    /// The workflow definition custom property elsa-core's <c>BpmnInterchangeDocumentService</c> stores the imported
+    /// BPMN document's source XML under. A definition that carries it was imported from BPMN, so its activity graph
+    /// is derived from that document and changes only through the document endpoints.
+    /// </summary>
+    public const string SourceXmlCustomPropertyKey = "Bpmn:SourceXml";
 }

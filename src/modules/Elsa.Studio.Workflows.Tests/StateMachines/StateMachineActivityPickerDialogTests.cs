@@ -4,8 +4,8 @@ using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.DiagramDesigners.StateMachines.Presentation;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Services;
+using Elsa.Studio.Workflows.Tests.Support;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
 using MudBlazor;
 using MudBlazor.Services;
 using Xunit;
@@ -81,7 +81,7 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         Services.AddMudServices();
         Services.AddSingleton<ILocalizer, TestLocalizer>();
         Services.AddSingleton<IWorkflowRootActivityTemplateProvider, DefaultWorkflowRootActivityTemplateProvider>();
-        Services.AddSingleton<IActivityRegistry>(new ActivityRegistryStub([_writeLine, _http, _sequence, _flowchart, _stateMachine, _internalActivity]));
+        Services.AddSingleton<IActivityRegistry>(new TestActivityRegistry([_writeLine, _http, _sequence, _flowchart, _stateMachine, _internalActivity]));
         Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
@@ -239,10 +239,35 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
         Assert.False(dialog.Result.IsCompleted);
     }
 
+    /// <summary>
+    /// A host other than the StateMachine designer can narrow what the picker offers and say what the choice is for; the
+    /// default offering (browsable activities plus designer-backed roots) must not leak past the filter.
+    /// </summary>
+    [Fact]
+    public async Task Picker_OffersOnlyWhatTheHostsFilterAccepts_InTheHostsOwnContext()
+    {
+        var dialog = await ShowDialogAsync(configure: parameters =>
+        {
+            parameters.Add(x => x.DescriptorFilter, descriptor => descriptor.TypeName is "Elsa.WriteLine" or "Elsa.InternalActivity");
+            parameters.Add(x => x.ContextLabel, "PERFORMED BY");
+            parameters.Add(x => x.ContextHint, "Runs when the process reaches 'Notify Warehouse'");
+        });
+
+        _dialogProvider.WaitForAssertion(() => Assert.NotEmpty(_dialogProvider.FindAll("[data-testid='state-machine-activity-option']")));
+        Assert.Equal(["Elsa.InternalActivity", "Elsa.WriteLine"], _dialogProvider.FindAll("[data-activity-type]").Select(x => x.GetAttribute("data-activity-type")).Order());
+        Assert.Contains("PERFORMED BY", _dialogProvider.Markup);
+        Assert.Contains("Runs when the process reaches 'Notify Warehouse'", _dialogProvider.Markup);
+        Assert.DoesNotContain("THEN", _dialogProvider.Markup);
+
+        _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Cancel").Click();
+        Assert.True((await dialog.Result)?.Canceled);
+    }
+
     private async Task<IDialogReference> ShowDialogAsync(
         string slotName = "action",
         IReadOnlyCollection<string>? recentActivityTypes = null,
-        bool isReplacing = false)
+        bool isReplacing = false,
+        Action<DialogParameters<StateMachineActivityPickerDialog>>? configure = null)
     {
         var dialogService = Services.GetRequiredService<IDialogService>();
         var parameters = new DialogParameters<StateMachineActivityPickerDialog>
@@ -251,25 +276,9 @@ public sealed class StateMachineActivityPickerDialogTests : BunitContext, IAsync
             { x => x.IsReplacing, isReplacing },
             { x => x.RecentActivityTypes, recentActivityTypes ?? [] }
         };
+        configure?.Invoke(parameters);
         var article = slotName == "trigger" ? "a" : "an";
         return await _dialogProvider.InvokeAsync(() => dialogService.ShowAsync<StateMachineActivityPickerDialog>($"Choose {article} {slotName} activity", parameters));
     }
 
-    private sealed class ActivityRegistryStub(IEnumerable<ActivityDescriptor> activities) : IActivityRegistry
-    {
-        public Task RefreshAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task EnsureLoadedAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public IEnumerable<ActivityDescriptor> List() => activities;
-        public ActivityDescriptor? Find(string activityType, int? version = null) => activities.FirstOrDefault(x => x.TypeName == activityType);
-        public IEnumerable<ActivityDescriptor> FindAll(string activityType) => activities.Where(x => x.TypeName == activityType);
-        public void MarkStale()
-        {
-        }
-    }
-
-    private sealed class TestLocalizer : ILocalizer
-    {
-        public LocalizedString this[string? key] => new(key ?? string.Empty, key ?? string.Empty);
-        public LocalizedString this[string? key, params object[] arguments] => new(key ?? string.Empty, string.Format(key ?? string.Empty, arguments));
-    }
 }

@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Extensions;
 using Xunit;
 
 namespace Elsa.Studio.Workflows.Designer.Tests;
@@ -18,7 +19,7 @@ public class BpmnDesignerSelectionMappingTests
         var boundActivity = CreateActivity("write-line-1", "Elsa.WriteLine");
         var root = CreateScope("root", ("ref-1", "write-line-1"), boundActivity);
 
-        var found = BpmnDesigner.FindActivityById(root, "write-line-1");
+        var found = root.FindActivity("write-line-1");
 
         Assert.Same(boundActivity, found);
     }
@@ -30,7 +31,7 @@ public class BpmnDesignerSelectionMappingTests
         var nestedScope = CreateScope("nested-scope", ("ref-1", "write-line-1"), boundActivity);
         var root = CreateScope("root", ("ref-nested", "nested-scope"), nestedScope);
 
-        var found = BpmnDesigner.FindActivityById(root, "write-line-1");
+        var found = root.FindActivity("write-line-1");
 
         Assert.Same(boundActivity, found);
     }
@@ -40,7 +41,7 @@ public class BpmnDesignerSelectionMappingTests
     {
         var root = CreateScope("root");
 
-        var found = BpmnDesigner.FindActivityById(root, "root");
+        var found = root.FindActivity("root");
 
         Assert.Same(root, found);
     }
@@ -51,7 +52,7 @@ public class BpmnDesignerSelectionMappingTests
         var nestedScope = CreateScope("nested-scope");
         var root = CreateScope("root", ("ref-nested", "nested-scope"), nestedScope);
 
-        var found = BpmnDesigner.FindActivityById(root, "nested-scope");
+        var found = root.FindActivity("nested-scope");
 
         Assert.Same(nestedScope, found);
     }
@@ -61,7 +62,7 @@ public class BpmnDesignerSelectionMappingTests
     {
         var root = CreateScope("root");
 
-        var found = BpmnDesigner.FindActivityById(root, "does-not-exist");
+        var found = root.FindActivity("does-not-exist");
 
         Assert.Null(found);
     }

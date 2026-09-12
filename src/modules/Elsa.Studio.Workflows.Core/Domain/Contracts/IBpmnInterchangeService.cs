@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Models.Bpmn;
@@ -44,4 +45,24 @@ public interface IBpmnInterchangeService
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The file to download on success, or the classified refusal reason on failure.</returns>
     Task<Result<FileDownload, BpmnExportFailure>> ExportAsync(string definitionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads the whole <c>bpmnDefinitions</c> document a workflow definition was imported from, with the <c>ETag</c>
+    /// naming that revision.
+    /// </summary>
+    /// <param name="definitionId">The workflow definition id.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The document and its <c>ETag</c> on success, or the classified refusal on failure.</returns>
+    Task<Result<BpmnDocumentRevision, BpmnDocumentFailure>> GetDocumentAsync(string definitionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Writes an edited <c>bpmnDefinitions</c> document back, refused unless <paramref name="eTag"/> still names the
+    /// definition's current revision. The server re-imports it into the same definition as a draft.
+    /// </summary>
+    /// <param name="definitionId">The workflow definition id.</param>
+    /// <param name="document">The whole document, as read by <see cref="GetDocumentAsync"/> and edited in place.</param>
+    /// <param name="eTag">The <c>ETag</c> of the revision the edit was made against, sent as <c>If-Match</c>.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The re-import's result and the new <c>ETag</c> on success, or the classified refusal on failure.</returns>
+    Task<Result<BpmnDocumentSaveResult, BpmnDocumentFailure>> PutDocumentAsync(string definitionId, JsonObject document, string eTag, CancellationToken cancellationToken = default);
 }

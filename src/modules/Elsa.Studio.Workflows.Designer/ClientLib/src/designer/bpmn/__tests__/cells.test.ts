@@ -107,6 +107,16 @@ describe.each(FIXTURE_NAMES)('%s', name => {
         }
     });
 
+    // What .NET is told on selection: the "Performed by" section decides from this alone whether to
+    // offer the activity picker, so it has to be exactly the view model's own classification.
+    it('carries each element\'s binding kind onto its node, exactly as the view model classified it', () => {
+        for (const element of model.elements) {
+            const data = nodesById.get(element.id)!.data as BpmnElementCellData;
+
+            expect(data.bindingKind, element.id).toBe(element.binding?.kind ?? null);
+        }
+    });
+
     it('keeps every boundary event attached to a host that is on the canvas', () => {
         const boundaries = model.elements.filter(element => element.boundary != null);
 

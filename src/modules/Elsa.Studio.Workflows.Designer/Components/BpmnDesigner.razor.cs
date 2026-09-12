@@ -55,6 +55,13 @@ public partial class BpmnDesigner : IAsyncDisposable
     /// An event raised when the canvas, a lane or a pool is selected, i.e. nothing in particular.
     [Parameter] public EventCallback CanvasSelected { get; set; }
 
+    /// <summary>
+    /// An event raised with the BPMN element itself whenever one is selected, and with <see langword="null"/> when the
+    /// canvas, a lane or a pool is. Unlike <see cref="ActivitySelected"/>, which can only name an activity, this still
+    /// says which element was clicked when no activity is bound to it.
+    /// </summary>
+    [Parameter] public EventCallback<BpmnElementSelection?> ElementSelected { get; set; }
+
     [Inject] private DesignerJsInterop DesignerJsInterop { get; set; } = null!;
     [Inject] private IActivityRegistry ActivityRegistry { get; set; } = null!;
     [Inject] private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
@@ -66,6 +73,9 @@ public partial class BpmnDesigner : IAsyncDisposable
     [JSInvokable]
     public async Task HandleActivitySelected(BpmnElementSelection selection)
     {
+        if (ElementSelected.HasDelegate)
+            await ElementSelected.InvokeAsync(selection);
+
         if (!ActivitySelected.HasDelegate)
             return;
 
@@ -96,6 +106,9 @@ public partial class BpmnDesigner : IAsyncDisposable
     [JSInvokable]
     public async Task HandleCanvasSelected()
     {
+        if (ElementSelected.HasDelegate)
+            await ElementSelected.InvokeAsync(null);
+
         if (CanvasSelected.HasDelegate)
             await CanvasSelected.InvokeAsync();
     }
@@ -236,22 +249,7 @@ public partial class BpmnDesigner : IAsyncDisposable
             return null;
 
         var targetId = selection.ActivityId ?? selection.ScopeActivityId;
-        return FindActivityById(_activity, targetId);
-    }
-
-    /// <summary>
-    /// Finds the activity with the specified id, in <paramref name="root"/> itself or, recursively,
-    /// among the activities bound to it and to any nested BPMN scope. Used to resolve both a bound
-    /// element's activity and a scope's own <c>Elsa.BpmnProcess</c> activity by the same lookup.
-    /// </summary>
-    internal static JsonObject? FindActivityById(JsonObject root, string id)
-    {
-        if (root.GetId() == id)
-            return root;
-
-        return root.GetActivities()
-            .Select(activity => FindActivityById(activity, id))
-            .FirstOrDefault(found => found != null);
+        return _activity.FindActivity(targetId);
     }
 
     /// <summary>

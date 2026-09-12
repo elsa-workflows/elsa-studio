@@ -14,6 +14,7 @@
 import type { Edge, Node } from '@antv/x6';
 import type {
     BpmnActivityStats,
+    BpmnBindingKind,
     BpmnBindingState,
     BpmnElementKind,
     BpmnElementStats,
@@ -91,6 +92,8 @@ export interface BpmnElementCellData {
     /** The bound Elsa activity, or null for an element that performs no work. */
     readonly activityId: string | null;
     readonly bindingState: BpmnBindingState | null;
+    /** Whether the bound activity is authored on the element or bound automatically, or null for no work. */
+    readonly bindingKind: BpmnBindingKind | null;
     /** Set only on a boundary event: the element it is drawn on. */
     readonly boundaryHostElementId: string | null;
     readonly childScopeId: string | null;
@@ -366,6 +369,7 @@ function nodeForElement(element: BpmnViewElement, context: BuildContext): Node.M
         scopeActivityId: context.activityIdByScopeId.get(element.scopeId) ?? '',
         activityId: element.binding?.activityId ?? null,
         bindingState: element.binding?.state ?? null,
+        bindingKind: element.binding?.kind ?? null,
         boundaryHostElementId: element.boundary?.hostElementId ?? null,
         childScopeId: element.childScopeId,
         stats: element.stats,

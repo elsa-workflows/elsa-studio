@@ -36,6 +36,19 @@ public partial class StateMachineActivityPickerDialog
     [Parameter] public bool IsReplacing { get; set; }
     [Parameter] public IReadOnlyCollection<string> RecentActivityTypes { get; set; } = [];
 
+    /// <summary>
+    /// Restricts the offered activities to the descriptors this predicate accepts, in place of the default set (every
+    /// browsable activity plus the designer-backed root activities). Lets a host other than the StateMachine designer
+    /// reuse this picker for a narrower purpose — the BPMN "Performed by" section offers only leaf work.
+    /// </summary>
+    [Parameter] public Func<ActivityDescriptor, bool>? DescriptorFilter { get; set; }
+
+    /// <summary>Replaces the short context label derived from <see cref="SlotName"/> (e.g. <c>THEN</c>).</summary>
+    [Parameter] public string? ContextLabel { get; set; }
+
+    /// <summary>Replaces the context sentence derived from <see cref="SlotName"/> (e.g. <c>Runs after source exit</c>).</summary>
+    [Parameter] public string? ContextHint { get; set; }
+
     private string SearchInputId => $"{_id}-search";
     private string ResultsId => $"{_id}-results";
     private string DetailsId => $"{_id}-details";
@@ -50,14 +63,14 @@ public partial class StateMachineActivityPickerDialog
         "trigger" => Localizer["trigger"],
         _ => Localizer["action"]
     };
-    private string ContextKicker => SlotName.ToLowerInvariant() switch
+    private string ContextKicker => ContextLabel ?? SlotName.ToLowerInvariant() switch
     {
         "entry" => Localizer["ON ENTRY"],
         "exit" => Localizer["ON EXIT"],
         "trigger" => Localizer["WHEN"],
         _ => Localizer["THEN"]
     };
-    private string ContextDescription => SlotName.ToLowerInvariant() switch
+    private string ContextDescription => ContextHint ?? SlotName.ToLowerInvariant() switch
     {
         "entry" => Localizer["Runs when this state becomes active"],
         "exit" => Localizer["Runs before an accepted transition leaves this state"],
@@ -130,8 +143,11 @@ public partial class StateMachineActivityPickerDialog
                 .ToHashSet(StringComparer.Ordinal);
             var designerBackedRoots = allDescriptors.Where(x => _rootActivityTypeNames.Contains(x.TypeName));
 
-            _descriptors = browsableDescriptors
-                .Concat(designerBackedRoots)
+            var offeredDescriptors = DescriptorFilter != null
+                ? allDescriptors.Where(DescriptorFilter)
+                : browsableDescriptors.Concat(designerBackedRoots);
+
+            _descriptors = offeredDescriptors
                 .DistinctBy(x => x.TypeName, StringComparer.Ordinal)
                 .OrderBy(GetDisplayName, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x.TypeName, StringComparer.OrdinalIgnoreCase)

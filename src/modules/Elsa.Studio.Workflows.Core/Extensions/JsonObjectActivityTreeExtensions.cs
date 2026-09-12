@@ -38,4 +38,14 @@ public static class JsonObjectActivityTreeExtensions
 
         return false;
     }
+
+    /// <summary>
+    /// Finds the activity with the given ID: <paramref name="scope"/> itself, or, recursively, an activity in its
+    /// <c>activities</c> array — the shape a BPMN process scope and every scope nested in it share.
+    /// </summary>
+    /// <returns>The activity, or <c>null</c> when neither the scope nor any activity under it has that ID.</returns>
+    public static JsonObject? FindActivity(this JsonObject scope, string id) =>
+        scope.GetId() == id
+            ? scope
+            : (scope["activities"] as JsonArray ?? []).OfType<JsonObject>().Select(child => child.FindActivity(id)).FirstOrDefault(found => found != null);
 }

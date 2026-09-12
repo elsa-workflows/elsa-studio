@@ -9,15 +9,14 @@ namespace Elsa.Studio.Workflows.Domain.Models.Bpmn;
 /// <see cref="Elsa.Studio.Workflows.Domain.Models.ValidationErrors"/> also carries).
 /// </summary>
 /// <remarks>
-/// Only <see cref="ImportCapabilityUnsupported"/>, <see cref="ExportNotImported"/>, <see cref="ExportSourceStale"/>
-/// and <see cref="ExportSourceVersionUnknown"/> are consumed today, by <c>RemoteBpmnInterchangeService</c> and
-/// <c>BpmnImportUiService</c>. The three document-endpoint codes are mirrored ahead of the document GET/PUT
-/// endpoints Studio's designer will call next, so that work does not have to duplicate this constants list.
+/// <c>RemoteBpmnInterchangeService</c> classifies the export refusals by these codes into
+/// <see cref="BpmnExportFailureReason"/>, and the document <c>GET</c>/<c>PUT</c> refusals into
+/// <see cref="BpmnDocumentFailureReason"/>; <c>BpmnImportUiService</c> reads <see cref="ImportCapabilityUnsupported"/>.
 /// </remarks>
 public static class BpmnErrorCodes
 {
     /// <summary>
-    /// <c>bpmn/import</c> (and, once Studio calls it, the document <c>PUT</c>) refuses a document that needs a BPMN
+    /// <c>bpmn/import</c> (and the document <c>PUT</c>) refuses a document that needs a BPMN
     /// host capability this deployment does not declare. Carries <c>data.capabilities</c> (the missing capability
     /// names) and <c>data.elementIds</c> (the offending element ids, combined across every missing capability).
     /// </summary>

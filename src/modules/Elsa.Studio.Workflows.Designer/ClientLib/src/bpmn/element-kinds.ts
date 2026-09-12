@@ -67,6 +67,27 @@ export function requiresWorkBinding(elementType: string): boolean {
 }
 
 /**
+ * The element `properties` key the reader records a send or receive task's resolved message name under
+ * (`Bpmn.Interchange.BpmnXmlReader.MessageNamePropertyKey`). Only that resolution ever sets it, which is
+ * what tells a message send or receive task -- bound automatically -- apart from one whose work the host
+ * has to supply.
+ */
+export const MESSAGE_NAME_PROPERTY_KEY = 'bpmn.messageName';
+
+/**
+ * Whether an element's work is *authored*: `Bpmn.Interchange`'s `BpmnWorkBinding.UnboundTask`, a task
+ * the document describes without saying how to perform it, whose Elsa activity comes from an
+ * `elsa:activityBinding` declaration on the element itself.
+ *
+ * Every task kind is one, except a send or receive task that resolved a message: that is a message
+ * publish or wait the binder binds on its own. The same rule elsa-core's `ValidateBpmnProcessBindings`
+ * applies when it decides which elements the publish gate checks.
+ */
+export function isUnboundTask(elementType: string, properties: Readonly<Record<string, string>> | null | undefined): boolean {
+    return TASK_ELEMENT_TYPES.includes(elementType) && properties?.[MESSAGE_NAME_PROPERTY_KEY] == null;
+}
+
+/**
  * The size a fallback layout gives an element of this kind, in BPMN DI units.
  *
  * These are the sizes the BPMN 2.0 DI examples and every mainstream modeller use, so a fallback
