@@ -170,21 +170,15 @@ public sealed class BpmnPerformedByPanelTests : BunitContext, IAsyncLifetime
         // round trip — before the document PUT this test gates ever starts, so Blazor's single per-event render (right
         // after the handler first suspends) cannot show the saving state on its own; only the section's own reaction to
         // Session.Changed can.
-        var cut = Render<BpmnPerformedByPanel>(parameters => parameters
-            .Add(x => x.Selection, TaskSelection)
-            .Add(x => x.RootActivity, RootActivity())
-            .Add(x => x.Session, Session)
-            .Add(x => x.DocumentChanged, () =>
-            {
-                _documentChangedCount++;
-                return Task.CompletedTask;
-            })
-            .Add(x => x.SaveRequested, async () =>
+        var cut = Render<BpmnPerformedByPanel>(parameters => ApplyPanelParameters(
+            parameters,
+            TaskSelection,
+            saveRequested: async () =>
             {
                 await Task.Yield();
                 await Session.SaveAsync();
-            })
-            .Add(x => x.ReloadRequested, () => Task.CompletedTask));
+            },
+            reloadRequested: () => Task.CompletedTask));
         await EditAsync(cut);
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='bpmn-save']").Click());
@@ -218,21 +212,11 @@ public sealed class BpmnPerformedByPanelTests : BunitContext, IAsyncLifetime
         newDocumentService.AcceptsPut("\"REVISION-2\"").ReturnsDocument(Document(), "\"REVISION-2\"");
         var newSession = new BpmnDocumentSession(newDocumentService, DefinitionId);
 
-        cut.Render(parameters => parameters
-            .Add(x => x.Selection, TaskSelection)
-            .Add(x => x.RootActivity, RootActivity())
-            .Add(x => x.Session, newSession)
-            .Add(x => x.DocumentChanged, () =>
-            {
-                _documentChangedCount++;
-                return Task.CompletedTask;
-            })
-            .Add(x => x.SaveRequested, () => newSession.SaveAsync())
-            .Add(x => x.ReloadRequested, () =>
-            {
-                _reloadCount++;
-                return Task.CompletedTask;
-            }));
+        cut.Render(parameters => ApplyPanelParameters(
+            parameters,
+            TaskSelection,
+            session: newSession,
+            saveRequested: () => newSession.SaveAsync()));
         cut.WaitForAssertion(() => Assert.NotNull(newSession.Document));
 
         // The panel is no longer subscribed to the old session: saving through it — flipping its IsSaving twice —
@@ -333,21 +317,37 @@ public sealed class BpmnPerformedByPanelTests : BunitContext, IAsyncLifetime
     }
 
     private IRenderedComponent<BpmnPerformedByPanel> RenderPanel(BpmnElementSelection selection, JsonObject? rootActivity = null) =>
-        Render<BpmnPerformedByPanel>(parameters => parameters
+        Render<BpmnPerformedByPanel>(parameters => ApplyPanelParameters(parameters, selection, rootActivity));
+
+    /// <summary>
+    /// Applies the parameters every rendering of <see cref="BpmnPerformedByPanel"/> in this fixture needs, with the
+    /// defaults <see cref="RenderPanel"/> uses; callers override only what differs.
+    /// </summary>
+    private ComponentParameterCollectionBuilder<BpmnPerformedByPanel> ApplyPanelParameters(
+        ComponentParameterCollectionBuilder<BpmnPerformedByPanel> parameters,
+        BpmnElementSelection selection,
+        JsonObject? rootActivity = null,
+        BpmnDocumentSession? session = null,
+        Func<Task>? saveRequested = null,
+        Func<Task>? reloadRequested = null)
+    {
+        var effectiveSession = session ?? Session;
+        return parameters
             .Add(x => x.Selection, selection)
             .Add(x => x.RootActivity, rootActivity ?? RootActivity())
-            .Add(x => x.Session, Session)
+            .Add(x => x.Session, effectiveSession)
             .Add(x => x.DocumentChanged, () =>
             {
                 _documentChangedCount++;
                 return Task.CompletedTask;
             })
-            .Add(x => x.SaveRequested, () => Session.SaveAsync())
-            .Add(x => x.ReloadRequested, () =>
+            .Add(x => x.SaveRequested, saveRequested ?? (() => effectiveSession.SaveAsync()))
+            .Add(x => x.ReloadRequested, reloadRequested ?? (() =>
             {
                 _reloadCount++;
                 return Task.CompletedTask;
             }));
+    }
 
     private void UseDocument(JsonObject document) => UseService(new FakeBpmnDocumentService().ReturnsDocument(document, "\"REVISION-1\""));
 
