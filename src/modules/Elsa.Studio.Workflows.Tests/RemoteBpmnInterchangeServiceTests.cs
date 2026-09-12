@@ -12,8 +12,11 @@ namespace Elsa.Studio.Workflows.Tests;
 
 /// <summary>
 /// Covers <see cref="RemoteBpmnInterchangeService"/>'s error mapping: the server's 400/422 payloads carry the
-/// message a user needs to see (capability names, offending element ids, or one of the two export refusals), so
-/// this pins that those messages actually reach the caller rather than being replaced by a generic failure.
+/// message a user needs to see (capability names, offending element ids, or one of the export refusals), and the
+/// export refusals are told apart by the envelope's machine-readable <c>code</c> (see <see cref="BpmnErrorCodes"/>)
+/// rather than by matching the message text, so a rewording of the message never breaks this classification. An
+/// unrecognized code, or a body with no code at all (an older server), falls back to showing the server's own
+/// message under <see cref="BpmnExportFailureReason.Unknown"/>.
 /// </summary>
 public class RemoteBpmnInterchangeServiceTests : IDisposable
 {
@@ -47,7 +50,7 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ImportAsync_ReturnsTheCapabilityRefusalMessage_On422()
+    public async Task ImportAsync_ReturnsTheCapabilityRefusalMessageAndCodedData_On422()
     {
         const string message =
             "This deployment does not declare the following BPMN host capabilities the document requires: ScopeSignalling. "
@@ -57,7 +60,9 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
         {
           "errors": {
             "generalErrors": ["{{message}}"]
-          }
+          },
+          "code": "{{BpmnErrorCodes.ImportCapabilityUnsupported}}",
+          "data": { "capabilities": ["ScopeSignalling"], "elementIds": ["Gateway_1"] }
         }
         """);
 
@@ -67,6 +72,9 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
         Assert.True(result.IsFailed);
         var error = Assert.Single(result.Failure!.Errors);
         Assert.Equal(message, error.ErrorMessage);
+        Assert.Equal(BpmnErrorCodes.ImportCapabilityUnsupported, result.Failure.Code);
+        Assert.Equal(["ScopeSignalling"], result.Failure.Data!.CapabilityNames);
+        Assert.Equal(["Gateway_1"], result.Failure.Data.ElementIds);
     }
 
     [Fact]
@@ -84,7 +92,7 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
     public async Task ExportAsync_ClassifiesNotImportedFromBpmn()
     {
         const string message = "Workflow definition 'wf-1' does not currently carry BPMN source, so it cannot be exported as BPMN 2.0 XML.";
-        _api.ExportResponse = UnprocessableEntity(message);
+        _api.ExportResponse = UnprocessableEntity(message, BpmnErrorCodes.ExportNotImported);
 
         var result = await _service.ExportAsync("wf-1");
 
@@ -97,12 +105,54 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
     public async Task ExportAsync_ClassifiesDefinitionChangedSinceImport()
     {
         const string message = "Workflow definition 'wf-1' has changed since it was imported from BPMN (imported at version 1, currently at version 2).";
-        _api.ExportResponse = UnprocessableEntity(message);
+        _api.ExportResponse = UnprocessableEntity(message, BpmnErrorCodes.ExportSourceStale);
 
         var result = await _service.ExportAsync("wf-1");
 
         Assert.True(result.IsFailed);
         Assert.Equal(BpmnExportFailureReason.DefinitionChangedSinceImport, result.Failure!.Reason);
+    }
+
+    [Fact]
+    public async Task ExportAsync_ClassifiesSourceVersionUnknownAsNotImportedFromBpmn()
+    {
+        // Studio has no wording of its own distinct from ExportNotImported's for this rarely-reachable case (see
+        // RemoteBpmnInterchangeService.ClassifyExportRefusal's remarks), so it maps to the same reason.
+        const string message = "Workflow definition 'wf-1' carries BPMN source but not the definition version it was recorded against.";
+        _api.ExportResponse = UnprocessableEntity(message, BpmnErrorCodes.ExportSourceVersionUnknown);
+
+        var result = await _service.ExportAsync("wf-1");
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(BpmnExportFailureReason.NotImportedFromBpmn, result.Failure!.Reason);
+    }
+
+    [Fact]
+    public async Task ExportAsync_FallsBackToUnknown_ForAnUnrecognizedCode()
+    {
+        const string message = "Something else went wrong.";
+        _api.ExportResponse = UnprocessableEntity(message, "bpmn.export.some-future-code");
+
+        var result = await _service.ExportAsync("wf-1");
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(BpmnExportFailureReason.Unknown, result.Failure!.Reason);
+        Assert.Equal(message, result.Failure.Message);
+    }
+
+    [Fact]
+    public async Task ExportAsync_FallsBackToUnknown_ForA422WithNoCode()
+    {
+        // An older server that has not been upgraded to send `code` yet; the failure still surfaces the message,
+        // just without a specific reason.
+        const string message = "Workflow definition 'wf-1' does not currently carry BPMN source, so it cannot be exported as BPMN 2.0 XML.";
+        _api.ExportResponse = UnprocessableEntity(message, code: null);
+
+        var result = await _service.ExportAsync("wf-1");
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(BpmnExportFailureReason.Unknown, result.Failure!.Reason);
+        Assert.Equal(message, result.Failure.Message);
     }
 
     [Fact]
@@ -122,16 +172,21 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
         Assert.Equal(xml, await reader.ReadToEndAsync());
     }
 
-    private static HttpResponseMessage UnprocessableEntity(string message) => new(HttpStatusCode.UnprocessableEntity)
+    private static HttpResponseMessage UnprocessableEntity(string message, string? code)
     {
-        Content = new StringContent($$"""
+        var codeProperty = code is null ? "" : $$""", "code": "{{code}}" """;
+
+        return new(HttpStatusCode.UnprocessableEntity)
         {
-          "errors": {
-            "generalErrors": ["{{message}}"]
-          }
-        }
-        """)
-    };
+            Content = new StringContent($$"""
+            {
+              "errors": {
+                "generalErrors": ["{{message}}"]
+              }{{codeProperty}}
+            }
+            """)
+        };
+    }
 
     private static async Task<ApiException> CreateApiExceptionAsync(HttpStatusCode statusCode, string content)
     {
