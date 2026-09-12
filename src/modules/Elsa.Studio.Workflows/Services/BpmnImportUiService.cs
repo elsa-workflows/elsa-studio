@@ -61,15 +61,18 @@ public class BpmnImportUiService(
             // unrecognized one falls back to the ordinary failure path, showing the server's own message.
             if (failure.Code == BpmnErrorCodes.ImportCapabilityUnsupported)
             {
-                var message = string.Join(" ", failure.Errors.Select(error => error.ErrorMessage));
-                var refusal = BpmnCapabilityRefusal.FromData(failure.Data) ?? new BpmnCapabilityRefusal([], []);
+                var refusal = BpmnCapabilityRefusal.FromData(failure.Data);
 
-                await ShowRefusalDialogAsync(refusal);
-                return new()
+                if (refusal != null)
                 {
-                    FileName = file.Name,
-                    Failure = new(message, WorkflowImportFailureType.CapabilityRefusal)
-                };
+                    var message = string.Join(" ", failure.Errors.Select(error => error.ErrorMessage));
+                    await ShowRefusalDialogAsync(refusal);
+                    return new()
+                    {
+                        FileName = file.Name,
+                        Failure = new(message, WorkflowImportFailureType.CapabilityRefusal)
+                    };
+                }
             }
 
             return Failed(file.Name, failure);

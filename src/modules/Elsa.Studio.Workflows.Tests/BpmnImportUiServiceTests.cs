@@ -240,6 +240,37 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task ImportFileAsync_FallsBackToTheServerMessage_ForACapabilityRefusalCodeWithNoData()
+    {
+        const string message = "This deployment does not declare a required BPMN host capability.";
+
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var localizer = Services.GetRequiredService<ILocalizer>();
+        var interchangeService = new FakeBpmnInterchangeService
+        {
+            AnalyzeResult = new(new BpmnImportAnalysisModel { ProcessIds = ["only-process"] }),
+            ImportResult = new(new ValidationErrors([new ValidationError(message)], HttpStatusCode.UnprocessableEntity, Code: BpmnErrorCodes.ImportCapabilityUnsupported))
+        };
+        var definitionService = new FakeWorkflowDefinitionService();
+        var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
+        var file = new FakeBrowserFile("process.bpmn");
+
+        var importTask = _dialogProvider.InvokeAsync(() => service.ImportFileAsync(file, definitionId: null));
+
+        // The findings dialog; there is no refusal dialog to close afterwards because a coded refusal with no
+        // `data` cannot be read into a `BpmnCapabilityRefusal`, so it falls back to the ordinary failure path.
+        _dialogProvider.WaitForElement("button");
+        await _dialogProvider.InvokeAsync(() => ImportButton().ClickAsync(new MouseEventArgs()));
+
+        var result = await importTask.WaitAsync(Timeout);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsSuccess);
+        Assert.Equal(WorkflowImportFailureType.Exception, result.Failure!.FailureType);
+        Assert.Equal(message, result.Failure.ErrorMessage);
+    }
+
+    [Fact]
     public async Task ImportFileAsync_DoesNotTreatAnUncodedMessage_AsACapabilityRefusal_EvenWithTheRefusalWording()
     {
         // An older server that has not been upgraded to send `code` yet: without it, the message is shown as an
