@@ -126,9 +126,7 @@ public class DiagramDesignerWrapperElementStatsTests
         var sink = new RecordingSinkDesigner();
         var wrapper = CreateWrapper(journal, sink, workflowInstanceId: "instance-1");
 
-        typeof(DiagramDesignerWrapper)
-            .GetField("_elementStatsMaxPagesPerRefresh", BindingFlags.Instance | BindingFlags.NonPublic)!
-            .SetValue(wrapper, 2);
+        wrapper.ElementStatsMaxPagesPerRefresh = 2;
 
         await wrapper.RefreshElementStatsAsync();
 

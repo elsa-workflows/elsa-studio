@@ -49,7 +49,7 @@ public partial class DiagramDesignerWrapper
     /// whatever was actually fetched, so the next tick picks up exactly where this one left off. Settable (rather
     /// than a plain <c>const</c>) only so a test can lower it to exercise the cap without paging 10,000 records.
     /// </summary>
-    private int _elementStatsMaxPagesPerRefresh = 50;
+    internal int ElementStatsMaxPagesPerRefresh { get; set; } = 50;
 
     private ActivityGraph _activityGraph = null!;
     private IDictionary<string, ActivityNode> _indexedActivityNodes =
@@ -263,7 +263,7 @@ public partial class DiagramDesignerWrapper
     /// not an id or timestamp, because <see cref="JournalFilter"/> has no way to filter by either. The map and
     /// mark are reset whenever the displayed instance or the set of <c>Elsa.BpmnProcess</c> scope activity ids
     /// changes, since a high-water mark from a different instance or a different filter has nothing to do with
-    /// the one about to be fetched. A single tick fetches at most <see cref="_elementStatsMaxPagesPerRefresh"/>
+    /// the one about to be fetched. A single tick fetches at most <see cref="ElementStatsMaxPagesPerRefresh"/>
     /// pages, so a backlog larger than that -- a first load, or a burst built up while the tab was backgrounded --
     /// is folded a page cap's worth at a time across successive refreshes rather than in one unbounded loop.
     /// </remarks>
@@ -288,7 +288,7 @@ public partial class DiagramDesignerWrapper
         const int pageSize = 200;
         var skip = _elementStatsHighWaterMark;
 
-        for (var page = 0; page < _elementStatsMaxPagesPerRefresh; page++)
+        for (var page = 0; page < ElementStatsMaxPagesPerRefresh; page++)
         {
             var response = await WorkflowInstanceService.GetJournalAsync(workflowInstanceId, filter, skip, pageSize);
             entries.AddRange(response.Items);
