@@ -71,8 +71,11 @@ public sealed class BreadcrumbCollectionPortSegmentTests : BunitContext, IAsyncL
     [Fact]
     public async Task SelectingAnActivityNestedInsideABpmnProcessContainer_DoesNotThrow_AndFallsBackToTheContainersDisplayName()
     {
+        const string BindingRef = "node-nested-child";
+        const string ElementId = "NestedChild_1";
+
         var nestedChild = CreateWriteLine("nested-child", NestedChildNodeId);
-        var process = CreateBpmnProcess("process-1", ProcessNodeId, "Order Process", new JsonArray { nestedChild });
+        var process = CreateBpmnProcess("process-1", ProcessNodeId, "Order Process", new JsonArray { nestedChild }, BindingRef, ElementId);
         var root = CreateFlowchartWithContainer(process);
 
         var pathSegmentsResponse = new GetPathSegmentsResponse(
@@ -105,6 +108,11 @@ public sealed class BreadcrumbCollectionPortSegmentTests : BunitContext, IAsyncL
         var bpmnDesigner = cut.FindComponent<BpmnDesignerWrapper>();
         Assert.Equal("process-1", bpmnDesigner.Instance.Activity.GetId());
         Assert.Equal(["Root", "Order Process"], BreadcrumbTextsOf(cut));
+
+        // The observable selection: the BPMN canvas is told, through its JS interop, to select the element bound to
+        // "nested-child" -- not merely that the container displaying it happens to be right.
+        var selectInvocation = Assert.Single(JSInterop.Invocations["selectBpmnElement"]);
+        Assert.Equal(ElementId, selectInvocation.Arguments[1]);
     }
 
     private static IReadOnlyList<string> BreadcrumbTextsOf(IRenderedComponent<DiagramDesignerWrapper> cut) =>
@@ -130,11 +138,12 @@ public sealed class BreadcrumbCollectionPortSegmentTests : BunitContext, IAsyncL
     };
 
     /// <summary>
-    /// A <c>BpmnProcess</c> with no <c>process</c> payload: the shape the BPMN designer already renders as "no
-    /// content yet" rather than a diagram, which keeps this fixture focused on the segment-resolution defect rather
-    /// than on BPMN diagram fidelity.
+    /// A <c>BpmnProcess</c> with a minimal <c>process</c> payload binding one child activity to a BPMN element, so
+    /// that selecting the child by activity id has an observable JS selection to assert on -- rather than the empty
+    /// scope the BPMN designer renders as "no content yet", which would leave a selection call silently doing
+    /// nothing.
     /// </summary>
-    private static JsonObject CreateBpmnProcess(string id, string nodeId, string name, JsonArray activities) => new()
+    private static JsonObject CreateBpmnProcess(string id, string nodeId, string name, JsonArray activities, string bindingRef, string elementId) => new()
     {
         ["id"] = id,
         ["nodeId"] = nodeId,
@@ -145,7 +154,27 @@ public sealed class BreadcrumbCollectionPortSegmentTests : BunitContext, IAsyncL
         {
             ["canStartWorkflow"] = false
         },
-        ["workBindings"] = new JsonObject(),
+        ["process"] = new JsonObject
+        {
+            ["processId"] = "order-process",
+            ["name"] = name,
+            ["isExecutable"] = true,
+            ["elements"] = new JsonArray
+            {
+                new JsonObject { ["elementId"] = "StartEvent_1", ["elementType"] = "startEvent" },
+                new JsonObject { ["elementId"] = elementId, ["elementType"] = "task", ["name"] = "nested-child", ["bindingRef"] = bindingRef },
+                new JsonObject { ["elementId"] = "EndEvent_1", ["elementType"] = "endEvent" }
+            },
+            ["sequenceFlows"] = new JsonArray
+            {
+                new JsonObject { ["flowId"] = "Flow_1", ["sourceRef"] = "StartEvent_1", ["targetRef"] = elementId },
+                new JsonObject { ["flowId"] = "Flow_2", ["sourceRef"] = elementId, ["targetRef"] = "EndEvent_1" }
+            }
+        },
+        ["workBindings"] = new JsonObject
+        {
+            [bindingRef] = "nested-child"
+        },
         ["activities"] = activities
     };
 
