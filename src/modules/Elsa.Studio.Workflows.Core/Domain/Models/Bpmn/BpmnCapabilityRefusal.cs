@@ -1,38 +1,50 @@
+using System.Text.Json;
+
 namespace Elsa.Studio.Workflows.Domain.Models.Bpmn;
 
 /// <summary>
-/// The capability names and offending element ids a BPMN import's <c>422</c> "missing host capabilities" refusal
-/// carries, parsed out of the single sentence <c>BpmnInterchangeDocumentService.Import</c> raises in elsa-core, so
-/// the UI can list each separately instead of showing the raw sentence.
+/// The capability names and offending element ids a BPMN import's <c>422</c> <see cref="BpmnErrorCodes.ImportCapabilityUnsupported"/>
+/// refusal carries, read from the error envelope's <c>data.capabilities</c> and <c>data.elementIds</c> (see
+/// <see cref="Elsa.Studio.Workflows.Domain.Extensions.ValidationApiExceptionExtensions.GetValidationErrorsFromContent"/>),
+/// so the UI can list each separately instead of showing the raw message.
 /// </summary>
 public sealed record BpmnCapabilityRefusal(IReadOnlyList<string> CapabilityNames, IReadOnlyList<string> ElementIds)
 {
-    private const string CapabilitiesPrefix = "does not declare the following BPMN host capabilities the document requires:";
-    private const string ElementsPrefix = "Offending elements (combined across all missing capabilities above, not attributable to any one of them):";
-
     /// <summary>
-    /// Parses <paramref name="message"/> into a <see cref="BpmnCapabilityRefusal"/> when it matches the capability
-    /// refusal's known shape, or returns <see langword="null"/> for any other message (including the two export
-    /// refusals, which use different wording, and unrelated failures).
+    /// Reads <paramref name="dataElement"/> (a <see cref="Models.ValidationErrors.Data"/> carried alongside
+    /// <see cref="BpmnErrorCodes.ImportCapabilityUnsupported"/>) into a <see cref="BpmnCapabilityRefusal"/> when it
+    /// carries a <c>capabilities</c> and/or <c>elementIds</c> string array — the only shape any <c>data</c> member
+    /// sends today — or <see langword="null"/> for any other shape, including a code that carries no <c>data</c> at
+    /// all.
     /// </summary>
-    public static BpmnCapabilityRefusal? TryParse(string message)
+    public static BpmnCapabilityRefusal? FromData(JsonElement? dataElement)
     {
-        var capabilitiesIndex = message.IndexOf(CapabilitiesPrefix, StringComparison.OrdinalIgnoreCase);
-        var elementsIndex = message.IndexOf(ElementsPrefix, StringComparison.OrdinalIgnoreCase);
-
-        if (capabilitiesIndex < 0 || elementsIndex < 0 || elementsIndex < capabilitiesIndex)
+        if (dataElement is not { ValueKind: JsonValueKind.Object } element)
             return null;
 
-        var capabilitiesText = message[(capabilitiesIndex + CapabilitiesPrefix.Length)..elementsIndex];
-        var elementsText = message[(elementsIndex + ElementsPrefix.Length)..];
-
-        var capabilityNames = SplitList(capabilitiesText);
-        var elementIds = SplitList(elementsText);
+        var capabilityNames = TryGetProperty(element, "capabilities", out var capabilitiesElement) ? GetStringArray(capabilitiesElement) : [];
+        var elementIds = TryGetProperty(element, "elementIds", out var elementIdsElement) ? GetStringArray(elementIdsElement) : [];
 
         return capabilityNames.Count == 0 && elementIds.Count == 0 ? null : new BpmnCapabilityRefusal(capabilityNames, elementIds);
     }
 
-    private static IReadOnlyList<string> SplitList(string text) => text
-        .Trim().Trim('.')
-        .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+    private static IReadOnlyList<string> GetStringArray(JsonElement element) => element.ValueKind == JsonValueKind.Array
+        ? element.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!).ToList()
+        : [];
+
+    private static bool TryGetProperty(JsonElement element, string propertyName, out JsonElement property)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var candidate in element.EnumerateObject())
+                if (string.Equals(candidate.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                {
+                    property = candidate.Value;
+                    return true;
+                }
+        }
+
+        property = default;
+        return false;
+    }
 }

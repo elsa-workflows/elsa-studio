@@ -46,6 +46,15 @@ public static class ValidationApiExceptionExtensions
     /// is empty or does not parse as JSON. Shared with callers that have a raw response body rather than an
     /// <see cref="ApiException"/> to extract it from.
     /// </summary>
+    /// <remarks>
+    /// Also reads the envelope's additive <c>code</c> and <c>data</c> members (see e.g.
+    /// <see cref="Elsa.Studio.Workflows.Domain.Models.Bpmn.BpmnErrorCodes"/> and <c>doc/wiki/bpmn-workflows.md</c> in
+    /// elsa-core), so every caller shares one parser instead of a caller matching the message text itself. A body
+    /// without a <c>code</c> — an older server, or a refusal that never carries one — leaves <see cref="ValidationErrors.Code"/>
+    /// <see langword="null"/>, which every caller must treat as an unrecognized code and fall back to the message.
+    /// <c>data</c> is left as raw JSON: interpreting it is up to whichever feature owns <c>code</c> (see e.g.
+    /// <see cref="Elsa.Studio.Workflows.Domain.Models.Bpmn.BpmnCapabilityRefusal.FromData"/>).
+    /// </remarks>
     public static ValidationErrors? GetValidationErrorsFromContent(string? content)
     {
         if (string.IsNullOrWhiteSpace(content))
@@ -63,7 +72,18 @@ public static class ValidationApiExceptionExtensions
             if (errors.Count == 0)
                 errors.AddRange(GetFallbackMessages(root).Select(x => new ValidationError(x)));
 
-            return errors.Count > 0 ? new ValidationErrors(errors) : null;
+            if (errors.Count == 0)
+                return null;
+
+            var code = TryGetProperty(root, "code", out var codeElement) && codeElement.ValueKind == JsonValueKind.String
+                ? codeElement.GetString()
+                : null;
+
+            // Cloned so the element survives past this method's JsonDocument, which is disposed on return; the raw
+            // shape is handed back as-is; interpreting it is up to whichever feature owns `code`.
+            var data = TryGetProperty(root, "data", out var dataElement) ? dataElement.Clone() : (JsonElement?)null;
+
+            return new ValidationErrors(errors, Code: code, Data: data);
         }
         catch (JsonException)
         {

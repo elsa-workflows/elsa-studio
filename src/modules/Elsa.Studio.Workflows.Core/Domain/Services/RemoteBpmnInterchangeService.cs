@@ -70,31 +70,33 @@ public class RemoteBpmnInterchangeService(IBackendApiClientProvider backendApiCl
         if (response.StatusCode == HttpStatusCode.NotFound)
             return new(new BpmnExportFailure(BpmnExportFailureReason.NotFound, "Workflow definition not found."));
 
-        var message = ValidationApiExceptionExtensions.GetValidationErrorsFromContent(body)?.Errors.FirstOrDefault()?.ErrorMessage
+        var validationErrors = ValidationApiExceptionExtensions.GetValidationErrorsFromContent(body);
+        var message = validationErrors?.Errors.FirstOrDefault()?.ErrorMessage
             ?? (string.IsNullOrWhiteSpace(body) ? response.ReasonPhrase ?? "The export could not be completed." : body);
 
         if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
-            return new(new BpmnExportFailure(ClassifyExportRefusal(message), message));
+            return new(new BpmnExportFailure(ClassifyExportRefusal(validationErrors?.Code), message));
 
         return new(new BpmnExportFailure(BpmnExportFailureReason.Unknown, message));
     }
 
     /// <summary>
-    /// Classifies the two 422 refusals <c>BpmnInterchangeDocumentService.Export(WorkflowDefinition)</c> raises by
-    /// matching the distinguishing phrase each one carries, so the UI can show its own short wording instead of the
-    /// full diagnostic sentence. See that method's remarks in elsa-core for why each refusal reads the way it does.
+    /// Classifies the 422 refusals <c>BpmnInterchangeDocumentService.Export(WorkflowDefinition)</c> raises by their
+    /// machine-readable <paramref name="code"/> (see <see cref="BpmnErrorCodes"/>), rather than by matching a phrase
+    /// in the message, so a rewording of the message never breaks this classification. A <see langword="null"/> or
+    /// unrecognized code — including an older server that does not send one yet — falls back to
+    /// <see cref="BpmnExportFailureReason.Unknown"/>, which shows the server's own message.
     /// </summary>
-    private static BpmnExportFailureReason ClassifyExportRefusal(string message)
+    private static BpmnExportFailureReason ClassifyExportRefusal(string? code) => code switch
     {
-        if (message.Contains("has changed since it was imported from BPMN", StringComparison.OrdinalIgnoreCase))
-            return BpmnExportFailureReason.DefinitionChangedSinceImport;
-
-        if (message.Contains("does not currently carry BPMN source", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("not the definition version it was recorded against", StringComparison.OrdinalIgnoreCase))
-            return BpmnExportFailureReason.NotImportedFromBpmn;
-
-        return BpmnExportFailureReason.Unknown;
-    }
+        BpmnErrorCodes.ExportNotImported => BpmnExportFailureReason.NotImportedFromBpmn,
+        // Not reachable through Import or the document PUT themselves (both always record a source version
+        // alongside the source text); Studio has no wording of its own for this case, distinct from
+        // ExportNotImported's, so it maps to the same "not imported" message.
+        BpmnErrorCodes.ExportSourceVersionUnknown => BpmnExportFailureReason.NotImportedFromBpmn,
+        BpmnErrorCodes.ExportSourceStale => BpmnExportFailureReason.DefinitionChangedSinceImport,
+        _ => BpmnExportFailureReason.Unknown
+    };
 
     private async Task<IBpmnInterchangeApi> GetApiAsync(CancellationToken cancellationToken = default) =>
         await backendApiClientProvider.GetApiAsync<IBpmnInterchangeApi>(cancellationToken);

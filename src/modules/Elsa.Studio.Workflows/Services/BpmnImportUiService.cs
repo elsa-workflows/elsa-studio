@@ -1,4 +1,3 @@
-using System.Net;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -56,20 +55,24 @@ public class BpmnImportUiService(
         if (!importResult.IsSuccess)
         {
             var failure = importResult.Failure!;
-            var message = string.Join(" ", failure.Errors.Select(error => error.ErrorMessage));
 
-            // Only a 422 can be a capability refusal; matching the wording alone on any other status (e.g. a 500
-            // whose message happens to echo the refusal's phrasing) would misreport an unrelated failure as one.
-            var refusal = failure.StatusCode == HttpStatusCode.UnprocessableEntity ? BpmnCapabilityRefusal.TryParse(message) : null;
-
-            if (refusal != null)
+            // Recognized by the envelope's machine-readable code rather than by wording (or even just 422 status),
+            // so a server rewording of the message never breaks this. A body with no code (an older server) or an
+            // unrecognized one falls back to the ordinary failure path, showing the server's own message.
+            if (failure.Code == BpmnErrorCodes.ImportCapabilityUnsupported)
             {
-                await ShowRefusalDialogAsync(refusal);
-                return new()
+                var refusal = BpmnCapabilityRefusal.FromData(failure.Data);
+
+                if (refusal != null)
                 {
-                    FileName = file.Name,
-                    Failure = new(message, WorkflowImportFailureType.CapabilityRefusal)
-                };
+                    var message = string.Join(" ", failure.Errors.Select(error => error.ErrorMessage));
+                    await ShowRefusalDialogAsync(refusal);
+                    return new()
+                    {
+                        FileName = file.Name,
+                        Failure = new(message, WorkflowImportFailureType.CapabilityRefusal)
+                    };
+                }
             }
 
             return Failed(file.Name, failure);

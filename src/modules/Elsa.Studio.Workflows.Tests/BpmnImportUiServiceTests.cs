@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Bunit;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -163,7 +164,7 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public async Task ImportFileAsync_ShowsTheRefusalDialogOnce_AndReturnsACapabilityRefusalResult_On422()
+    public async Task ImportFileAsync_ShowsTheRefusalDialogOnce_AndReturnsACapabilityRefusalResult_ForTheCodedRefusal()
     {
         const string message =
             "This deployment does not declare the following BPMN host capabilities the document requires: ScopeSignalling. "
@@ -174,7 +175,11 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
         var interchangeService = new FakeBpmnInterchangeService
         {
             AnalyzeResult = new(new BpmnImportAnalysisModel { ProcessIds = ["only-process"] }),
-            ImportResult = new(new ValidationErrors([new ValidationError(message)], HttpStatusCode.UnprocessableEntity))
+            ImportResult = new(new ValidationErrors(
+                [new ValidationError(message)],
+                HttpStatusCode.UnprocessableEntity,
+                Code: BpmnErrorCodes.ImportCapabilityUnsupported,
+                Data: JsonDocument.Parse("""{ "capabilities": ["ScopeSignalling"], "elementIds": ["Gateway_1"] }""").RootElement))
         };
         var definitionService = new FakeWorkflowDefinitionService();
         var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
@@ -204,8 +209,72 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public async Task ImportFileAsync_DoesNotTreatA500AsACapabilityRefusal_EvenWithTheRefusalWording()
+    public async Task ImportFileAsync_FallsBackToTheServerMessage_ForA422WithAnUnrecognizedCode()
     {
+        const string message = "Some other 422 refusal that is not a capability refusal.";
+
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var localizer = Services.GetRequiredService<ILocalizer>();
+        var interchangeService = new FakeBpmnInterchangeService
+        {
+            AnalyzeResult = new(new BpmnImportAnalysisModel { ProcessIds = ["only-process"] }),
+            ImportResult = new(new ValidationErrors([new ValidationError(message)], HttpStatusCode.UnprocessableEntity, Code: BpmnErrorCodes.ImportBindingInvalid))
+        };
+        var definitionService = new FakeWorkflowDefinitionService();
+        var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
+        var file = new FakeBrowserFile("process.bpmn");
+
+        var importTask = _dialogProvider.InvokeAsync(() => service.ImportFileAsync(file, definitionId: null));
+
+        // The findings dialog; there is no refusal dialog to close afterwards because this code is not the
+        // capability refusal's.
+        _dialogProvider.WaitForElement("button");
+        await _dialogProvider.InvokeAsync(() => ImportButton().ClickAsync(new MouseEventArgs()));
+
+        var result = await importTask.WaitAsync(Timeout);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsSuccess);
+        Assert.Equal(WorkflowImportFailureType.Exception, result.Failure!.FailureType);
+        Assert.Equal(message, result.Failure.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_FallsBackToTheServerMessage_ForACapabilityRefusalCodeWithNoData()
+    {
+        const string message = "This deployment does not declare a required BPMN host capability.";
+
+        var dialogService = Services.GetRequiredService<IDialogService>();
+        var localizer = Services.GetRequiredService<ILocalizer>();
+        var interchangeService = new FakeBpmnInterchangeService
+        {
+            AnalyzeResult = new(new BpmnImportAnalysisModel { ProcessIds = ["only-process"] }),
+            ImportResult = new(new ValidationErrors([new ValidationError(message)], HttpStatusCode.UnprocessableEntity, Code: BpmnErrorCodes.ImportCapabilityUnsupported))
+        };
+        var definitionService = new FakeWorkflowDefinitionService();
+        var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
+        var file = new FakeBrowserFile("process.bpmn");
+
+        var importTask = _dialogProvider.InvokeAsync(() => service.ImportFileAsync(file, definitionId: null));
+
+        // The findings dialog; there is no refusal dialog to close afterwards because a coded refusal with no
+        // `data` cannot be read into a `BpmnCapabilityRefusal`, so it falls back to the ordinary failure path.
+        _dialogProvider.WaitForElement("button");
+        await _dialogProvider.InvokeAsync(() => ImportButton().ClickAsync(new MouseEventArgs()));
+
+        var result = await importTask.WaitAsync(Timeout);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsSuccess);
+        Assert.Equal(WorkflowImportFailureType.Exception, result.Failure!.FailureType);
+        Assert.Equal(message, result.Failure.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_DoesNotTreatAnUncodedMessage_AsACapabilityRefusal_EvenWithTheRefusalWording()
+    {
+        // An older server that has not been upgraded to send `code` yet: without it, the message is shown as an
+        // ordinary failure rather than the dialog, even though its wording matches the capability refusal's.
         const string message =
             "This deployment does not declare the following BPMN host capabilities the document requires: ScopeSignalling. "
             + "Offending elements (combined across all missing capabilities above, not attributable to any one of them): Gateway_1.";
@@ -215,7 +284,7 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
         var interchangeService = new FakeBpmnInterchangeService
         {
             AnalyzeResult = new(new BpmnImportAnalysisModel { ProcessIds = ["only-process"] }),
-            ImportResult = new(new ValidationErrors([new ValidationError(message)], HttpStatusCode.InternalServerError))
+            ImportResult = new(new ValidationErrors([new ValidationError(message)], HttpStatusCode.UnprocessableEntity))
         };
         var definitionService = new FakeWorkflowDefinitionService();
         var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);
@@ -223,7 +292,8 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
 
         var importTask = _dialogProvider.InvokeAsync(() => service.ImportFileAsync(file, definitionId: null));
 
-        // The findings dialog; there is no refusal dialog to close afterwards because a 500 never counts as one.
+        // The findings dialog; there is no refusal dialog to close afterwards because a body with no code never
+        // counts as one.
         _dialogProvider.WaitForElement("button");
         await _dialogProvider.InvokeAsync(() => ImportButton().ClickAsync(new MouseEventArgs()));
 
