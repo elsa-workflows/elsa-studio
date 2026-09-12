@@ -314,9 +314,27 @@ public sealed class BpmnPerformedByPanelTests : BunitContext, IAsyncLifetime
     [Fact]
     public void AnElementInsideASubprocess_IsStillNotEditable_AndNamesTheCoreLimitation()
     {
-        var cut = RenderPanel(TaskSelection with { ElementId = "InsideASubprocess" });
+        var cut = RenderPanel(TaskSelection with { ElementId = "InsideASubprocess", ScopeId = "Fulfil", ScopeActivityId = "order-process:node-Fulfil" });
 
         Assert.Contains("elsa-core#8076", cut.Find("[data-testid='bpmn-element-not-in-document']").TextContent);
+        Assert.Empty(cut.FindAll("[data-testid='bpmn-pick-activity']"));
+    }
+
+    /// <summary>
+    /// An element missing from the document is not always one the document never carries because it lives in a
+    /// subprocess: the canvas and the document can simply be out of step (a stale or unknown id). When the selection's
+    /// own scope is one of the document's top-level processes, that is what this is, and elsa-core#8076 — which is
+    /// about content the document never carries at all — does not apply.
+    /// </summary>
+    [Fact]
+    public void AnUnknownElementInATopLevelScope_SaysTheDocumentDoesNotHaveIt_WithoutBlamingTheSubprocessLimitation()
+    {
+        var cut = RenderPanel(TaskSelection with { ElementId = "StaleElementId" });
+
+        var alert = cut.Find("[data-testid='bpmn-element-missing']").TextContent;
+        Assert.Contains("not in the BPMN document", alert);
+        Assert.DoesNotContain("elsa-core#8076", alert);
+        Assert.Empty(cut.FindAll("[data-testid='bpmn-element-not-in-document']"));
         Assert.Empty(cut.FindAll("[data-testid='bpmn-pick-activity']"));
     }
 

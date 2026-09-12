@@ -68,7 +68,14 @@
                 {
                     @if (_element == null)
                     {
-                        <MudAlert Severity="Severity.Warning" data-testid="bpmn-element-not-in-document">@Localizer["'{0}' is inside a subprocess, whose content Studio cannot see, so its binding cannot be edited here — a server limitation tracked in elsa-workflows/elsa-core#8076.", ElementLabel]</MudAlert>
+                        @if (ElementIsInSubprocess)
+                        {
+                            <MudAlert Severity="Severity.Warning" data-testid="bpmn-element-not-in-document">@Localizer["'{0}' is inside a subprocess, whose content Studio cannot see, so its binding cannot be edited here — a server limitation tracked in elsa-workflows/elsa-core#8076.", ElementLabel]</MudAlert>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Warning" data-testid="bpmn-element-missing">@Localizer["'{0}' is not in the BPMN document Studio loaded. Reload the document; if it persists, re-import the BPMN file.", ElementLabel]</MudAlert>
+                        }
                     }
                     else
                     {

@@ -76,6 +76,17 @@ public partial class BpmnPerformedByPanel : IDisposable
     private bool CanEdit => Session.Document != null;
 
     /// <summary>
+    /// Whether the selected element's absence from the document (<see cref="_element"/> is <see langword="null"/>) is
+    /// explained by it living in a nested scope — a subprocess, transaction, or event subprocess — whose body the
+    /// document never carries (elsa-workflows/elsa-core#8076), rather than some other mismatch between the canvas and
+    /// the document (a stale or unknown element id).
+    /// </summary>
+    private bool ElementIsInSubprocess =>
+        Selection != null
+        && Session.Document != null
+        && !BpmnDefinitionsDocument.HasTopLevelProcess(Session.Document, Selection.ScopeId);
+
+    /// <summary>
     /// Leaf work: an activity that performs one unit of work itself. A container or a composite schedules other
     /// activities, which a single BPMN task cannot hold.
     /// </summary>
