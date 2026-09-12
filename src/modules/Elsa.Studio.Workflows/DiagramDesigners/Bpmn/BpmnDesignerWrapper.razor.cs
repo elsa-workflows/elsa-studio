@@ -115,6 +115,17 @@ public partial class BpmnDesignerWrapper
     }
 
     /// <summary>
+    /// Synchronously stakes the latest element-stats overlay for <see cref="OnAfterRenderAsync"/> to flush once
+    /// <see cref="Designer"/> exists, without going through <see cref="UpdateElementStatsAsync"/>'s async call.
+    /// </summary>
+    /// <remarks>
+    /// This is what lets <see cref="BpmnDiagramDesigner"/> hand a retained overlay to this wrapper the moment it is
+    /// captured -- from inside a synchronous component-reference-capture callback, where starting and discarding an
+    /// async call would swallow any exception it threw.
+    /// </remarks>
+    internal void SetPendingElementStats(IReadOnlyDictionary<string, BpmnElementStats> elementStats) => _pendingElementStats = elementStats;
+
+    /// <summary>
     /// Applies a retained element-stats overlay that arrived before <see cref="Designer"/> existed, the moment it
     /// does -- the same "drain pending work on first render" shape <see cref="Designer"/> itself uses for its own
     /// initial <c>LoadBpmnAsync</c> call.

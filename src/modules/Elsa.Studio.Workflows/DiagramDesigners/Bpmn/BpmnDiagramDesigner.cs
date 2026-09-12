@@ -42,8 +42,9 @@ public class BpmnDiagramDesigner(
     private WorkflowDefinition? _workflowDefinition;
 
     /// <summary>
-    /// The latest element-keyed instance overlay handed to <see cref="UpdateElementStatsAsync"/>, retained so it
-    /// can be forwarded to <see cref="_designerWrapper"/> as soon as it mounts.
+    /// The latest element-keyed instance overlay handed to <see cref="UpdateElementStatsAsync"/>, held only until
+    /// <see cref="_designerWrapper"/> is captured -- from that point on, <see cref="BpmnDesignerWrapper"/> is the
+    /// one that retains and flushes it (see <see cref="BpmnDesignerWrapper.SetPendingElementStats"/>).
     /// </summary>
     /// <remarks>
     /// A refresh can arrive before the canvas exists -- most notably the one unconditional refresh a freshly
@@ -134,10 +135,12 @@ public class BpmnDiagramDesigner(
 
                 // Hand off the latest retained overlay the moment the wrapper exists, rather than only on the
                 // next explicit UpdateElementStatsAsync call, which -- for a finished instance -- may never come
-                // (see the remarks on _pendingElementStats). BpmnDesignerWrapper retains and re-applies it again
-                // in turn if its own canvas is not ready yet either.
+                // (see the remarks on _pendingElementStats). This is a synchronous field assignment, not an async
+                // call: this callback is itself synchronous, so starting and discarding a task here would swallow
+                // any exception it threw. BpmnDesignerWrapper's own awaited first-render flush is what actually
+                // delivers the value once its canvas is ready.
                 if (isFirstMount && _pendingElementStats != null)
-                    _ = _designerWrapper.UpdateElementStatsAsync(_pendingElementStats);
+                    _designerWrapper.SetPendingElementStats(_pendingElementStats);
             });
 
             builder.CloseComponent();
