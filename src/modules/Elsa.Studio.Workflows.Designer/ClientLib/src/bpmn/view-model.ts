@@ -185,6 +185,7 @@ export function buildBpmnViewModel(input: BpmnViewModelInput): BpmnViewModel {
                 // is only set by documents that say it there instead; honour both so neither
                 // representation of the same fact goes missing.
                 isDefault: flow.isDefault === true || source.defaultFlowId === flow.flowId,
+                stats: input.elementStats?.[flow.flowId] ?? null,
                 waypoints: edge?.waypoints ?? [],
                 geometrySource: edge != null && edge.waypoints.length > 0 ? 'document' : 'fallback',
                 labelGeometry: toBounds(edge?.labelBounds ?? null),

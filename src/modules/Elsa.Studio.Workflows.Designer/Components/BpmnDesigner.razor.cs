@@ -6,6 +6,7 @@ using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Services;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.AspNetCore.Components;
@@ -152,6 +153,14 @@ public partial class BpmnDesigner : IAsyncDisposable
     /// <param name="stats">The updated stats.</param>
     public async Task UpdateActivityStatsAsync(string activityId, ActivityStats stats) =>
         await ScheduleGraphActionAsync(() => _graphApi!.UpdateActivityStatsAsync(activityId, stats));
+
+    /// <summary>
+    /// Replaces the whole element-keyed instance overlay: a gateway, an intermediate event or a sequence flow, none
+    /// of which has an Elsa activity id, keyed instead by BPMN element id (or, for a flow, by flow id).
+    /// </summary>
+    /// <param name="elementStats">The stats to apply, keyed by BPMN element or flow id.</param>
+    public async Task UpdateElementStatsAsync(IReadOnlyDictionary<string, BpmnElementStats> elementStats) =>
+        await ScheduleGraphActionAsync(() => _graphApi!.UpdateElementStatsAsync(elementStats));
 
     /// <summary>
     /// Keeps the held activity tree in step with an edit made elsewhere (the properties panel): the

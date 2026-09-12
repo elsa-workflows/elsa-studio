@@ -1,12 +1,15 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -33,6 +36,8 @@ public partial class DiagramDesignerWrapper
     private List<BreadcrumbItem> _breadcrumbItems = new();
     private IDictionary<string, ActivityStats> _activityStats =
         new Dictionary<string, ActivityStats>();
+    private IReadOnlyDictionary<string, BpmnElementStats> _elementStats =
+        new Dictionary<string, BpmnElementStats>();
     private ActivityGraph _activityGraph = null!;
     private IDictionary<string, ActivityNode> _indexedActivityNodes =
         new Dictionary<string, ActivityNode>();
@@ -115,6 +120,9 @@ public partial class DiagramDesignerWrapper
 
     [Inject]
     private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+
+    [Inject]
+    private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
@@ -206,6 +214,69 @@ public partial class DiagramDesignerWrapper
     {
         await _diagramDesigner!.UpdateActivityStatsAsync(activityId, stats);
     }
+
+    /// <summary>
+    /// Refreshes the element-keyed BPMN instance overlay (gateways, events and sequence flows -- anything without
+    /// an Elsa activity id) from the workflow instance's journal, and pushes it to the current diagram designer.
+    /// </summary>
+    /// <remarks>
+    /// A no-op when there is no workflow instance to read from, or the current designer does not accept an
+    /// element-keyed overlay (<see cref="IBpmnElementStatsSink"/>) -- fetching and folding the journal for a
+    /// flowchart or state machine instance would be wasted work. Called on the same cadence
+    /// <see cref="Components.WorkflowInstanceViewer.Components.WorkflowInstanceDesigner"/> already refreshes
+    /// <see cref="ActivityStats"/> on, so the two overlays stay in step.
+    /// </remarks>
+    public virtual async Task RefreshElementStatsAsync()
+    {
+        if (WorkflowInstanceId == null || _diagramDesigner is not IBpmnElementStatsSink sink)
+            return;
+
+        _elementStats = await FetchElementStatsAsync(WorkflowInstanceId);
+        await sink.UpdateElementStatsAsync(_elementStats);
+    }
+
+    /// <summary>
+    /// Reads the BPMN diagnostics projected onto the journal of every <c>Elsa.BpmnProcess</c> scope anywhere in
+    /// the workflow (not merely the currently displayed container: a nested scope's diagnostics land on that
+    /// scope's own activity, and BPMN element and flow ids are unique across the whole document), and folds them
+    /// into an element-keyed stats map.
+    /// </summary>
+    private async Task<IReadOnlyDictionary<string, BpmnElementStats>> FetchElementStatsAsync(string workflowInstanceId)
+    {
+        var bpmnProcessActivityIds = GetBpmnProcessActivityIds();
+
+        if (bpmnProcessActivityIds.Count == 0)
+            return _elementStats;
+
+        var filter = new JournalFilter { ActivityIds = bpmnProcessActivityIds };
+        var entries = new List<WorkflowExecutionLogRecord>();
+        const int pageSize = 200;
+        const int maxPages = 50; // Bounded: at most 10,000 entries per refresh, regardless of instance size.
+        var skip = 0;
+
+        for (var page = 0; page < maxPages; page++)
+        {
+            var response = await WorkflowInstanceService.GetJournalAsync(workflowInstanceId, filter, skip, pageSize);
+            entries.AddRange(response.Items);
+
+            if (response.Items.Count < pageSize)
+                break;
+
+            skip += pageSize;
+        }
+
+        return BpmnElementStatsProjector.Project(entries);
+    }
+
+    /// <summary>
+    /// Every <c>Elsa.BpmnProcess</c> activity's own id, anywhere in the whole workflow -- the outermost scope and
+    /// every nested one -- since <c>BpmnScopeHost</c> only ever writes a diagnostic onto the scope's own activity.
+    /// </summary>
+    private ICollection<string> GetBpmnProcessActivityIds() =>
+        _activityGraph.ActivityNodeLookup.Values
+            .Where(node => node.Activity.GetTypeName() == BpmnProcessConstants.ActivityTypeName)
+            .Select(node => node.Activity.GetId())
+            .ToList();
 
     /// Reads the activity from the designer.
     public async Task<JsonObject> ReadActivityAsync()
@@ -457,6 +528,8 @@ public partial class DiagramDesignerWrapper
                 Uncompleted = x.UncompletedCount,
                 Metadata = x.Metadata
             });
+
+            await RefreshElementStatsAsync();
         }
     }
 

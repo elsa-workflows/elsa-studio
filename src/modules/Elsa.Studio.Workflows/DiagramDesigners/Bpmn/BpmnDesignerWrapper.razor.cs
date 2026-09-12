@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 
@@ -92,6 +93,15 @@ public partial class BpmnDesignerWrapper
     {
         if (Designer != null)
             await Designer.UpdateActivityStatsAsync(id, stats);
+    }
+
+    /// <summary>
+    /// Updates the element-keyed instance overlay (gateways, events and sequence flows).
+    /// </summary>
+    public async Task UpdateElementStatsAsync(IReadOnlyDictionary<string, BpmnElementStats> elementStats)
+    {
+        if (Designer != null)
+            await Designer.UpdateElementStatsAsync(elementStats);
     }
 
     /// <summary>

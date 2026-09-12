@@ -28,7 +28,7 @@ public class BpmnDiagramDesigner(
     IDialogService dialogService,
     IBpmnInterchangeService bpmnInterchangeService,
     IFiles files,
-    IUserMessageService userMessageService) : IDiagramDesignerToolboxProvider
+    IUserMessageService userMessageService) : IDiagramDesignerToolboxProvider, IBpmnElementStatsSink
 {
     /// <summary>
     /// The custom property key elsa-core stores the imported BPMN document's source XML under.
@@ -76,6 +76,12 @@ public class BpmnDiagramDesigner(
     public async Task SelectActivityAsync(string id)
     {
         await InvokeDesignerActionAsync(x => x.SelectActivityAsync(id));
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateElementStatsAsync(IReadOnlyDictionary<string, BpmnElementStats> elementStats)
+    {
+        await InvokeDesignerActionAsync(x => x.UpdateElementStatsAsync(elementStats));
     }
 
     /// <inheritdoc />

@@ -62,7 +62,7 @@ import {
     TEXT,
     UNBOUND,
 } from './palette';
-import { resolveBpmnStatsBadge, type BpmnStatsBadge } from './stats';
+import { isBpmnFlowTaken, resolveBpmnStatsBadge, type BpmnStatsBadge } from './stats';
 
 const CATCHING_EVENT_TYPES: readonly string[] = ['startEvent', 'intermediateCatchEvent', BOUNDARY_EVENT_ELEMENT_TYPE];
 const RINGED_EVENT_TYPES: readonly string[] = ['intermediateCatchEvent', 'intermediateThrowEvent', BOUNDARY_EVENT_ELEMENT_TYPE];
@@ -113,6 +113,8 @@ export interface BpmnFlowCellData {
     readonly targetElementId: string;
     readonly isDefault: boolean;
     readonly conditionOutcome: string | null;
+    /** Instance state keyed by this flow's own id. Always null for an association. */
+    readonly stats: BpmnElementStats | null;
 }
 
 export type BpmnCellData = BpmnElementCellData | BpmnContainerCellData | BpmnFlowCellData;
@@ -888,6 +890,7 @@ function edgeForFlow(flow: BpmnViewFlow, context: BuildContext): Edge.Metadata {
         targetElementId: flow.targetElementId,
         isDefault: flow.isDefault,
         conditionOutcome: flow.conditionOutcome,
+        stats: flow.stats,
     };
     const source = context.elementsByScopedId.get(scopedKey(flow.scopeId, flow.sourceElementId)) ?? null;
     const target = context.elementsByScopedId.get(scopedKey(flow.scopeId, flow.targetElementId)) ?? null;
@@ -900,7 +903,7 @@ function edgeForFlow(flow: BpmnViewFlow, context: BuildContext): Edge.Metadata {
         source: terminal(flow.sourceElementId, source, waypoints[0]),
         target: terminal(flow.targetElementId, target, waypoints[waypoints.length - 1]),
         vertices: waypoints.length > 2 ? waypoints.slice(1, -1).map(point => ({ x: point.x, y: point.y })) : [],
-        attrs: { line: flowLineAttrs(flow, source) },
+        attrs: { line: { ...flowLineAttrs(flow, source), ...flowTakenLineAttrs(flow.stats) } },
         labels: flow.name == null || flow.name.length === 0 ? [] : [edgeLabel(flow.name)],
         data,
     };
@@ -919,6 +922,7 @@ function edgeForAssociation(
         targetElementId,
         isDefault: false,
         conditionOutcome: null,
+        stats: null,
     };
 
     return {
@@ -973,6 +977,25 @@ function flowLineAttrs(flow: BpmnViewFlow, source: BpmnViewElement | null): Reco
     }
 
     return attrs;
+}
+
+/**
+ * The line-only style override for whether a sequence flow has been taken, reusing the "completed"
+ * badge tone -- the same colour a node turns once its own token count says it is done -- so a taken
+ * flow reads as part of the same visual language rather than inventing a second one.
+ *
+ * Always returns both properties, never a partial object: a flow that stops being taken (the map no
+ * longer mentions it) must fall back to the plain, untaken line exactly as loudly as one that starts
+ * being taken lights up, since {@link updateBpmnElementStats} merges this into the edge's existing
+ * `line` attrs rather than replacing them wholesale.
+ */
+export function flowTakenLineAttrs(stats: BpmnElementStats | null | undefined): Record<string, any> {
+    const taken = isBpmnFlowTaken(stats);
+
+    return {
+        stroke: taken ? BADGE_SURFACE_BY_TONE.completed : EDGE,
+        strokeWidth: taken ? 2.5 : 1.5,
+    };
 }
 
 function edgeLabel(text: string): Record<string, any> {
