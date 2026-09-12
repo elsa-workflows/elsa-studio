@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Framework Integration Example - Elsa Studio Shadow DOM</title>
+    <style>
+        /* Global styles that would normally conflict */
+        body {
+            font-family: 'Times New Roman', serif;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .framework-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 1200px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .demo-card {
+            border: 2px solid #e74c3c;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .demo-card h3 {
+            margin-top: 0;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        /* These aggressive styles should NOT affect Shadow DOM components */
+        .demo-card * {
+            font-family: 'Courier New', monospace !important;
+            color: red !important;
+            background: yellow !important;
+            border: 3px solid purple !important;
+            margin: 5px !important;
+            padding: 10px !important;
+            font-size: 18px !important;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #155724;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .integration-examples {
+            margin-top: 40px;
+        }
+        
+        .framework-section {
+            margin: 30px 0;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="framework-container">
+        <h1>🔒 Elsa Studio Shadow DOM Integration Examples</h1>
+        
+        <div class="warning">
+            <strong>Notice:</strong> This page demonstrates style isolation using Shadow DOM. 
+            The aggressive CSS styles on this page should NOT affect the Shadow DOM components below.
+        </div>
+        
+        <div class="demo-grid">
+            <div class="demo-card">
+                <h3>❌ Without Shadow DOM</h3>
+                <p>This component may inherit styles from the host page:</p>
+                <elsa-workflow-definition-editor definition-id="demo-without-shadow"></elsa-workflow-definition-editor>
+            </div>
+            
+            <div class="demo-card">
+                <h3>✅ With Shadow DOM</h3>
+                <p>This component is completely style-isolated:</p>
+                <elsa-workflow-definition-editor-shadow definition-id="demo-with-shadow"></elsa-workflow-definition-editor-shadow>
+            </div>
+        </div>
+        
+        <div class="success">
+            <strong>Expected Result:</strong> The Shadow DOM component on the right should maintain its original Elsa Studio styling, 
+            while the component on the left may be affected by the aggressive page styles.
+        </div>
+        
+        <div class="integration-examples">
+            <h2>Framework Integration Examples</h2>
+            
+            <div class="framework-section">
+                <h3>🅰️ Angular Integration</h3>
+                <div class="code-block">
+                    <code>
+// app.component.ts<br>
+import { Component, OnInit } from '@angular/core';<br><br>
+
+@Component({<br>
+&nbsp;&nbsp;selector: 'app-root',<br>
+&nbsp;&nbsp;template: `<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="workflow-container"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;elsa-workflow-definition-editor-shadow<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[definition-id]="workflowId"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(workflow-saved)="onWorkflowSaved($event)"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/elsa-workflow-definition-editor-shadow&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;`<br>
+})<br>
+export class AppComponent {<br>
+&nbsp;&nbsp;workflowId = 'my-workflow-123';<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;onWorkflowSaved(event: any) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console.log('Workflow saved:', event);<br>
+&nbsp;&nbsp;}<br>
+}
+                    </code>
+                </div>
+            </div>
+            
+            <div class="framework-section">
+                <h3>⚛️ React Integration</h3>
+                <div class="code-block">
+                    <code>
+// WorkflowEditor.jsx<br>
+import React, { useRef, useEffect } from 'react';<br><br>
+
+function WorkflowEditor({ workflowId, onSave }) {<br>
+&nbsp;&nbsp;const editorRef = useRef(null);<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;useEffect(() => {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const editor = editorRef.current;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if (editor) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;editor.addEventListener('workflow-saved', onSave);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return () => editor.removeEventListener('workflow-saved', onSave);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}, [onSave]);<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;return (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;div className="workflow-container"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;elsa-workflow-definition-editor-shadow<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ref={editorRef}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;definition-id={workflowId}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br>
+&nbsp;&nbsp;);<br>
+}<br><br>
+
+export default WorkflowEditor;
+                    </code>
+                </div>
+            </div>
+            
+            <div class="framework-section">
+                <h3>🖖 Vue.js Integration</h3>
+                <div class="code-block">
+                    <code>
+&lt;!-- WorkflowEditor.vue --&gt;<br>
+&lt;template&gt;<br>
+&nbsp;&nbsp;&lt;div class="workflow-container"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;elsa-workflow-definition-editor-shadow<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:definition-id="workflowId"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@workflow-saved="onWorkflowSaved"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ref="workflowEditor"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;/&gt;<br>
+&nbsp;&nbsp;&lt;/div&gt;<br>
+&lt;/template&gt;<br><br>
+
+&lt;script&gt;<br>
+export default {<br>
+&nbsp;&nbsp;name: 'WorkflowEditor',<br>
+&nbsp;&nbsp;props: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;workflowId: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: String,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;required: true<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;methods: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;onWorkflowSaved(event) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.$emit('workflow-saved', event.detail);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}<br>
+};<br>
+&lt;/script&gt;
+                    </code>
+                </div>
+            </div>
+            
+            <div class="framework-section">
+                <h3>🔄 Dynamic Creation (Vanilla JS)</h3>
+                <div class="code-block">
+                    <code>
+// Dynamic workflow editor creation<br>
+function createWorkflowEditor(containerId, workflowId) {<br>
+&nbsp;&nbsp;const container = document.getElementById(containerId);<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;// Create the custom element<br>
+&nbsp;&nbsp;const editor = document.createElement('elsa-workflow-definition-editor-shadow');<br>
+&nbsp;&nbsp;editor.setAttribute('definition-id', workflowId);<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;// Add event listeners<br>
+&nbsp;&nbsp;editor.addEventListener('workflow-saved', (event) => {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console.log('Workflow saved:', event.detail);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// Handle the saved workflow<br>
+&nbsp;&nbsp;});<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;// Add to container<br>
+&nbsp;&nbsp;container.appendChild(editor);<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;return editor;<br>
+}<br><br>
+
+// Usage<br>
+const editor = createWorkflowEditor('workflow-container', 'my-workflow-123');
+                    </code>
+                </div>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <strong>Configuration Note:</strong> To enable Shadow DOM support, set <code>"ShadowDOM": { "Enabled": true }</code> 
+            in your Elsa Studio configuration and ensure you're using the <code>-shadow</code> suffixed custom elements.
+        </div>
+    </div>
+    
+    <!-- Validation script for testing -->
+    <script src="validate-shadow-dom.js"></script>
+    
+    <!-- Elsa Studio scripts would go here -->
+    <script>
+        // Mock Blazor for demonstration
+        window.Blazor = {
+            rootComponents: {
+                add: function(element, componentName, parameters) {
+                    console.log('Mock Blazor component registered:', {
+                        element: element.constructor.name,
+                        componentName,
+                        parameters
+                    });
+                    
+                    // Add a mock component placeholder
+                    if (element instanceof ShadowRoot || element instanceof HTMLElement) {
+                        const placeholder = document.createElement('div');
+                        placeholder.innerHTML = `
+                            <div style="
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                color: white;
+                                padding: 20px;
+                                border-radius: 8px;
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                text-align: center;
+                                margin: 10px 0;
+                            ">
+                                <h4 style="margin: 0 0 10px 0;">🎯 Elsa Studio Component</h4>
+                                <p style="margin: 0; opacity: 0.9; font-size: 14px;">Component: ${componentName}</p>
+                                <p style="margin: 5px 0 0 0; opacity: 0.7; font-size: 12px;">
+                                    ${element instanceof ShadowRoot ? '🔒 Protected by Shadow DOM' : '⚠️ No Shadow DOM protection'}
+                                </p>
+                            </div>
+                        `;
+                        element.appendChild(placeholder);
+                    }
+                }
+            }
+        };
+        
+        console.log('Mock environment initialized for demonstration purposes.');
+    </script>
+</body>
+</html>
