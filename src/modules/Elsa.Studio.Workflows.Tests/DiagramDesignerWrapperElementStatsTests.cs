@@ -86,7 +86,7 @@ public class DiagramDesignerWrapperElementStatsTests
         Assert.True(sink.ReceivedStats!["join"].Blocked);
     }
 
-    [Fact(DisplayName = "Pages through the journal until a short page ends it, bounded by a hard page cap")]
+    [Fact(DisplayName = "Pages through the journal until a short page ends it, within a single refresh's page cap")]
     public async Task RefreshElementStatsAsync_PagesThroughTheJournal()
     {
         var fullPage = Enumerable.Range(0, 200).Select(i => DiagnosticEntry(BpmnDiagnosticEventNames.TokenEmitted, flowId: $"flow-{i}")).ToArray();
@@ -104,6 +104,45 @@ public class DiagramDesignerWrapperElementStatsTests
         Assert.Equal(200, journal.Calls[1].Skip);
         Assert.True(sink.ReceivedStats!["join"].Blocked);
         Assert.Equal(201, sink.ReceivedStats!.Count);
+    }
+
+    [Fact(DisplayName = "A backlog bigger than one refresh's page cap is folded a cap's worth at a time, continued on the next refresh")]
+    public async Task RefreshElementStatsAsync_BacklogLargerThanPageCap_IsFoldedAcrossRefreshes()
+    {
+        // Three full pages of 200 records each, plus a short page that ends the journal -- 650 total -- against a
+        // page cap of 2, so no single refresh fetches more than 2 pages (400 records) at once.
+        var fullPages = Enumerable.Range(0, 3)
+            .Select(p => new PagedListResponse<WorkflowExecutionLogRecord>
+            {
+                Items = Enumerable.Range(0, 200)
+                    .Select(i => DiagnosticEntry(BpmnDiagnosticEventNames.TokenEmitted, flowId: $"flow-{p}-{i}"))
+                    .ToArray()
+            });
+        var shortPage = new PagedListResponse<WorkflowExecutionLogRecord>
+        {
+            Items = Enumerable.Range(0, 50).Select(i => DiagnosticEntry(BpmnDiagnosticEventNames.TokenEmitted, flowId: $"flow-tail-{i}")).ToArray()
+        };
+        var journal = new RecordingWorkflowInstanceService([.. fullPages, shortPage]);
+        var sink = new RecordingSinkDesigner();
+        var wrapper = CreateWrapper(journal, sink, workflowInstanceId: "instance-1");
+
+        typeof(DiagramDesignerWrapper)
+            .GetField("_elementStatsMaxPagesPerRefresh", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(wrapper, 2);
+
+        await wrapper.RefreshElementStatsAsync();
+
+        Assert.Equal(2, journal.Calls.Count);
+        Assert.Equal(0, journal.Calls[0].Skip);
+        Assert.Equal(200, journal.Calls[1].Skip);
+        Assert.Equal(400, sink.ReceivedStats!.Count);
+
+        await wrapper.RefreshElementStatsAsync();
+
+        Assert.Equal(4, journal.Calls.Count);
+        Assert.Equal(400, journal.Calls[2].Skip);
+        Assert.Equal(600, journal.Calls[3].Skip);
+        Assert.Equal(650, sink.ReceivedStats!.Count);
     }
 
     [Fact(DisplayName = "A second refresh after new records arrive requests only the new records, and folds them alongside the old ones")]

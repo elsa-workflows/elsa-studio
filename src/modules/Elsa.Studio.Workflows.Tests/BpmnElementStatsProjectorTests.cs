@@ -180,6 +180,34 @@ public class BpmnElementStatsProjectorTests
         Assert.Equal(1, stats["task"].Started);
     }
 
+    [Fact(DisplayName = "Folding the same element's records across two refreshes matches a single pass over all of them")]
+    public void Fold_SameElementAcrossTwoRefreshes_MatchesASinglePassOverAllRecords()
+    {
+        // The join's Waiting record (refresh 1's whole take) lands first and marks it blocked; its later Joined
+        // record (refresh 2's whole take) must still clear that blocked flag rather than the map getting stuck on
+        // whatever refresh 1 last saw.
+        var waiting = DiagnosticEntry(BpmnDiagnosticEventNames.Waiting, elementId: "join");
+        var joined = DiagnosticEntry(BpmnDiagnosticEventNames.Joined, elementId: "join");
+
+        var stats = new Dictionary<string, BpmnElementStats>();
+        BpmnElementStatsProjector.Fold([waiting], stats);
+        BpmnElementStatsProjector.Fold([joined], stats);
+
+        var expected = BpmnElementStatsProjector.Project([waiting, joined]);
+
+        Assert.Equal(expected.Keys.OrderBy(k => k), stats.Keys.OrderBy(k => k));
+        var expectedJoin = expected["join"];
+        var actualJoin = stats["join"];
+        Assert.Equal(expectedJoin.Started, actualJoin.Started);
+        Assert.Equal(expectedJoin.Completed, actualJoin.Completed);
+        Assert.Equal(expectedJoin.Active, actualJoin.Active);
+        Assert.Equal(expectedJoin.Blocked, actualJoin.Blocked);
+        Assert.Equal(expectedJoin.Faulted, actualJoin.Faulted);
+        Assert.Equal(expectedJoin.Canceled, actualJoin.Canceled);
+        Assert.False(actualJoin.Blocked);
+        Assert.Equal(1, actualJoin.Completed);
+    }
+
     private static bool IsTaken(BpmnElementStats stats) => (stats.Started ?? 0) > 0 || (stats.Completed ?? 0) > 0;
 
     private static WorkflowExecutionLogRecord DiagnosticEntry(
