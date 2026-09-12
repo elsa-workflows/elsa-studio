@@ -7,9 +7,9 @@
  * Both are asserted here in both directions.
  */
 import { describe, expect, it } from 'vitest';
-import { statsBadgeAttrs } from '../cells';
-import { BADGE_SURFACE_BY_TONE } from '../palette';
-import { resolveBpmnStatsBadge } from '../stats';
+import { flowTakenLineAttrs, statsBadgeAttrs } from '../cells';
+import { BADGE_SURFACE_BY_TONE, EDGE } from '../palette';
+import { isBpmnFlowTaken, resolveBpmnStatsBadge } from '../stats';
 
 describe('resolveBpmnStatsBadge', () => {
     it('says nothing about an element the overlay says nothing about', () => {
@@ -112,5 +112,38 @@ describe('statsBadgeAttrs', () => {
 
         expect(attrs.statsBadgeTitle.text).toBe('Blocked (1)');
         expect(attrs.statsBadgeGroup['aria-label']).toBe('Blocked (1)');
+    });
+});
+
+describe('isBpmnFlowTaken', () => {
+    it('says no about a flow the overlay says nothing about', () => {
+        expect(isBpmnFlowTaken(null)).toBe(false);
+        expect(isBpmnFlowTaken(undefined)).toBe(false);
+        expect(isBpmnFlowTaken({})).toBe(false);
+    });
+
+    it('says yes once the flow has been taken, by either counter the projector might set', () => {
+        expect(isBpmnFlowTaken({ completed: 1 })).toBe(true);
+        expect(isBpmnFlowTaken({ started: 1 })).toBe(true);
+    });
+});
+
+describe('flowTakenLineAttrs', () => {
+    it('paints an untaken flow in the plain edge colour, at the plain width', () => {
+        expect(flowTakenLineAttrs(null)).toEqual({ stroke: EDGE, strokeWidth: 1.5 });
+        expect(flowTakenLineAttrs({})).toEqual({ stroke: EDGE, strokeWidth: 1.5 });
+    });
+
+    it('paints a taken flow in the same tone a completed node badge uses, thicker', () => {
+        const attrs = flowTakenLineAttrs({ completed: 1 });
+
+        expect(attrs.stroke).toBe(BADGE_SURFACE_BY_TONE.completed);
+        expect(attrs.strokeWidth).toBeGreaterThan(1.5);
+    });
+
+    it('returns both properties whichever way it decides, so a flow that stops being taken falls back instead of keeping its old colour', () => {
+        // updateBpmnElementStats merges this into the edge's existing `line` attrs rather than
+        // replacing them; a partial object here would leave a cleared flow looking taken forever.
+        expect(Object.keys(flowTakenLineAttrs(null)).sort()).toEqual(Object.keys(flowTakenLineAttrs({ completed: 1 })).sort());
     });
 });

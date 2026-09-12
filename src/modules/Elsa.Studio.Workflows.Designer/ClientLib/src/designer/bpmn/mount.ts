@@ -13,8 +13,10 @@ import type { DotNetComponentRef } from '../api/graph-bindings';
 import { whenCanvasHasHeight } from '../internal/canvas-ready';
 import {
     buildBpmnX6Cells,
+    flowTakenLineAttrs,
     statsBadgeAttrs,
     type BpmnElementCellData,
+    type BpmnFlowCellData,
     type BpmnX6Cells,
 } from './cells';
 import { BPMN_DESIGNER_CLASS } from './constants';
@@ -179,6 +181,17 @@ export function updateBpmnElementStats(
         node.setData({ ...data, stats }, { overwrite: true });
         node.attr(statsBadgeAttrs(resolveBpmnStatsBadge(stats, data.activityStats)));
     }
+
+    for (const edge of binding.graph.getEdges()) {
+        const data = flowData(edge.getData());
+
+        if (data == null) continue;
+
+        const stats = elementStats?.[data.id] ?? null;
+
+        edge.setData({ ...data, stats }, { overwrite: true });
+        edge.attr({ line: flowTakenLineAttrs(stats) });
+    }
 }
 
 /** Updates the activity-keyed overlay for one Elsa activity, on every element bound to it. */
@@ -225,6 +238,11 @@ export function selectBpmnElement(binding: BpmnGraphBinding, elementId: string, 
 
 function elementData(data: unknown): BpmnElementCellData | null {
     return (data as BpmnElementCellData | null)?.cellKind === 'element' ? data as BpmnElementCellData : null;
+}
+
+/** Only a sequence flow can be "taken"; an association's id is a synthetic pair, never a document id. */
+function flowData(data: unknown): BpmnFlowCellData | null {
+    return (data as BpmnFlowCellData | null)?.cellKind === 'flow' ? data as BpmnFlowCellData : null;
 }
 
 function toSelection(data: BpmnElementCellData): BpmnElementSelection {

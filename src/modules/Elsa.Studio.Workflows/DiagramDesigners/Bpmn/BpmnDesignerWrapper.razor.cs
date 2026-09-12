@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Elsa.Studio.Workflows.Designer.Components;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 
@@ -45,6 +46,14 @@ public partial class BpmnDesignerWrapper
 
     private BpmnDesigner? Designer { get; set; }
     private bool UseReactFlow => DesignerOptions.Value.UseReactFlow;
+
+    /// <summary>
+    /// The latest element-keyed instance overlay handed to <see cref="UpdateElementStatsAsync"/>, retained so it
+    /// can be applied on <see cref="Designer"/> as soon as it exists (see <see cref="OnAfterRenderAsync"/>). Mirrors
+    /// <c>BpmnDiagramDesigner._pendingElementStats</c> one level up, since <see cref="Designer"/> can still be null
+    /// when a call arrives just after this wrapper itself has mounted.
+    /// </summary>
+    private IReadOnlyDictionary<string, BpmnElementStats>? _pendingElementStats;
 
     /// <summary>
     /// Whether the scope being displayed has nothing to draw: no <c>process</c> payload at all, or one that declares
@@ -92,6 +101,39 @@ public partial class BpmnDesignerWrapper
     {
         if (Designer != null)
             await Designer.UpdateActivityStatsAsync(id, stats);
+    }
+
+    /// <summary>
+    /// Updates the element-keyed instance overlay (gateways, events and sequence flows).
+    /// </summary>
+    public async Task UpdateElementStatsAsync(IReadOnlyDictionary<string, BpmnElementStats> elementStats)
+    {
+        _pendingElementStats = elementStats;
+
+        if (Designer != null)
+            await Designer.UpdateElementStatsAsync(elementStats);
+    }
+
+    /// <summary>
+    /// Synchronously stakes the latest element-stats overlay for <see cref="OnAfterRenderAsync"/> to flush once
+    /// <see cref="Designer"/> exists, without going through <see cref="UpdateElementStatsAsync"/>'s async call.
+    /// </summary>
+    /// <remarks>
+    /// This is what lets <see cref="BpmnDiagramDesigner"/> hand a retained overlay to this wrapper the moment it is
+    /// captured -- from inside a synchronous component-reference-capture callback, where starting and discarding an
+    /// async call would swallow any exception it threw.
+    /// </remarks>
+    internal void SetPendingElementStats(IReadOnlyDictionary<string, BpmnElementStats> elementStats) => _pendingElementStats = elementStats;
+
+    /// <summary>
+    /// Applies a retained element-stats overlay that arrived before <see cref="Designer"/> existed, the moment it
+    /// does -- the same "drain pending work on first render" shape <see cref="Designer"/> itself uses for its own
+    /// initial <c>LoadBpmnAsync</c> call.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Designer != null && _pendingElementStats != null)
+            await Designer.UpdateElementStatsAsync(_pendingElementStats);
     }
 
     /// <summary>

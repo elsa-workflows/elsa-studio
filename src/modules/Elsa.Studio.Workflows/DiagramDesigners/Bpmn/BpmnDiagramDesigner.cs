@@ -28,7 +28,7 @@ public class BpmnDiagramDesigner(
     IDialogService dialogService,
     IBpmnInterchangeService bpmnInterchangeService,
     IFiles files,
-    IUserMessageService userMessageService) : IDiagramDesignerToolboxProvider
+    IUserMessageService userMessageService) : IDiagramDesignerToolboxProvider, IBpmnElementStatsSink
 {
     /// <summary>
     /// The custom property key elsa-core stores the imported BPMN document's source XML under.
@@ -40,6 +40,21 @@ public class BpmnDiagramDesigner(
     private JsonObject _rootActivity = [];
     private string? _sourceXml;
     private WorkflowDefinition? _workflowDefinition;
+
+    /// <summary>
+    /// The latest element-keyed instance overlay handed to <see cref="UpdateElementStatsAsync"/>, held only until
+    /// <see cref="_designerWrapper"/> is captured -- from that point on, <see cref="BpmnDesignerWrapper"/> is the
+    /// one that retains and flushes it (see <see cref="BpmnDesignerWrapper.SetPendingElementStats"/>).
+    /// </summary>
+    /// <remarks>
+    /// A refresh can arrive before the canvas exists -- most notably the one unconditional refresh a freshly
+    /// opened instance gets on load (see <c>DiagramDesignerWrapper.LoadActivityCoreAsync</c>), which runs during
+    /// <c>OnInitializedAsync</c>, well before this designer's own <see cref="BpmnDesignerWrapper"/> has been
+    /// created. Dropping that refresh instead of retaining it would mean a finished instance -- one that never
+    /// gets a later observer-driven refresh to fall back on -- never gets its overlay at all. Only the latest
+    /// value is kept, matching the semantics <see cref="UpdateElementStatsAsync"/> already documents.
+    /// </remarks>
+    private IReadOnlyDictionary<string, BpmnElementStats>? _pendingElementStats;
 
     /// <inheritdoc />
     public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
@@ -79,6 +94,13 @@ public class BpmnDiagramDesigner(
     }
 
     /// <inheritdoc />
+    public async Task UpdateElementStatsAsync(IReadOnlyDictionary<string, BpmnElementStats> elementStats)
+    {
+        _pendingElementStats = elementStats;
+        await InvokeDesignerActionAsync(x => x.UpdateElementStatsAsync(elementStats));
+    }
+
+    /// <inheritdoc />
     /// <remarks>
     /// Returns the whole root activity JSON exactly as it was given and since edited by
     /// <see cref="UpdateActivityAsync"/>, never a projection rebuilt from the read-only view model:
@@ -106,7 +128,20 @@ public class BpmnDiagramDesigner(
             builder.AddAttribute(sequence++, nameof(BpmnDesignerWrapper.ActivityStats), context.ActivityStats);
             builder.AddAttribute(sequence++, nameof(BpmnDesignerWrapper.ActivitySelected), context.ActivitySelectedCallback);
             builder.AddAttribute(sequence++, nameof(BpmnDesignerWrapper.ActivityDoubleClick), context.ActivityDoubleClickCallback);
-            builder.AddComponentReferenceCapture(sequence++, @ref => _designerWrapper = (BpmnDesignerWrapper)@ref);
+            builder.AddComponentReferenceCapture(sequence++, @ref =>
+            {
+                var isFirstMount = _designerWrapper == null;
+                _designerWrapper = (BpmnDesignerWrapper)@ref;
+
+                // Hand off the latest retained overlay the moment the wrapper exists, rather than only on the
+                // next explicit UpdateElementStatsAsync call, which -- for a finished instance -- may never come
+                // (see the remarks on _pendingElementStats). This is a synchronous field assignment, not an async
+                // call: this callback is itself synchronous, so starting and discarding a task here would swallow
+                // any exception it threw. BpmnDesignerWrapper's own awaited first-render flush is what actually
+                // delivers the value once its canvas is ready.
+                if (isFirstMount && _pendingElementStats != null)
+                    _designerWrapper.SetPendingElementStats(_pendingElementStats);
+            });
 
             builder.CloseComponent();
         };

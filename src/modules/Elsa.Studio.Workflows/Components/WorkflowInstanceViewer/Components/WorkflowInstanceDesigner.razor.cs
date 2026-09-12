@@ -290,6 +290,11 @@ public partial class WorkflowInstanceDesigner : IAsyncDisposable
             await _designer.UpdateActivityStatsAsync(activityId, Map(stats));
         }
 
+        // Refreshed on the same cadence as the activity-keyed stats above: a gateway, an intermediate event or a
+        // sequence flow has no activity id of its own, so it never appears in message.Stats, but the journal update
+        // that produced this message is exactly what its own BPMN diagnostics ride along on.
+        await _designer.RefreshElementStatsAsync();
+
         await InvokeAsync(StateHasChanged);
 
         // If we received an update for the selected activity, refresh the activity details.

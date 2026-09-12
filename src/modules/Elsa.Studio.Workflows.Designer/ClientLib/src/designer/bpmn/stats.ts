@@ -76,3 +76,14 @@ function firstNumber(...values: readonly (number | null | undefined)[]): number 
 
     return null;
 }
+
+/**
+ * Whether a sequence flow's own stats entry says it has been taken at least once.
+ *
+ * A flow has no state beyond that: `BpmnElementStatsProjector` (the C# side, the one place this
+ * mapping lives) marks a flow's entry the moment a token travels along it, by its own flow id, so
+ * either counter being positive is enough.
+ */
+export function isBpmnFlowTaken(stats: BpmnElementStats | null | undefined): boolean {
+    return (stats?.completed ?? 0) > 0 || (stats?.started ?? 0) > 0;
+}

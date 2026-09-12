@@ -237,6 +237,8 @@ export interface BpmnViewFlow {
     readonly conditionOutcome: string | null;
     /** Whether this is the source gateway's default flow. */
     readonly isDefault: boolean;
+    /** Instance state keyed by this flow's own id -- whether, and how often, it has been taken. */
+    readonly stats: BpmnElementStats | null;
     /** Empty when the document carries no DI edge for this flow; see {@link geometrySource}. */
     readonly waypoints: readonly BpmnPoint[];
     readonly geometrySource: BpmnGeometrySource;

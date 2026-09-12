@@ -1,12 +1,15 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -33,6 +36,21 @@ public partial class DiagramDesignerWrapper
     private List<BreadcrumbItem> _breadcrumbItems = new();
     private IDictionary<string, ActivityStats> _activityStats =
         new Dictionary<string, ActivityStats>();
+    private readonly Dictionary<string, BpmnElementStats> _elementStats = new();
+    private string? _elementStatsInstanceId;
+    private HashSet<string> _elementStatsBpmnProcessActivityIds = new();
+    private int _elementStatsHighWaterMark;
+
+    /// <summary>
+    /// The most journal pages a single <see cref="RefreshElementStatsAsync"/> tick will fetch, at 200 records a
+    /// page (see <c>pageSize</c> in <see cref="FetchElementStatsAsync"/>): 50 pages bounds one tick to 10,000
+    /// records. A backlog larger than that -- a first load of a long-running instance, or a burst built up while
+    /// the tab was backgrounded -- is not truncated, only spread across refreshes: the high-water mark advances by
+    /// whatever was actually fetched, so the next tick picks up exactly where this one left off. Settable (rather
+    /// than a plain <c>const</c>) only so a test can lower it to exercise the cap without paging 10,000 records.
+    /// </summary>
+    internal int ElementStatsMaxPagesPerRefresh { get; set; } = 50;
+
     private ActivityGraph _activityGraph = null!;
     private IDictionary<string, ActivityNode> _indexedActivityNodes =
         new Dictionary<string, ActivityNode>();
@@ -115,6 +133,9 @@ public partial class DiagramDesignerWrapper
 
     [Inject]
     private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+
+    [Inject]
+    private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
@@ -206,6 +227,92 @@ public partial class DiagramDesignerWrapper
     {
         await _diagramDesigner!.UpdateActivityStatsAsync(activityId, stats);
     }
+
+    /// <summary>
+    /// Refreshes the element-keyed BPMN instance overlay (gateways, events and sequence flows -- anything without
+    /// an Elsa activity id) from the workflow instance's journal, and pushes it to the current diagram designer.
+    /// </summary>
+    /// <remarks>
+    /// A no-op when there is no workflow instance to read from, or the current designer does not accept an
+    /// element-keyed overlay (<see cref="IBpmnElementStatsSink"/>) -- fetching and folding the journal for a
+    /// flowchart or state machine instance would be wasted work. Called on the same cadence
+    /// <see cref="Components.WorkflowInstanceViewer.Components.WorkflowInstanceDesigner"/> already refreshes
+    /// <see cref="ActivityStats"/> on, so the two overlays stay in step.
+    /// </remarks>
+    internal virtual async Task RefreshElementStatsAsync()
+    {
+        if (WorkflowInstanceId == null || _diagramDesigner is not IBpmnElementStatsSink sink)
+            return;
+
+        var elementStats = await FetchElementStatsAsync(WorkflowInstanceId);
+        await sink.UpdateElementStatsAsync(elementStats);
+    }
+
+    /// <summary>
+    /// Reads the BPMN diagnostics projected onto the journal of every <c>Elsa.BpmnProcess</c> scope anywhere in
+    /// the workflow (not merely the currently displayed container: a nested scope's diagnostics land on that
+    /// scope's own activity, and BPMN element and flow ids are unique across the whole document), and folds them
+    /// into an element-keyed stats map.
+    /// </summary>
+    /// <remarks>
+    /// Incremental: <see cref="_elementStatsHighWaterMark"/> is the number of matching journal records already
+    /// folded into <see cref="_elementStats"/>, so a tick only ever fetches the records that arrived since the
+    /// previous one, rather than re-fetching and re-folding the whole journal from the start every time. This is
+    /// only safe because the journal is append-only in the order the API returns it (see the <c>Sequence</c> on
+    /// <see cref="WorkflowExecutionLogRecord"/>): the high-water mark is a plain count of already-folded records,
+    /// not an id or timestamp, because <see cref="JournalFilter"/> has no way to filter by either. The map and
+    /// mark are reset whenever the displayed instance or the set of <c>Elsa.BpmnProcess</c> scope activity ids
+    /// changes, since a high-water mark from a different instance or a different filter has nothing to do with
+    /// the one about to be fetched. A single tick fetches at most <see cref="ElementStatsMaxPagesPerRefresh"/>
+    /// pages, so a backlog larger than that -- a first load, or a burst built up while the tab was backgrounded --
+    /// is folded a page cap's worth at a time across successive refreshes rather than in one unbounded loop.
+    /// </remarks>
+    private async Task<IReadOnlyDictionary<string, BpmnElementStats>> FetchElementStatsAsync(string workflowInstanceId)
+    {
+        var bpmnProcessActivityIds = GetBpmnProcessActivityIds();
+
+        if (bpmnProcessActivityIds.Count == 0)
+            return _elementStats;
+
+        if (workflowInstanceId != _elementStatsInstanceId
+            || !_elementStatsBpmnProcessActivityIds.SetEquals(bpmnProcessActivityIds))
+        {
+            _elementStats.Clear();
+            _elementStatsHighWaterMark = 0;
+            _elementStatsInstanceId = workflowInstanceId;
+            _elementStatsBpmnProcessActivityIds = new HashSet<string>(bpmnProcessActivityIds);
+        }
+
+        var filter = new JournalFilter { ActivityIds = bpmnProcessActivityIds };
+        var entries = new List<WorkflowExecutionLogRecord>();
+        const int pageSize = 200;
+        var skip = _elementStatsHighWaterMark;
+
+        for (var page = 0; page < ElementStatsMaxPagesPerRefresh; page++)
+        {
+            var response = await WorkflowInstanceService.GetJournalAsync(workflowInstanceId, filter, skip, pageSize);
+            entries.AddRange(response.Items);
+            skip += response.Items.Count;
+
+            if (response.Items.Count < pageSize)
+                break;
+        }
+
+        _elementStatsHighWaterMark = skip;
+        BpmnElementStatsProjector.Fold(entries, _elementStats);
+
+        return _elementStats;
+    }
+
+    /// <summary>
+    /// Every <c>Elsa.BpmnProcess</c> activity's own id, anywhere in the whole workflow -- the outermost scope and
+    /// every nested one -- since <c>BpmnScopeHost</c> only ever writes a diagnostic onto the scope's own activity.
+    /// </summary>
+    private ICollection<string> GetBpmnProcessActivityIds() =>
+        _activityGraph.ActivityNodeLookup.Values
+            .Where(node => node.Activity.GetTypeName() == BpmnProcessConstants.ActivityTypeName)
+            .Select(node => node.Activity.GetId())
+            .ToList();
 
     /// Reads the activity from the designer.
     public async Task<JsonObject> ReadActivityAsync()
@@ -457,6 +564,8 @@ public partial class DiagramDesignerWrapper
                 Uncompleted = x.UncompletedCount,
                 Metadata = x.Metadata
             });
+
+            await RefreshElementStatsAsync();
         }
     }
 

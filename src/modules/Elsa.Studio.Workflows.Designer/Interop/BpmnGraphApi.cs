@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Microsoft.JSInterop;
 
 namespace Elsa.Studio.Workflows.Designer.Interop;
@@ -48,6 +49,14 @@ public class BpmnGraphApi
     /// <param name="stats">The stats to apply, or null to clear them.</param>
     public async Task UpdateActivityStatsAsync(string activityId, ActivityStats? stats) =>
         await InvokeAsync(module => module.InvokeVoidAsync("updateBpmnActivityStats", _graphId, activityId, stats));
+
+    /// <summary>
+    /// Replaces the whole element-keyed instance overlay: instance state for a gateway, an intermediate event or a
+    /// sequence flow, keyed by BPMN element id (or, for a flow, by flow id).
+    /// </summary>
+    /// <param name="elementStats">The stats to apply, or null (or empty) to clear the overlay entirely.</param>
+    public async Task UpdateElementStatsAsync(IReadOnlyDictionary<string, BpmnElementStats>? elementStats) =>
+        await InvokeAsync(module => module.InvokeVoidAsync("updateBpmnElementStats", _graphId, elementStats));
 
     /// <summary>
     /// Selects the specified element, optionally centering the viewport on it.
