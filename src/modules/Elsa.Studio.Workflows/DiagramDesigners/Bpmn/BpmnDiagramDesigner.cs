@@ -30,11 +30,6 @@ public class BpmnDiagramDesigner(
     IFiles files,
     IUserMessageService userMessageService) : IDiagramDesignerToolboxProvider, IBpmnElementStatsSink
 {
-    /// <summary>
-    /// The custom property key elsa-core stores the imported BPMN document's source XML under.
-    /// </summary>
-    private const string SourceXmlCustomPropertyKey = "Bpmn:SourceXml";
-
     private readonly Guid _id = Guid.NewGuid();
     private BpmnDesignerWrapper? _designerWrapper;
     private JsonObject _rootActivity = [];
@@ -222,7 +217,7 @@ public class BpmnDiagramDesigner(
     /// </summary>
     private static string? GetSourceXml(WorkflowDefinition? workflowDefinition)
     {
-        if (workflowDefinition == null || !workflowDefinition.CustomProperties.TryGetValue(SourceXmlCustomPropertyKey, out var value) || value == null!)
+        if (workflowDefinition == null || !workflowDefinition.CustomProperties.TryGetValue(BpmnProcessConstants.SourceXmlCustomPropertyKey, out var value) || value == null!)
             return null;
 
         return value switch
