@@ -21,7 +21,7 @@ namespace Elsa.Studio.Workflows.Tests;
 /// port path alone, given a descriptor shaped like the one the server now sends, surfaces both ports and
 /// synthesizes nothing in addition.
 /// </remarks>
-public class BpmnProcessPortProviderTests
+public class BpmnProcessPortsTests
 {
     private readonly DefaultActivityPortService _portService = new([new DefaultActivityPortProvider()]);
 
