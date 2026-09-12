@@ -157,5 +157,4 @@ public class BpmnActivityBindingFormatTests
         Assert.Same(Task, BpmnDefinitionsDocument.FindElement(_document, BpmnDocumentFixtures.TaskId));
         Assert.Null(BpmnDefinitionsDocument.FindElement(_document, "Nope"));
     }
-
 }
