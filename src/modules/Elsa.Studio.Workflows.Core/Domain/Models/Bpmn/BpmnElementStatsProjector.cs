@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 
@@ -39,11 +40,8 @@ public static class BpmnElementStatsProjector
     /// </summary>
     public static void Fold(IEnumerable<WorkflowExecutionLogRecord> journalEntries, Dictionary<string, BpmnElementStats> stats)
     {
-        foreach (var entry in journalEntries)
+        foreach (var entry in journalEntries.Where(e => e.Source == BpmnDiagnosticEventNames.Source))
         {
-            if (entry.Source != BpmnDiagnosticEventNames.Source)
-                continue;
-
             if (!TryReadPayload(entry.Payload, out var payload))
                 continue;
 

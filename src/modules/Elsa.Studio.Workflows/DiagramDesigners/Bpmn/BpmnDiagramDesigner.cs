@@ -41,6 +41,20 @@ public class BpmnDiagramDesigner(
     private string? _sourceXml;
     private WorkflowDefinition? _workflowDefinition;
 
+    /// <summary>
+    /// The latest element-keyed instance overlay handed to <see cref="UpdateElementStatsAsync"/>, retained so it
+    /// can be forwarded to <see cref="_designerWrapper"/> as soon as it mounts.
+    /// </summary>
+    /// <remarks>
+    /// A refresh can arrive before the canvas exists -- most notably the one unconditional refresh a freshly
+    /// opened instance gets on load (see <c>DiagramDesignerWrapper.LoadActivityCoreAsync</c>), which runs during
+    /// <c>OnInitializedAsync</c>, well before this designer's own <see cref="BpmnDesignerWrapper"/> has been
+    /// created. Dropping that refresh instead of retaining it would mean a finished instance -- one that never
+    /// gets a later observer-driven refresh to fall back on -- never gets its overlay at all. Only the latest
+    /// value is kept, matching the semantics <see cref="UpdateElementStatsAsync"/> already documents.
+    /// </remarks>
+    private IReadOnlyDictionary<string, BpmnElementStats>? _pendingElementStats;
+
     /// <inheritdoc />
     public async Task LoadRootActivityAsync(JsonObject activity, IDictionary<string, ActivityStats>? activityStatsMap)
     {
@@ -81,6 +95,7 @@ public class BpmnDiagramDesigner(
     /// <inheritdoc />
     public async Task UpdateElementStatsAsync(IReadOnlyDictionary<string, BpmnElementStats> elementStats)
     {
+        _pendingElementStats = elementStats;
         await InvokeDesignerActionAsync(x => x.UpdateElementStatsAsync(elementStats));
     }
 
@@ -112,7 +127,18 @@ public class BpmnDiagramDesigner(
             builder.AddAttribute(sequence++, nameof(BpmnDesignerWrapper.ActivityStats), context.ActivityStats);
             builder.AddAttribute(sequence++, nameof(BpmnDesignerWrapper.ActivitySelected), context.ActivitySelectedCallback);
             builder.AddAttribute(sequence++, nameof(BpmnDesignerWrapper.ActivityDoubleClick), context.ActivityDoubleClickCallback);
-            builder.AddComponentReferenceCapture(sequence++, @ref => _designerWrapper = (BpmnDesignerWrapper)@ref);
+            builder.AddComponentReferenceCapture(sequence++, @ref =>
+            {
+                var isFirstMount = _designerWrapper == null;
+                _designerWrapper = (BpmnDesignerWrapper)@ref;
+
+                // Hand off the latest retained overlay the moment the wrapper exists, rather than only on the
+                // next explicit UpdateElementStatsAsync call, which -- for a finished instance -- may never come
+                // (see the remarks on _pendingElementStats). BpmnDesignerWrapper retains and re-applies it again
+                // in turn if its own canvas is not ready yet either.
+                if (isFirstMount && _pendingElementStats != null)
+                    _ = _designerWrapper.UpdateElementStatsAsync(_pendingElementStats);
+            });
 
             builder.CloseComponent();
         };

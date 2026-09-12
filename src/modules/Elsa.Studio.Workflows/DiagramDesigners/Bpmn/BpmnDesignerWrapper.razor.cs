@@ -48,6 +48,14 @@ public partial class BpmnDesignerWrapper
     private bool UseReactFlow => DesignerOptions.Value.UseReactFlow;
 
     /// <summary>
+    /// The latest element-keyed instance overlay handed to <see cref="UpdateElementStatsAsync"/>, retained so it
+    /// can be applied on <see cref="Designer"/> as soon as it exists (see <see cref="OnAfterRenderAsync"/>). Mirrors
+    /// <c>BpmnDiagramDesigner._pendingElementStats</c> one level up, since <see cref="Designer"/> can still be null
+    /// when a call arrives just after this wrapper itself has mounted.
+    /// </summary>
+    private IReadOnlyDictionary<string, BpmnElementStats>? _pendingElementStats;
+
+    /// <summary>
     /// Whether the scope being displayed has nothing to draw: no <c>process</c> payload at all, or one that declares
     /// no elements. That is what a <c>BpmnProcess</c> added from the toolbox looks like, and what a scope whose
     /// import produced nothing looks like.
@@ -100,8 +108,21 @@ public partial class BpmnDesignerWrapper
     /// </summary>
     public async Task UpdateElementStatsAsync(IReadOnlyDictionary<string, BpmnElementStats> elementStats)
     {
+        _pendingElementStats = elementStats;
+
         if (Designer != null)
             await Designer.UpdateElementStatsAsync(elementStats);
+    }
+
+    /// <summary>
+    /// Applies a retained element-stats overlay that arrived before <see cref="Designer"/> existed, the moment it
+    /// does -- the same "drain pending work on first render" shape <see cref="Designer"/> itself uses for its own
+    /// initial <c>LoadBpmnAsync</c> call.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Designer != null && _pendingElementStats != null)
+            await Designer.UpdateElementStatsAsync(_pendingElementStats);
     }
 
     /// <summary>
