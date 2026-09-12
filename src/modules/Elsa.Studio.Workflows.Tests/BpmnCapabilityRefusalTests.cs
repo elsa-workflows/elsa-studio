@@ -6,15 +6,16 @@ namespace Elsa.Studio.Workflows.Tests;
 
 /// <summary>
 /// Covers how a <see cref="BpmnCapabilityRefusal"/> is built: from the coded error envelope's <c>data.capabilities</c>
-/// and <c>data.elementIds</c>, through <see cref="ValidationApiExceptionExtensions.GetValidationErrorsFromContent"/>,
-/// rather than by parsing the human-readable message (pinned by
+/// and <c>data.elementIds</c>, via <see cref="ValidationApiExceptionExtensions.GetValidationErrorsFromContent"/>'s raw
+/// <c>data</c> and <see cref="BpmnCapabilityRefusal.FromData"/>'s BPMN-owned mapping of it, rather than by parsing
+/// the human-readable message (pinned by
 /// <see cref="RemoteBpmnInterchangeServiceTests.ImportAsync_ReturnsTheCapabilityRefusalMessage_On422"/>, which a
 /// server may reword without notice).
 /// </summary>
 public class BpmnCapabilityRefusalTests
 {
     [Fact]
-    public void GetValidationErrorsFromContent_ExtractsCapabilityNamesAndElementIds_FromTheCodedEnvelope()
+    public void FromData_ExtractsCapabilityNamesAndElementIds_FromTheCodedEnvelope()
     {
         const string content = $$"""
         {
@@ -25,14 +26,15 @@ public class BpmnCapabilityRefusalTests
         """;
 
         var errors = ValidationApiExceptionExtensions.GetValidationErrorsFromContent(content);
+        var refusal = BpmnCapabilityRefusal.FromData(errors!.Data);
 
-        Assert.NotNull(errors!.Data);
-        Assert.Equal(["ScopeSignalling"], errors.Data!.CapabilityNames);
-        Assert.Equal(["Gateway_1"], errors.Data.ElementIds);
+        Assert.NotNull(refusal);
+        Assert.Equal(["ScopeSignalling"], refusal!.CapabilityNames);
+        Assert.Equal(["Gateway_1"], refusal.ElementIds);
     }
 
     [Fact]
-    public void GetValidationErrorsFromContent_ExtractsMultipleCapabilityNamesAndElementIds()
+    public void FromData_ExtractsMultipleCapabilityNamesAndElementIds()
     {
         const string content = $$"""
         {
@@ -43,10 +45,11 @@ public class BpmnCapabilityRefusalTests
         """;
 
         var errors = ValidationApiExceptionExtensions.GetValidationErrorsFromContent(content);
+        var refusal = BpmnCapabilityRefusal.FromData(errors!.Data);
 
-        Assert.NotNull(errors!.Data);
-        Assert.Equal(["ScopeSignalling", "CompensationHandling"], errors.Data!.CapabilityNames);
-        Assert.Equal(["Gateway_1", "Task_2"], errors.Data.ElementIds);
+        Assert.NotNull(refusal);
+        Assert.Equal(["ScopeSignalling", "CompensationHandling"], refusal!.CapabilityNames);
+        Assert.Equal(["Gateway_1", "Task_2"], refusal.ElementIds);
     }
 
     [Theory]
@@ -64,6 +67,7 @@ public class BpmnCapabilityRefusalTests
         var errors = ValidationApiExceptionExtensions.GetValidationErrorsFromContent(content);
 
         Assert.Null(errors!.Data);
+        Assert.Null(BpmnCapabilityRefusal.FromData(errors.Data));
     }
 
     [Fact]

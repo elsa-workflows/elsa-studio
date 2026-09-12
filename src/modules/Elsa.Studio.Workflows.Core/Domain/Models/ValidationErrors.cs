@@ -1,5 +1,5 @@
 using System.Net;
-using Elsa.Studio.Workflows.Domain.Models.Bpmn;
+using System.Text.Json;
 
 namespace Elsa.Studio.Workflows.Domain.Models;
 
@@ -19,11 +19,13 @@ namespace Elsa.Studio.Workflows.Domain.Models;
 /// unrecognized code — and fall back to <see cref="Errors"/>'s message.
 /// </param>
 /// <param name="Data">
-/// The structured data <see cref="Code"/> carries, when it carries any (today, only the missing capability names
-/// and offending element ids of a BPMN import's capability refusal). <see langword="null"/> otherwise.
+/// The raw <c>data</c> member <see cref="Code"/> carries, when it carries any (today, only a BPMN import's
+/// capability refusal, whose <c>capabilities</c> and <c>elementIds</c> are read by
+/// <see cref="Bpmn.BpmnCapabilityRefusal.FromData"/>). <see langword="null"/> otherwise. Left as raw JSON here
+/// because the shape is owned by whichever feature defines <see cref="Code"/>, not by this shared model.
 /// </param>
 public record ValidationErrors(
     IReadOnlyCollection<ValidationError> Errors,
     HttpStatusCode? StatusCode = null,
     string? Code = null,
-    BpmnCapabilityRefusal? Data = null);
+    JsonElement? Data = null);

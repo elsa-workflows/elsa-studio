@@ -62,7 +62,7 @@ public class BpmnImportUiService(
             if (failure.Code == BpmnErrorCodes.ImportCapabilityUnsupported)
             {
                 var message = string.Join(" ", failure.Errors.Select(error => error.ErrorMessage));
-                var refusal = failure.Data ?? new BpmnCapabilityRefusal([], []);
+                var refusal = BpmnCapabilityRefusal.FromData(failure.Data) ?? new BpmnCapabilityRefusal([], []);
 
                 await ShowRefusalDialogAsync(refusal);
                 return new()

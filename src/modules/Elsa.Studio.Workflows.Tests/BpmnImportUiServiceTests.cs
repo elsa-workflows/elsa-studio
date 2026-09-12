@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Bunit;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -178,7 +179,7 @@ public sealed class BpmnImportUiServiceTests : BunitContext, IAsyncLifetime
                 [new ValidationError(message)],
                 HttpStatusCode.UnprocessableEntity,
                 Code: BpmnErrorCodes.ImportCapabilityUnsupported,
-                Data: new BpmnCapabilityRefusal(["ScopeSignalling"], ["Gateway_1"])))
+                Data: JsonDocument.Parse("""{ "capabilities": ["ScopeSignalling"], "elementIds": ["Gateway_1"] }""").RootElement))
         };
         var definitionService = new FakeWorkflowDefinitionService();
         var service = new BpmnImportUiService(dialogService, localizer, interchangeService, definitionService);

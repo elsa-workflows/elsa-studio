@@ -73,8 +73,9 @@ public class RemoteBpmnInterchangeServiceTests : IDisposable
         var error = Assert.Single(result.Failure!.Errors);
         Assert.Equal(message, error.ErrorMessage);
         Assert.Equal(BpmnErrorCodes.ImportCapabilityUnsupported, result.Failure.Code);
-        Assert.Equal(["ScopeSignalling"], result.Failure.Data!.CapabilityNames);
-        Assert.Equal(["Gateway_1"], result.Failure.Data.ElementIds);
+        var refusal = BpmnCapabilityRefusal.FromData(result.Failure.Data);
+        Assert.Equal(["ScopeSignalling"], refusal!.CapabilityNames);
+        Assert.Equal(["Gateway_1"], refusal.ElementIds);
     }
 
     [Fact]

@@ -1,5 +1,4 @@
 using Elsa.Studio.Workflows.Domain.Models;
-using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Refit;
 using System.Text.Json;
 
@@ -53,6 +52,8 @@ public static class ValidationApiExceptionExtensions
     /// elsa-core), so every caller shares one parser instead of a caller matching the message text itself. A body
     /// without a <c>code</c> — an older server, or a refusal that never carries one — leaves <see cref="ValidationErrors.Code"/>
     /// <see langword="null"/>, which every caller must treat as an unrecognized code and fall back to the message.
+    /// <c>data</c> is left as raw JSON: interpreting it is up to whichever feature owns <c>code</c> (see e.g.
+    /// <see cref="Elsa.Studio.Workflows.Domain.Models.Bpmn.BpmnCapabilityRefusal.FromData"/>).
     /// </remarks>
     public static ValidationErrors? GetValidationErrorsFromContent(string? content)
     {
@@ -78,7 +79,9 @@ public static class ValidationApiExceptionExtensions
                 ? codeElement.GetString()
                 : null;
 
-            var data = TryGetProperty(root, "data", out var dataElement) ? GetCapabilityRefusal(dataElement) : null;
+            // Cloned so the element survives past this method's JsonDocument, which is disposed on return; the raw
+            // shape is handed back as-is; interpreting it is up to whichever feature owns `code`.
+            var data = TryGetProperty(root, "data", out var dataElement) ? dataElement.Clone() : (JsonElement?)null;
 
             return new ValidationErrors(errors, Code: code, Data: data);
         }
@@ -87,27 +90,6 @@ public static class ValidationApiExceptionExtensions
             return null;
         }
     }
-
-    /// <summary>
-    /// Reads <paramref name="dataElement"/> into a <see cref="BpmnCapabilityRefusal"/> when it carries a
-    /// <c>capabilities</c> and/or <c>elementIds</c> string array — the only shape any <c>data</c> member sends
-    /// today (see <see cref="Elsa.Studio.Workflows.Domain.Models.Bpmn.BpmnErrorCodes.ImportCapabilityUnsupported"/>)
-    /// — or <see langword="null"/> for any other shape, including a code that carries no <c>data</c> at all.
-    /// </summary>
-    private static BpmnCapabilityRefusal? GetCapabilityRefusal(JsonElement dataElement)
-    {
-        if (dataElement.ValueKind != JsonValueKind.Object)
-            return null;
-
-        var capabilityNames = TryGetProperty(dataElement, "capabilities", out var capabilitiesElement) ? GetStringArray(capabilitiesElement) : [];
-        var elementIds = TryGetProperty(dataElement, "elementIds", out var elementIdsElement) ? GetStringArray(elementIdsElement) : [];
-
-        return capabilityNames.Count == 0 && elementIds.Count == 0 ? null : new BpmnCapabilityRefusal(capabilityNames, elementIds);
-    }
-
-    private static IReadOnlyList<string> GetStringArray(JsonElement element) => element.ValueKind == JsonValueKind.Array
-        ? element.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!).ToList()
-        : [];
 
     private static IEnumerable<string> GetErrorMessages(JsonElement element)
     {
