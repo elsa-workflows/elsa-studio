@@ -65,7 +65,7 @@ Install the dashboard shell and the companion modules you want:
 
 ```csharp
 services.AddDashboardModule(backendApiConfig);
-services.AddWorkflowsModule();
+services.AddWorkflowsModule(backendApiConfig);
 services.AddWorkflowsDashboardModule();
 services.AddConsoleLogsModule(backendApiConfig);
 services.AddConsoleLogsDashboardModule();

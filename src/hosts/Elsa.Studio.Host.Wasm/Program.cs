@@ -131,7 +131,7 @@ services.AddExternalAuthenticationModule(backendApiConfig);
 
 services.AddDashboardModule(backendApiConfig);
 services.AddWeaverModule(backendApiConfig);
-services.AddWorkflowsModule();
+services.AddWorkflowsModule(backendApiConfig);
 services.AddWorkflowsDashboardModule();
 services.AddAlterationsModule();
 services.AddOpenTelemetryDiagnosticsModule(backendApiConfig);

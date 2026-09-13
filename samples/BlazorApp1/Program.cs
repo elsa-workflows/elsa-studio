@@ -35,7 +35,7 @@ builder.Services.AddCore();
 builder.Services.AddShell();
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.Replace(ServiceDescriptor.Scoped<IRemoteBackendAccessor, ComponentRemoteBackendAccessor>());
-builder.Services.AddWorkflowsModule();
+builder.Services.AddWorkflowsModule(backendApiConfig);
 
 var app = builder.Build();
 

@@ -1,7 +1,6 @@
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Services;
-using Elsa.Studio.Workflows.Client;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Providers;
 using Elsa.Studio.Workflows.Domain.Services;
@@ -54,7 +53,6 @@ public static class ServiceCollectionExtensions
             .AddScoped<IActivityResolver, DefaultActivityResolver>()
             .AddScoped<IWorkflowJsonDetector, CompatWorkflowJsonDetector>()
             .AddScoped<IBpmnInterchangeService, RemoteBpmnInterchangeService>()
-            .AddRemoteApi<IBpmnInterchangeApi>()
             ;
 
         services.AddActivityDisplaySettingsProvider<DefaultActivityDisplaySettingsProvider>();
