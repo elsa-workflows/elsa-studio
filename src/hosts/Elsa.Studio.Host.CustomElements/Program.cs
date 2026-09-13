@@ -55,7 +55,7 @@ builder.Services.AddShell();
 builder.Services.AddRemoteBackend(backendApiConfig);
 builder.Services.Replace(ServiceDescriptor.Scoped<IRemoteBackendAccessor, ComponentRemoteBackendAccessor>());
 builder.Services.AddScoped<IHttpConnectionOptionsConfigurator, BackendServiceHttpConnectionOptionsConfigurator>();
-builder.Services.AddWorkflowsModule();
+builder.Services.AddWorkflowsModule(backendApiConfig);
 builder.Services.AddSecretsModule(backendApiConfig);
 builder.Services.AddUserTasksModule(backendApiConfig);
 builder.Services.AddLocalizationModule(localizationConfig);

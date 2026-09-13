@@ -163,7 +163,7 @@ builder.Services.AddExternalAuthenticationModule(backendApiConfig);
 
 builder.Services.AddDashboardModule(backendApiConfig);
 builder.Services.AddWeaverModule(backendApiConfig);
-builder.Services.AddWorkflowsModule();
+builder.Services.AddWorkflowsModule(backendApiConfig);
 builder.Services.AddWorkflowsDashboardModule();
 builder.Services.AddAlterationsModule();
 builder.Services.AddOpenTelemetryDiagnosticsModule(backendApiConfig);
