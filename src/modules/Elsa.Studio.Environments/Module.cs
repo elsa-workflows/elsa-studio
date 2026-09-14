@@ -3,6 +3,7 @@ using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Components;
 using Elsa.Studio.Environments.Tasks;
 using Elsa.Studio.Models;
+using Refit;
 
 namespace Elsa.Studio.Environments;
 
@@ -14,9 +15,19 @@ public class Feature(IAppBarService appBarService, LoadEnvironmentsStartupTask l
     /// <inheritdoc />
     public override async ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
-        // Circuit-scoped load so Blazor Server pickers see the same IEnvironmentService instance.
-        // IStartupTask also runs this for hosts that execute startup tasks (e.g. WASM).
-        await loadEnvironmentsStartupTask.LoadAsync(cancellationToken);
+        try
+        {
+            // Circuit-scoped load so Blazor Server pickers see the same IEnvironmentService instance.
+            await loadEnvironmentsStartupTask.LoadAsync(cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            // A missing or unreachable /environments API must not block other features.
+        }
+        catch (ApiException)
+        {
+        }
+
         appBarService.AddElement(new AppBarElement<EnvironmentPicker>());
     }
 }

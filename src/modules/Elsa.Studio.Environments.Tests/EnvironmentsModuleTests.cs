@@ -101,6 +101,19 @@ public class EnvironmentsModuleTests : IDisposable
     }
 
     [Fact]
+    public async Task FeatureInitialize_DoesNotThrowWhenEnvironmentsApiIsMissing()
+    {
+        _primaryHandler.StatusCode = HttpStatusCode.NotFound;
+
+        var feature = _serviceProvider.GetServices<IFeature>().OfType<Feature>().Single();
+        await feature.InitializeAsync();
+
+        var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
+        Assert.Empty(environments.Environments);
+        Assert.Contains(_serviceProvider.GetRequiredService<IAppBarService>().AppBarElements, _ => true);
+    }
+
+    [Fact]
     public async Task SwitchingEnvironment_UpdatesAccessorUrlUsedByDefaultProvider()
     {
         var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
@@ -152,13 +165,15 @@ public class EnvironmentsModuleTests : IDisposable
     private sealed class RecordingHandler : HttpMessageHandler
     {
         public HttpRequestMessage? LastRequest { get; private set; }
+        public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
         public string ResponseContent { get; set; } = """{ "environments": [], "defaultEnvironmentName": null }""";
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             LastRequest = request;
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            return Task.FromResult(new HttpResponseMessage(StatusCode)
             {
+                RequestMessage = request,
                 Content = new StringContent(ResponseContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"))
             });
         }
