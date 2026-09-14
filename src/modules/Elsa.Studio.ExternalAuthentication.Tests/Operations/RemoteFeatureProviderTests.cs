@@ -114,9 +114,24 @@ public class RemoteFeatureProviderTests
         return ApiException.Create(request, HttpMethod.Get, response, new RefitSettings()).GetAwaiter().GetResult();
     }
 
+    [Fact]
+    public async Task FeatureChecks_RefetchWhenBackendUrlChanges()
+    {
+        var api = new FeaturesApi();
+        var backend = new BackendApiClientProvider(api);
+        var provider = new RemoteFeatureProvider(backend);
+
+        Assert.True(await provider.IsEnabledAsync("Elsa.ExternalAuthentication"));
+        Assert.Equal(1, api.ListCalls);
+
+        backend.Url = new("https://other.example.test/");
+        Assert.True(await provider.IsEnabledAsync("Elsa.ExternalAuthentication"));
+        Assert.Equal(2, api.ListCalls);
+    }
+
     private sealed class BackendApiClientProvider(IFeaturesApi api) : IBackendApiClientProvider
     {
-        public Uri Url { get; } = new("https://elsa.example.test/");
+        public Uri Url { get; set; } = new("https://elsa.example.test/");
 
         public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class =>
             ValueTask.FromResult((T)api);
