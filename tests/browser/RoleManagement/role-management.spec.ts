@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import type { Page, TestInfo } from '@playwright/test';
+import type { Locator, Page, TestInfo } from '@playwright/test';
 import { CoreApiSession, expect, openRoles, signIn, test, assertCleanRuntime } from './fixtures';
 
 const roleHostConfigured = ['SERVER', 'WASM'].some(prefix =>
@@ -53,10 +53,11 @@ async function createRoleInEditor(
   await page.getByLabel('Filter permissions').fill('identity/roles');
   const viewGrant = page.getByLabel('identity/roles:view');
   await expect(viewGrant).toHaveCount(1);
-  const categoryBulk = page.getByRole('button', { name: 'Select all exact', exact: true }).first();
+  const categoryBulk = page.getByRole('button', { name: 'Select all', exact: true }).first();
   await expect(categoryBulk).toBeVisible();
   await categoryBulk.click();
   await expect(viewGrant).toBeChecked();
+  await expect(page.getByText('Direct grant', { exact: true })).toHaveCount(0);
 
   const advancedTab = page.locator('[role="tab"]').filter({ hasText: 'Advanced grants' }).first();
   await advancedTab.click();
@@ -64,6 +65,7 @@ async function createRoleInEditor(
   await page.getByRole('textbox', { name: 'Advanced grant' }).fill('identity/roles:*');
   await page.getByRole('button', { name: 'Add advanced grant' }).click();
   await expect(page.getByText('identity/roles:*', { exact: true })).toBeVisible();
+  await expect(page.getByText('Broad access', { exact: true })).toHaveCount(0);
   await expect(page.getByText(/\d+ resources today/)).toBeVisible();
   await expect(page.getByText('Future reach:', { exact: false })).toBeVisible();
 
@@ -101,7 +103,116 @@ async function confirmRemediation(page: Page): Promise<void> {
   }
 }
 
+async function expectInsideViewport(locator: Locator, viewportWidth: number): Promise<void> {
+  await expect(locator).toBeVisible();
+  const bounds = await locator.boundingBox();
+  expect(bounds).not.toBeNull();
+  const description = await locator.evaluate(element => `${element.tagName.toLowerCase()}.${element.className}`);
+  expect(bounds!.x, `${description} starts outside the viewport`).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width, `${description} ends outside the viewport`).toBeLessThanOrEqual(viewportWidth);
+}
+
+async function expectPinnedNearViewportBottom(locator: Locator, viewportHeight: number): Promise<void> {
+  await expect(locator).toBeVisible();
+  const bounds = await locator.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.y, 'Action bar starts above the viewport').toBeGreaterThanOrEqual(0);
+  expect(viewportHeight - (bounds!.y + bounds!.height), 'Action bar is not pinned near the viewport bottom')
+    .toBeGreaterThanOrEqual(0);
+  expect(viewportHeight - (bounds!.y + bounds!.height), 'Action bar is not pinned near the viewport bottom')
+    .toBeLessThanOrEqual(20);
+}
+
+async function expectContentNotClipped(locator: Locator): Promise<void> {
+  const size = await locator.evaluate(element => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth
+  }));
+  expect(size.scrollWidth, 'Element content exceeds its visible width').toBeLessThanOrEqual(size.clientWidth + 1);
+}
+
+async function expectNoBlockingAccessibilityViolations(page: Page): Promise<void> {
+  const results = await new AxeBuilder({ page }).analyze();
+  const blockingViolations = results.violations.filter(violation =>
+    violation.impact === 'serious' || violation.impact === 'critical');
+  const violationSummary = blockingViolations
+    .map(violation => `${violation.id}: ${violation.nodes.map(node => node.target.join(' ')).join(', ')}`)
+    .join('\n');
+  expect(blockingViolations, violationSummary).toHaveLength(0);
+}
+
 test.describe('role management against a real Core host', () => {
+  test('Elsa account sign-in submits with Enter', async ({ page, config, diagnostics }) => {
+    await page.goto('/workflows/definitions');
+    await expect(page).toHaveURL(/\/login\?returnUrl=%2Fworkflows%2Fdefinitions/i);
+    await page.waitForLoadState('networkidle');
+    await page.getByLabel('User name').fill(config.admin.username);
+    await page.getByLabel('Password').fill(config.admin.password);
+    await page.getByLabel('Password').press('Enter');
+
+    await expect(page).toHaveURL(/\/workflows\/definitions(?:$|[?#])/);
+    await assertCleanRuntime(diagnostics);
+  });
+
+  const externalAuthenticationRoutes = [
+    {
+      name: 'external identity links',
+      path: '/security/external-authentication/identity-links',
+      heading: 'External identity links',
+      listSelector: '.identity-link-list'
+    },
+    {
+      name: 'identity provider connections',
+      path: '/security/external-authentication/connections',
+      heading: 'Identity provider connections',
+      listSelector: '.connection-list'
+    }
+  ];
+
+  for (const route of externalAuthenticationRoutes) {
+    test(`${route.name} loads with authenticated API clients`, async ({ page, config, diagnostics }) => {
+      await signIn(page, config.admin);
+      await page.goto(route.path);
+
+      await expect(page.getByRole('heading', { level: 1, name: route.heading })).toBeVisible();
+      await expect(page.locator(route.listSelector)).toBeVisible();
+      await expect(page.getByText(/InnerHandler.*must be null/i)).toHaveCount(0);
+      await assertCleanRuntime(diagnostics);
+    });
+  }
+
+  test('dashboard header keeps only primary controls', async ({ page, config, diagnostics }) => {
+    await signIn(page, config.admin);
+    await page.goto('/');
+
+    const header = page.locator('.dashboard-header');
+    await expect(header.getByText('Dashboard', { exact: true })).toBeVisible();
+    await expect(header.getByText('Selected backend', { exact: true })).toHaveCount(0);
+    await expect(header.getByText('Not refreshed yet', { exact: true })).toHaveCount(0);
+    await expect(header.getByText(/^Refreshed /)).toHaveCount(0);
+    await expect(header.locator('.mud-chip')).toHaveCount(0);
+    await expect(header.getByRole('button', { name: 'Refresh dashboard' })).toBeVisible();
+    await expect(header.getByText('1h', { exact: true })).toBeVisible();
+    await expect(header.getByText('24h', { exact: true })).toBeVisible();
+    await expect(header.getByText('7d', { exact: true })).toBeVisible();
+
+    const operationalHealth = page.locator('.dashboard-operational-health');
+    const executionTrend = page.locator('.dashboard-chart-panel');
+    await expect(operationalHealth).toBeVisible();
+    await expect(executionTrend).toBeVisible();
+    const operationalHealthBox = await operationalHealth.boundingBox();
+    const executionTrendBox = await executionTrend.boundingBox();
+    expect(operationalHealthBox).not.toBeNull();
+    expect(executionTrendBox).not.toBeNull();
+    expect(executionTrendBox!.y - (operationalHealthBox!.y + operationalHealthBox!.height)).toBeGreaterThanOrEqual(8);
+
+    await expectNoBlockingAccessibilityViolations(page);
+    await page.getByRole('button', { name: 'Use dark theme' }).click();
+    await expect(page.getByRole('button', { name: 'Use light theme' })).toBeVisible();
+    await expect(header.locator('.mud-chip')).toHaveCount(0);
+    await assertCleanRuntime(diagnostics);
+  });
+
   test('administrator completes create, save, reload, update, reload, and safe delete', async ({ page, config, adminApi, registerRole, diagnostics }) => {
     await openRoles(page, config.admin);
     const name = roleName('browser-role');
@@ -114,6 +225,10 @@ test.describe('role management against a real Core host', () => {
     await advancedTab.click();
     await expect(page.getByText('identity/roles:*', { exact: true })).toBeVisible();
     await expect(page.getByText(/Future reach:/)).toBeVisible();
+    await page.getByRole('button', { name: 'Edit advanced grant identity/roles:*', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Grant expression for identity/roles:*', exact: true }).fill('identity/*:view');
+    await page.getByRole('button', { name: 'Save advanced grant identity/roles:*', exact: true }).click();
+    await expect(page.getByText('identity/*:view', { exact: true })).toBeVisible();
 
     const updatedName = `${name}-updated`;
     await page.getByLabel('Role name').fill(updatedName);
@@ -123,6 +238,8 @@ test.describe('role management against a real Core host', () => {
     await page.reload();
     await expect(page.getByLabel('Role name')).toHaveValue(updatedName);
     await expect(page.getByText(id, { exact: true })).toBeVisible();
+    await page.locator('[role="tab"]').filter({ hasText: /Advanced grants/ }).first().click();
+    await expect(page.getByText('identity/*:view', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: 'Delete role', exact: true }).click();
     await expect(page.getByTestId('role-deletion-safe')).toBeVisible();
@@ -158,14 +275,121 @@ test.describe('role management against a real Core host', () => {
     await page.keyboard.press('Tab');
     await expect(page.locator(':focus')).toBeVisible();
 
-    const results = await new AxeBuilder({ page }).analyze();
-    const blockingViolations = results.violations.filter(violation =>
-      violation.impact === 'serious' || violation.impact === 'critical');
+    await expectNoBlockingAccessibilityViolations(page);
     await captureEvidence(page, testInfo, 'roles-list');
-    const violationSummary = blockingViolations
-      .map(violation => `${violation.id}: ${violation.nodes.map(node => node.target.join(' ')).join(', ')}`)
-      .join('\n');
-    expect(blockingViolations, violationSummary).toHaveLength(0);
+    await assertCleanRuntime(diagnostics);
+  });
+
+  test('role editor header follows the administration detail-page hierarchy', async ({ page, config, diagnostics }, testInfo) => {
+    await signIn(page, config.admin);
+    await page.goto('/security/roles/admin');
+
+    const viewport = page.viewportSize();
+    const viewportWidth = viewport?.width ?? 0;
+    const viewportHeight = viewport?.height ?? 0;
+    const backLink = page.locator('.role-editor-back');
+    const summary = page.locator('.role-editor-summary');
+    const actions = page.getByRole('group', { name: 'Role form actions' });
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Edit role — admin' })).toBeVisible();
+    await expect(backLink).toHaveText('Roles');
+    await expect(backLink).toHaveAttribute('href', /security\/roles$/);
+    await expect(page.getByText('Role ID admin', { exact: true })).toBeVisible();
+    await expectInsideViewport(summary, viewportWidth);
+    await expectInsideViewport(actions, viewportWidth);
+    await expectPinnedNearViewportBottom(actions, viewportHeight);
+    await expect(actions).toHaveCSS('position', 'sticky');
+    await expect(actions).toHaveCSS('bottom', '0px');
+    await expect(actions.locator('.mud-button-filled, .mud-button-outlined')).toHaveCount(0);
+    await expect(actions.getByRole('button', { name: 'Delete role', exact: true })).toHaveClass(/mud-button-text-error/);
+    await expect(actions.getByRole('button', { name: 'Save changes', exact: true })).toHaveClass(/mud-button-text-primary/);
+    for (const button of await actions.getByRole('button').all())
+      await expectInsideViewport(button, viewportWidth);
+
+    const workflowCategory = page.locator('.role-category-panel').filter({ hasText: /^Workflows/ });
+    await workflowCategory.locator('.mud-expand-panel-header').click();
+    await page.locator('.role-resource-row:visible').last().scrollIntoViewIfNeeded();
+    await expectPinnedNearViewportBottom(actions, viewportHeight);
+
+    await page.getByLabel('Filter permissions').fill('workflows/definitions');
+    await expect(page.getByLabel('workflows/definitions:publish')).toBeVisible();
+    await expect(page.getByText(/^Non-core:/)).toHaveCount(0);
+
+    await expectNoBlockingAccessibilityViolations(page);
+    await captureEvidence(page, testInfo, 'role-editor-header');
+    await assertCleanRuntime(diagnostics);
+  });
+
+  test('exact permissions support global and category bulk selection', async ({ page, config, diagnostics }, testInfo) => {
+    await signIn(page, config.admin);
+    await page.goto('/security/roles/new');
+
+    const viewportWidth = page.viewportSize()?.width ?? 0;
+    const globalSelect = page.getByRole('button', { name: 'Select all exact permissions', exact: true });
+    await expect(globalSelect).toBeVisible();
+    await expectInsideViewport(globalSelect, viewportWidth);
+
+    await globalSelect.click();
+    await expect(page.getByRole('button', { name: 'Clear all exact permissions', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Clear all permissions in Workflows', exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Clear all exact permissions', exact: true }).click();
+    await expect(globalSelect).toBeVisible();
+
+    const workflowSelect = page.getByRole('button', { name: 'Select all permissions in Workflows', exact: true });
+    await workflowSelect.click();
+    await expect(page.getByRole('button', { name: 'Clear all permissions in Workflows', exact: true })).toBeVisible();
+    await expect(globalSelect).toBeVisible();
+
+    await expectNoBlockingAccessibilityViolations(page);
+    await captureEvidence(page, testInfo, 'role-editor-bulk-permissions');
+    await assertCleanRuntime(diagnostics);
+  });
+
+  test('mobile role editor and deletion remediation controls stay within the viewport', async ({ page, config, diagnostics }, testInfo) => {
+    const viewportWidth = page.viewportSize()?.width ?? 0;
+    test.skip(viewportWidth >= 600, 'This regression proof targets the phone layout.');
+
+    await signIn(page, config.admin);
+    await page.goto('/security/roles/new');
+
+    const tabs = page.locator('.role-permissions-tabs [role="tab"]');
+    await expect(tabs).toHaveCount(2);
+    const advancedTab = tabs.filter({ hasText: 'Advanced grants' });
+    await advancedTab.click();
+    const exactTab = tabs.filter({ hasText: 'Exact permissions' });
+    await expectInsideViewport(exactTab, viewportWidth);
+    await expectInsideViewport(advancedTab, viewportWidth);
+    await expectContentNotClipped(exactTab);
+    await expectContentNotClipped(advancedTab);
+    await captureEvidence(page, testInfo, 'role-editor-tabs');
+
+    if (config.unresolvedRoleId) {
+      await page.goto(`/security/roles/${encodeURIComponent(config.unresolvedRoleId)}`);
+      const repairActions = page.locator('.role-unresolved-repair-actions').first();
+      const replacement = repairActions.getByLabel('Replacement grant');
+      await expectInsideViewport(repairActions, viewportWidth);
+      await expectInsideViewport(replacement, viewportWidth);
+      expect((await replacement.boundingBox())!.width).toBeGreaterThanOrEqual(180);
+      await expectInsideViewport(repairActions.getByRole('button', { name: 'Replace', exact: true }), viewportWidth);
+      await expectInsideViewport(repairActions.getByRole('button', { name: 'Remove', exact: true }), viewportWidth);
+      await captureEvidence(page, testInfo, 'role-editor-repair');
+    }
+
+    if (config.remediableRoleId) {
+      await page.goto(`/security/roles/${encodeURIComponent(config.remediableRoleId)}`);
+      await page.getByRole('button', { name: 'Delete role', exact: true }).click();
+      const dialog = page.getByTestId('role-deletion-remediation');
+      await expect(dialog).toBeVisible();
+      const referenceRows = dialog.locator('.role-deletion-reference-row');
+      for (let index = 0; index < await referenceRows.count(); index++) {
+        const row = referenceRows.nth(index);
+        await expectInsideViewport(row, viewportWidth);
+        await expectInsideViewport(row.getByRole('checkbox'), viewportWidth);
+      }
+      await captureEvidence(page, testInfo, 'role-deletion-remediation');
+    }
+
     await assertCleanRuntime(diagnostics);
   });
 
@@ -197,6 +421,26 @@ test.describe('role management against a real Core host', () => {
       await openRoles(page, restrictedActor);
       await expect(page.getByText('You can view roles, but you cannot create, edit, or delete them.')).toBeVisible();
       await expect(page.getByRole('button', { name: 'New role', exact: true })).toHaveCount(0);
+
+      const navigation = page.locator('.studio-nav');
+      await navigation.getByRole('button', { name: 'Toggle Identity & access', exact: true }).click();
+      await expect(navigation.getByRole('link', { name: 'Roles', exact: true })).toBeVisible();
+      await expect(navigation.getByRole('link', { name: 'Dashboard', exact: true })).toHaveCount(0);
+      for (const href of [
+        '/workflows/definitions',
+        '/workflows/instances',
+        '/alterations',
+        '/alterations/instances',
+        '/ai/weaver',
+        '/diagnostics/opentelemetry',
+        '/diagnostics/console',
+        '/diagnostics/structured-logs',
+        '/security/secrets'
+      ]) {
+        const path = href.replace(/^\/+/, '');
+        await expect(navigation.locator(`a[href$="/${path}"], a[href$="${path}"]`)).toHaveCount(0);
+      }
+
       await page.goto('/security/roles/new');
       await expect(page.getByText('You can view roles, but your current sign-in cannot create a role.')).toBeVisible();
       await restrictedSession.expectForbiddenRoleCreation();

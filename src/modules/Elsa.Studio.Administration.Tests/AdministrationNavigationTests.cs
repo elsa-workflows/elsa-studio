@@ -45,6 +45,7 @@ public class AdministrationNavigationTests
 
         Assert.Equal(MenuItemGroups.Administration.Name, item.GroupName);
         Assert.Equal(300, item.Order);
+        Assert.Equal("secrets:view", item.RequiredPermission);
     }
 
     [Fact]

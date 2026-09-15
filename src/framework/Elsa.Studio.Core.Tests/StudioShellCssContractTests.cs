@@ -51,6 +51,22 @@ public sealed class StudioShellCssContractTests
         Assert.Contains("padding-inline: var(--elsa-space-4) var(--elsa-space-3)", groupLabel, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ActiveNavigationUsesAccessibleAccentText()
+    {
+        var css = CssContractTestContext.ReadRepositoryFile(
+            "src", "framework", "Elsa.Studio.Shell", "wwwroot", "css", "shell.css");
+
+        var shell = CssContractTestContext.GetRuleBody(css, ".elsa-studio-shell");
+        var activeLink = CssContractTestContext.GetRuleBody(
+            css,
+            ".studio-nav.mud-navmenu-primary .mud-nav-link.active:not(.mud-nav-link-disabled)");
+
+        Assert.Contains("--elsa-accent-aa: color-mix(", shell, StringComparison.Ordinal);
+        Assert.Contains("var(--elsa-text) 40%", shell, StringComparison.Ordinal);
+        Assert.Contains("color: var(--elsa-accent-aa)", activeLink, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("Elsa.Studio.Login", "Components", "LoginState.razor")]
     [InlineData("Elsa.Studio.Environments", "Components", "EnvironmentPicker.razor")]

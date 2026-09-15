@@ -23,7 +23,8 @@ public class ConsoleLogsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMe
                 Icon = Icons.Material.Filled.Terminal,
                 Href = "diagnostics/console",
                 Text = "Console",
-                GroupName = MenuItemGroups.Diagnostics.Name
+                GroupName = MenuItemGroups.Diagnostics.Name,
+                RequiredPermission = "diagnostics/console-logs:view"
             }
         };
 

@@ -6,8 +6,8 @@
         if (!firstRender)
             return;
 
-        var returnUrl = Uri.EscapeDataString(NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var returnUrl = Uri.EscapeDataString($"/{relativePath.TrimStart('/')}");
         NavigationManager.NavigateTo($"/login?returnUrl={returnUrl}", true);
     }
 }
-

@@ -1,4 +1,10 @@
-<MudText Typo="Typo.h5" Color="Color.Primary" Class="my-6">@Text</MudText>
+<style>
+    .studio-page-heading {
+        color: color-mix(in srgb, var(--mud-palette-primary), var(--mud-palette-text-primary) 32%);
+    }
+</style>
+
+<MudText Typo="Typo.h5" HtmlTag="h1" Class="studio-page-heading my-6">@Text</MudText>
 
 @code {
     [Parameter] public string Text { get; set; } = "Untitled";

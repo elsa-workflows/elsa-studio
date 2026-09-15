@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IMenuProvider, SecurityMenu>()
             .AddScoped<ISecurityMenuContributor, IdentitySecurityMenuContributor>()
             .AddScoped<IIdentityPermissionContext, IdentityPermissionContext>()
+            .AddScoped<ICurrentUserPermissionSource, IdentityPermissionSource>()
             .AddScoped<IUserAdministrationAccessService, UserAdministrationAccessService>()
             .AddScoped<IRoleAdministrationAccessService, RoleAdministrationAccessService>()
             .AddScoped<IRoleDeletionService, RoleDeletionService>()

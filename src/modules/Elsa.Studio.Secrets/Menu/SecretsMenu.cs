@@ -19,7 +19,8 @@ public class SecretsMenu(IRemoteFeatureProvider remoteFeatureProvider) : IMenuPr
                 Href = "security/secrets",
                 Text = "Secrets",
                 GroupName = MenuItemGroups.Administration.Name,
-                Order = 300
+                Order = 300,
+                RequiredPermission = "secrets:view"
             }
         ];
     }

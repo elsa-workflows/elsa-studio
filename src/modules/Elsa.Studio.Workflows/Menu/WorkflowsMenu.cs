@@ -27,12 +27,14 @@ public class WorkflowsMenu(ILocalizer localizer, IEnumerable<IWorkflowMenuContri
                 new MenuItem()
                 {
                     Text = localizer["Definitions"],
-                    Href = "workflows/definitions"
+                    Href = "workflows/definitions",
+                    RequiredPermission = "workflows/definitions:view"
                 },
                 new MenuItem()
                 {
                     Text = localizer["Instances"],
-                    Href = "workflows/instances"
+                    Href = "workflows/instances",
+                    RequiredPermission = "workflows/instances:view"
                 },
             }
         };

@@ -4,7 +4,7 @@
 
 <PageTitle>@(string.IsNullOrWhiteSpace(Id) ? "Create user" : "Edit user")</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
+<MudContainer MaxWidth="MaxWidth.False" Class="py-4">
     <UserAdministrationAccessBoundary Context="access">
         <UserEditorSurface Id="@Id" Access="@access" />
     </UserAdministrationAccessBoundary>
