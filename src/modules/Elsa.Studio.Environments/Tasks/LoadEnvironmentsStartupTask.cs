@@ -1,5 +1,7 @@
+using System.Net;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Contracts;
+using Microsoft.Extensions.Logging;
 using Refit;
 
 namespace Elsa.Studio.Environments.Tasks;
@@ -9,7 +11,8 @@ namespace Elsa.Studio.Environments.Tasks;
 /// </summary>
 public class LoadEnvironmentsStartupTask(
     IBackendApiClientProvider backendApiClientProvider,
-    IEnvironmentService environmentService) : IStartupTask
+    IEnvironmentService environmentService,
+    ILogger<LoadEnvironmentsStartupTask> logger) : IStartupTask
 {
     /// <summary>
     /// Fetches environments through <see cref="IBackendApiClientProvider"/> and stores them.
@@ -28,13 +31,16 @@ public class LoadEnvironmentsStartupTask(
         {
             await LoadAsync(cancellationToken);
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException exception)
         {
-            // Hosted-service startup can run before the user is authenticated.
+            // Hosted-service startup can run before the circuit has a backend connection.
+            logger.LogWarning(exception, "Could not reach the environments API during startup.");
         }
-        catch (ApiException)
+        catch (ApiException exception) when (exception.StatusCode is HttpStatusCode.NotFound
+            or HttpStatusCode.Unauthorized
+            or HttpStatusCode.Forbidden)
         {
-            // Same: a 401/404 at host start must not take down Blazor Server.
+            logger.LogWarning("Environments API returned {StatusCode} during startup; environments will load after login if the API is available.", (int)exception.StatusCode);
         }
     }
 }

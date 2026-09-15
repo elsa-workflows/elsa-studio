@@ -38,17 +38,18 @@ public class RemoteFeatureProvider(
                 return [];
         }
 
-        var backendUrl = remoteBackendApiClientProvider.Url;
-        if (_catalog is not null && _catalogUrl == backendUrl)
+        if (_catalog is not null && _catalogUrl == remoteBackendApiClientProvider.Url)
             return _catalog;
 
         await _catalogLock.WaitAsync(cancellationToken);
         try
         {
+            var api = await remoteBackendApiClientProvider.GetApiAsync<IFeaturesApi>(cancellationToken);
+            var backendUrl = remoteBackendApiClientProvider.Url;
+
             if (_catalog is not null && _catalogUrl == backendUrl)
                 return _catalog;
 
-            var api = await remoteBackendApiClientProvider.GetApiAsync<IFeaturesApi>(cancellationToken);
             try
             {
                 var response = await api.ListAsync(cancellationToken);
