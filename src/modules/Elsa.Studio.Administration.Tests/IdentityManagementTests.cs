@@ -34,6 +34,7 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
     private readonly StubUserAccessService _userAccess = new(FullUserAccess);
     private readonly StubRoleAccessService _roleAccess = new(ViewOnlyRoleAccess);
     private readonly Clipboard _clipboard = new();
+    private readonly IRenderedComponent<MudPopoverProvider> _popoverProvider;
     private readonly IRenderedComponent<MudDialogProvider> _dialogProvider;
 
     public IdentityManagementTests()
@@ -44,7 +45,7 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<IUserAdministrationAccessService>(_userAccess);
         Services.AddSingleton<IRoleAdministrationAccessService>(_roleAccess);
         Services.AddSingleton<IClipboard>(_clipboard);
-        Render<MudPopoverProvider>();
+        _popoverProvider = Render<MudPopoverProvider>();
         _dialogProvider = Render<MudDialogProvider>();
     }
 
@@ -68,12 +69,19 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
             Assert.Contains("tenant-a", cut.Markup);
             Assert.Contains("Host", cut.Markup);
             Assert.Contains("2 users · all loaded", cut.Markup);
-            Assert.Contains("Mixed tenant scopes", cut.Markup);
             Assert.Contains("Open user alice", cut.Markup);
-            Assert.Equal(Breakpoint.Md, cut.FindComponent<MudTable<UserSummary>>().Instance.Breakpoint);
         });
 
-        cut.Find("input[placeholder='Search users']").Input("operator");
+        Assert.Equal("Users", cut.Find("h1").TextContent.Trim());
+        Assert.Contains("studio-page-heading", cut.Find("h1").ClassList);
+        var listSurface = cut.Find(".users-list-surface");
+        Assert.NotNull(listSurface.QuerySelector("[role='search'] .users-search"));
+        Assert.NotNull(listSurface.QuerySelector(".users-desktop-list .users-table"));
+        Assert.NotNull(listSurface.QuerySelector(".users-mobile-list"));
+        Assert.NotNull(listSurface.QuerySelector(".users-no-pagination"));
+        Assert.Equal(4, cut.FindAll("button[aria-label^='Actions for ']").Count);
+
+        cut.Find("input[placeholder='Search by name, ID, role, or tenant']").Input("operator");
 
         cut.WaitForAssertion(() =>
         {
@@ -96,7 +104,7 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Tenant tenant-a", cut.Markup);
+            Assert.Contains("tenant-a", cut.Markup);
             Assert.Equal(2, cut.FindAll("tbody tr").Count);
         });
         Assert.Equal(1, _users.ListCallCount);
@@ -111,9 +119,9 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() =>
         {
             var row = cut.Find("tbody tr");
-            Assert.Contains("User ID", cut.Markup);
+            Assert.Contains("ID", cut.Markup);
             Assert.Equal("alice", row.QuerySelector("td[data-label='Name']")?.TextContent.Trim());
-            Assert.Equal("user-with-a-long-id", row.QuerySelector("td[data-label='User ID'] .identity-id-value")?.TextContent.Trim());
+            Assert.Equal("user-with-a-long-id", row.QuerySelector("td[data-label='ID'] .identity-id-value")?.TextContent.Trim());
             Assert.DoesNotContain("user-with-a-long-id", row.QuerySelector("td[data-label='Name']")?.TextContent);
         });
 
@@ -185,7 +193,7 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() => Assert.Contains("cannot create a user", cut.Markup));
         Assert.Contains("identity/users:create", cut.Markup);
-        Assert.Empty(cut.FindAll("button").Where(x => x.TextContent.Trim() == "Create user"));
+        Assert.DoesNotContain(cut.FindAll("button"), x => x.TextContent.Trim() == "Create user");
         Assert.Equal(0, _roles.ListCallCount);
     }
 
@@ -200,27 +208,33 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         users.WaitForAssertion(() =>
         {
             Assert.Contains("You can view users, but you cannot create, edit, or delete them.", users.Markup);
-            Assert.Contains("View user alice", users.Markup);
-            Assert.DoesNotContain("Edit user alice", users.Markup);
-            Assert.DoesNotContain("Create user", users.Markup);
-            Assert.DoesNotContain("Delete user alice", users.Markup);
+            Assert.Contains("Open user alice", users.Markup);
+            Assert.DoesNotContain("Actions for alice", users.Markup);
+            Assert.DoesNotContain("Create a new user", users.Markup);
         });
     }
 
     [Theory]
-    [InlineData(true, false, false, "Create user", "Edit user alice", "Delete user alice")]
-    [InlineData(false, true, false, "Edit user alice", "Create user", "Delete user alice")]
-    [InlineData(false, false, true, "Delete user alice", "Create user", "Edit user alice")]
-    public void UserList_GatesEachMutationIndependently(bool canCreate, bool canUpdate, bool canDelete, string present, string absentFirst, string absentSecond)
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, true)]
+    public void UserList_GatesEachMutationIndependently(bool canCreate, bool canUpdate, bool canDelete)
     {
         _userAccess.Access = new UserAdministrationAccess(UserAdministrationAccessState.Ready, CanView: true, canCreate, canUpdate, canDelete);
         _users.Users = [new() { Id = "user-1", Name = "alice" }];
 
         var cut = Render<UsersPage>();
 
-        cut.WaitForAssertion(() => Assert.Contains(present, cut.Markup));
-        Assert.DoesNotContain(absentFirst, cut.Markup);
-        Assert.DoesNotContain(absentSecond, cut.Markup);
+        cut.WaitForAssertion(() => Assert.Contains("alice", cut.Markup));
+        Assert.Equal(canCreate, cut.FindAll("a[aria-label='Create a new user']").Count > 0);
+        Assert.Equal(canUpdate || canDelete, cut.FindAll("button[aria-label='Actions for alice']").Count > 0);
+        if (canUpdate || canDelete)
+        {
+            OpenUserActions(cut, "alice");
+            var actions = _popoverProvider.FindAll(".mud-menu-item").Select(x => x.TextContent.Trim()).ToArray();
+            Assert.Equal(canUpdate, actions.Contains("Edit"));
+            Assert.Equal(canDelete, actions.Contains("Delete"));
+        }
         Assert.DoesNotContain("You can view users, but you cannot create, edit, or delete them.", cut.Markup);
     }
 
@@ -235,8 +249,28 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() => Assert.Contains("You can view this user, but your current sign-in cannot edit it.", cut.Markup));
         Assert.NotNull(cut.Find("input[readonly][disabled][value='alice']"));
-        Assert.Empty(cut.FindAll("button").Where(x => x.TextContent.Trim() is "Save changes" or "Delete user"));
+        Assert.DoesNotContain(cut.FindAll("button"), x => x.TextContent.Trim() is "Save changes" or "Delete user");
         Assert.All(cut.FindAll("input[type='password']"), input => Assert.True(input.HasAttribute("disabled")));
+    }
+
+    [Fact]
+    public void UserEditor_UsesTheRoleConsistentSummarySectionsAndStickyActions()
+    {
+        _users.Users = [new() { Id = "user-1", Name = "alice", Roles = ["admin-role"], TenantId = "tenant-a" }];
+        _roles.Roles = [new() { Id = "admin-role", Name = "Administrators" }];
+
+        var cut = Render<UserEditor>(parameters => parameters.Add(component => component.Id, "user-1"));
+
+        cut.WaitForAssertion(() => Assert.Equal("Edit user — alice", cut.Find("h1").TextContent.Trim()));
+        Assert.NotNull(cut.Find(".user-editor-back[href='security/users']"));
+        Assert.Contains("User ID", cut.Find(".user-editor-summary").TextContent);
+        Assert.Contains("Scope: tenant-a", cut.Find(".user-editor-summary").TextContent);
+        Assert.Equal(["Account", "Roles", "Change password"], cut.FindAll("h2").Select(x => x.TextContent.Trim()));
+        var actions = cut.Find("[role='group'][aria-label='User form actions']");
+        Assert.Contains("Delete user", actions.TextContent);
+        Assert.Contains("Cancel", actions.TextContent);
+        Assert.Contains("Save changes", actions.TextContent);
+        Assert.False(cut.FindAll(".user-danger-zone").Any());
     }
 
     [Fact]
@@ -425,9 +459,9 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
     {
         _users.Users = [new() { Id = "user-1", Name = "alice" }];
         var cut = Render<UsersPage>();
-        cut.WaitForAssertion(() => Assert.Contains("Delete user alice", cut.Markup));
+        cut.WaitForAssertion(() => Assert.Contains("Actions for alice", cut.Markup));
 
-        cut.Find("button[aria-label='Delete user alice']").Click();
+        ClickUserAction(cut, "alice", "Delete");
         _dialogProvider.WaitForAssertion(() => Assert.Contains("Delete user?", _dialogProvider.Markup));
         _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Cancel").Click();
 
@@ -441,9 +475,9 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         _users.DeleteHandler = _ => deleteCompletion.Task;
         _users.Users = [new() { Id = "user-1", Name = "alice" }];
         var cut = Render<UsersPage>();
-        cut.WaitForAssertion(() => Assert.Contains("Delete user alice", cut.Markup));
+        cut.WaitForAssertion(() => Assert.Contains("Actions for alice", cut.Markup));
 
-        cut.Find("button[aria-label='Delete user alice']").Click();
+        ClickUserAction(cut, "alice", "Delete");
         _dialogProvider.WaitForAssertion(() => Assert.Contains("Delete user?", _dialogProvider.Markup));
         var confirmTask = _dialogProvider.InvokeAsync(() =>
             _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Delete").Click());
@@ -451,9 +485,9 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(1, _users.DeleteCallCount);
-            Assert.True(cut.Find("button[aria-label='Delete user alice']").HasAttribute("disabled"));
+            Assert.All(cut.FindAll("button[aria-label='Actions for alice']"), button => Assert.True(button.HasAttribute("disabled")));
         });
-        cut.Find("button[aria-label='Delete user alice']").Click();
+        cut.FindAll("button[aria-label='Actions for alice']").First().Click();
         Assert.Equal(1, _users.DeleteCallCount);
 
         deleteCompletion.SetResult();
@@ -469,20 +503,20 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
             $$$"""{ "error": "conflict", "message": "{{{conflictMessage}}}", "dependencies": [{ "source": "external-authentication" }] }"""));
         _users.Users = [new() { Id = "user-1", Name = "alice" }];
         var cut = Render<UsersPage>();
-        cut.WaitForAssertion(() => Assert.Contains("Delete user alice", cut.Markup));
+        cut.WaitForAssertion(() => Assert.Contains("Actions for alice", cut.Markup));
 
-        cut.Find("button[aria-label='Delete user alice']").Click();
+        ClickUserAction(cut, "alice", "Delete");
         _dialogProvider.WaitForAssertion(() => Assert.Contains("Delete user?", _dialogProvider.Markup));
         await _dialogProvider.InvokeAsync(() => _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Delete").Click());
 
         cut.WaitForAssertion(() => Assert.Contains(conflictMessage, cut.Markup));
         Assert.Contains("alice", cut.Markup);
         Assert.DoesNotContain("external-authentication", cut.Markup);
-        Assert.False(cut.Find("button[aria-label='Delete user alice']").HasAttribute("disabled"));
+        Assert.All(cut.FindAll("button[aria-label='Actions for alice']"), button => Assert.False(button.HasAttribute("disabled")));
     }
 
     [Fact]
-    public async Task UserEditorDeletion_WhenCoreReportsAConflict_ShowsTheConflictInTheDangerZone()
+    public async Task UserEditorDeletion_WhenCoreReportsAConflict_ShowsTheConflictAboveTheStickyActions()
     {
         const string conflictMessage = "The user is referenced by one or more installed modules.";
         _users.DeleteHandler = _ => Task.FromException(CreateApiException(HttpStatusCode.Conflict,
@@ -497,7 +531,7 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         _dialogProvider.WaitForAssertion(() => Assert.Contains("Delete alice?", _dialogProvider.Markup));
         await _dialogProvider.InvokeAsync(() => _dialogProvider.FindAll("button").Single(x => x.TextContent.Trim() == "Delete").Click());
 
-        cut.WaitForAssertion(() => Assert.Contains(conflictMessage, cut.Find(".user-danger-zone").TextContent));
+        cut.WaitForAssertion(() => Assert.Contains(conflictMessage, cut.Markup));
         Assert.Equal(uriBeforeDelete, navigation.Uri);
         Assert.False(cut.FindAll("button").Single(x => x.TextContent.Trim() == "Delete user").HasAttribute("disabled"));
     }
@@ -566,6 +600,18 @@ public sealed class IdentityManagementTests : BunitContext, IAsyncLifetime
         cut.Dispose();
 
         Assert.Equal(uriBeforeDisposal, navigation.Uri);
+    }
+
+    private void OpenUserActions(IRenderedComponent<UsersPage> cut, string userName)
+    {
+        cut.FindAll($"button[aria-label='Actions for {userName}']").First().Click();
+        _popoverProvider.WaitForAssertion(() => Assert.NotEmpty(_popoverProvider.FindAll(".mud-menu-item")));
+    }
+
+    private void ClickUserAction(IRenderedComponent<UsersPage> cut, string userName, string action)
+    {
+        OpenUserActions(cut, userName);
+        _popoverProvider.FindAll(".mud-menu-item").Single(x => x.TextContent.Trim() == action).Click();
     }
 
     private static ApiException CreateApiException(HttpStatusCode statusCode, string content = "")

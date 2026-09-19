@@ -32,6 +32,7 @@ public class AlterationsMenu(ILocalizer localizer, IRemoteFeatureProvider remote
                         Text = localizer["Instances"],
                         Href = "alterations/instances",
                         Icon = Icons.Material.Outlined.PlayCircleOutline,
+                        RequiredPermission = "alterations:view"
                     },
                     // Match=All so this entry doesn't get highlighted whenever any /alterations/*
                     // route is active (otherwise both sub-items light up).
@@ -41,6 +42,7 @@ public class AlterationsMenu(ILocalizer localizer, IRemoteFeatureProvider remote
                         Href = "alterations",
                         Icon = Icons.Material.Outlined.History,
                         Match = NavLinkMatch.All,
+                        RequiredPermission = "alterations:view"
                     }
                 }
             }

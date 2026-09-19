@@ -54,7 +54,7 @@ public partial class UserEditorSurface : IAsyncDisposable
     protected bool CanOpen => IsNew ? Access.CanCreate : Access.CanView;
     protected bool CanSave => !IsReadOnly && !_saving && !_deleting;
     protected bool CanDelete => !IsNew && Access.CanDelete;
-    protected string Title => IsNew ? "Create user" : _name ?? "User";
+    protected string EditorTitle => IsNew ? "New user" : $"Edit user — {_name ?? "User"}";
     protected string SaveLabel => IsNew ? "Create user" : "Save changes";
     protected string PasswordHeading => IsNew ? "Password" : "Change password";
     protected string PasswordLabel => IsNew ? "Password (optional)" : "New password (optional)";
@@ -62,9 +62,6 @@ public partial class UserEditorSurface : IAsyncDisposable
     protected string CredentialGuidance => IsNew
         ? "Leave blank to let Elsa generate a password. A generated password is shown once after the account is created and cannot be retrieved later."
         : "Leave both fields blank to keep the current password. Passwords are never shown again after saving.";
-    protected IReadOnlyList<BreadcrumbItem> Breadcrumbs =>
-        [new("Users", href: "security/users"), new(Title, href: null)];
-
     protected override async Task OnParametersSetAsync()
     {
         if (_hasLoadedParameters && string.Equals(_loadedId, Id, StringComparison.Ordinal))

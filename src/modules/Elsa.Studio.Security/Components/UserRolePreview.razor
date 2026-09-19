@@ -1,0 +1,23 @@
+@if (Roles.Count == 0)
+{
+    <MudText Typo="Typo.caption">No roles</MudText>
+}
+else
+{
+    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1">
+        @foreach (var role in Roles.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Take(PreviewLimit))
+        {
+            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@role</MudChip>
+        }
+        @if (Roles.Count > PreviewLimit)
+        {
+            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">+@(Roles.Count - PreviewLimit) more</MudChip>
+        }
+    </MudStack>
+}
+
+@code {
+    private const int PreviewLimit = 3;
+
+    [Parameter, EditorRequired] public ICollection<string> Roles { get; set; } = [];
+}

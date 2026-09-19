@@ -7,10 +7,11 @@
 
 <MudPaper Outlined="true" Class="pa-4">
     <MudText Typo="Typo.h6">Elsa account</MudText>
-    <MudForm @ref="_form">
+    <MudForm @ref="_form" OnEnterPressed="SignInAsync">
         <MudTextField @bind-Value="_username"
                       Label="User name"
                       autocomplete="username"
+                      Immediate="true"
                       Required="true"
                       Variant="Variant.Outlined"
                       Margin="Margin.Dense" />
@@ -18,10 +19,13 @@
                       Label="Password"
                       InputType="InputType.Password"
                       autocomplete="current-password"
+                      Immediate="true"
                       Required="true"
                       Variant="Variant.Outlined"
                       Margin="Margin.Dense" />
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="SignInAsync">Sign in</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Disabled="@_signingIn" OnClick="SignInAsync">
+            @(_signingIn ? "Signing in…" : "Sign in")
+        </MudButton>
     </MudForm>
 </MudPaper>
 
@@ -32,24 +36,36 @@
     private MudForm _form = default!;
     private string _username = string.Empty;
     private string _password = string.Empty;
+    private bool _signingIn;
 
     private async Task SignInAsync()
     {
-        await _form.Validate();
-        if (!_form.IsValid)
+        if (_signingIn)
             return;
 
-        var result = await CredentialsValidator.ValidateCredentialsAsync(_username, _password);
-        if (!result.IsValid)
+        _signingIn = true;
+        try
         {
-            await Context.ReportFailureAsync("Invalid credentials. Try again.");
-            return;
-        }
+            await _form.Validate();
+            if (!_form.IsValid)
+                return;
 
-        await JwtAccessor.WriteTokenAsync(Elsa.Studio.Authentication.ElsaIdentity.TokenNames.AccessToken, result.AccessToken!);
-        await JwtAccessor.WriteTokenAsync(Elsa.Studio.Authentication.ElsaIdentity.TokenNames.RefreshToken, result.RefreshToken!);
-        if (AuthenticationStateProvider is Elsa.Studio.Authentication.ElsaIdentity.Services.AccessTokenAuthenticationStateProvider stateProvider)
-            stateProvider.NotifyAuthenticationStateChanged();
-        Navigation.NavigateTo(Context.ReturnPath, forceLoad: true);
+            var result = await CredentialsValidator.ValidateCredentialsAsync(_username, _password);
+            if (!result.IsValid)
+            {
+                await Context.ReportFailureAsync("Invalid credentials. Try again.");
+                return;
+            }
+
+            await JwtAccessor.WriteTokenAsync(Elsa.Studio.Authentication.ElsaIdentity.TokenNames.AccessToken, result.AccessToken!);
+            await JwtAccessor.WriteTokenAsync(Elsa.Studio.Authentication.ElsaIdentity.TokenNames.RefreshToken, result.RefreshToken!);
+            if (AuthenticationStateProvider is Elsa.Studio.Authentication.ElsaIdentity.Services.AccessTokenAuthenticationStateProvider stateProvider)
+                stateProvider.NotifyAuthenticationStateChanged();
+            Navigation.NavigateTo(Context.ReturnPath, forceLoad: true);
+        }
+        finally
+        {
+            _signingIn = false;
+        }
     }
 }

@@ -260,6 +260,41 @@ public sealed class DeleteRoleDialogTests : BunitContext, IAsyncLifetime
         Assert.DoesNotContain("Replacement default role", dialog.Markup, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task RemediationReference_ExposesResponsiveRowHookWithCompleteReferenceCopy()
+    {
+        var service = new FakeRoleDeletionService
+        {
+            Inspection = new RoleDeletionInspectionResult
+            {
+                Outcome = RoleDeletionInspectionOutcome.RemediationRequired,
+                Impact = new RoleDeletionImpactResponse
+                {
+                    RoleId = "role-1",
+                    DependencyVersion = "dependency-version-with-a-long-identifier-that-must-wrap-on-small-screens",
+                    CanDelete = false,
+                    CanRemediate = true,
+                    EditableReferences =
+                    [
+                        new RoleDeletionDependencyResponse
+                        {
+                            Source = "external-authentication",
+                            OwnerId = "connection-with-a-long-identifier",
+                            OwnerKey = "Connection owner with a long display name"
+                        }
+                    ]
+                }
+            }
+        };
+        var (provider, _) = await OpenAsync("role-1", "Auditors", CanDelete, service: service);
+        var dialog = provider.FindComponent<DeleteRoleDialog>();
+
+        var referenceRow = dialog.Find(".role-deletion-reference-row");
+        Assert.Contains("Connection owner with a long display name", referenceRow.TextContent, StringComparison.Ordinal);
+        Assert.NotNull(referenceRow.QuerySelector("input[type=checkbox]"));
+        Assert.Contains("dependency-version-with-a-long-identifier-that-must-wrap-on-small-screens", dialog.Markup, StringComparison.Ordinal);
+    }
+
     private async Task<IRenderedComponent<MudDialogProvider>> ShowAsync(
         string roleId,
         string roleName,

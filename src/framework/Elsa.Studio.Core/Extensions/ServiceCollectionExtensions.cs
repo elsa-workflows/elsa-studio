@@ -45,6 +45,7 @@ public static class ServiceCollectionExtensions
 
         services
             .AddScoped<IBlazorServiceAccessor, BlazorServiceAccessor>()
+            .AddScoped<ICurrentUserPermissionService, CurrentUserPermissionService>()
             .AddScoped<IMenuService, DefaultMenuService>()
             .AddScoped<IMenuGroupProvider, DefaultMenuGroupProvider>()
             .AddScoped<IAppBarService, DefaultAppBarService>()

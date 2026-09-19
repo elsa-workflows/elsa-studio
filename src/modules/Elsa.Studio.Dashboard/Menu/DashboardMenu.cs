@@ -22,7 +22,8 @@ public class DashboardMenu(ILocalizer localizer) : IMenuProvider
                 Href = "",
                 Text = localizer["Dashboard"],
                 GroupName = MenuItemGroups.General.Name,
-                Match = NavLinkMatch.All
+                Match = NavLinkMatch.All,
+                RequiredPermission = "dashboard:view"
             }
         };
 
