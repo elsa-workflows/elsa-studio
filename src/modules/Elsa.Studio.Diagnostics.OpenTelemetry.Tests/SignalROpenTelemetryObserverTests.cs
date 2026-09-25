@@ -32,10 +32,12 @@ public class SignalROpenTelemetryObserverTests
 
         await foreach (var _ in observer.ObserveAsync(new OpenTelemetryTraceFilter { TraceId = "trace-1" }))
         {
+            // Drain the stream so the observer completes its filter update.
         }
 
         await foreach (var _ in observer.ObserveAsync(new OpenTelemetryTraceFilter { TraceId = "trace-2" }))
         {
+            // Drain the stream before asserting the replacement filter.
         }
 
         Assert.Equal("trace-2", observer.CurrentFilter?.TraceId);
