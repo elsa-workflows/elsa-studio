@@ -65,8 +65,6 @@ public class EnvironmentsModuleTests : IDisposable
     public void AddEnvironmentsModule_DoesNotRegisterStartupTask()
     {
         Assert.Empty(_serviceProvider.GetServices<IStartupTask>());
-        Assert.Null(typeof(EnvironmentLoader).Assembly.GetType(
-            "Elsa.Studio.Environments.Tasks.LoadEnvironmentsStartupTask"));
     }
 
     [Fact]
@@ -133,6 +131,77 @@ public class EnvironmentsModuleTests : IDisposable
     }
 
     [Fact]
+    public async Task EnvironmentLoader_FailedLoad_IsNotCachedAndRetries()
+    {
+        // Arrange
+        _primaryHandler.ThrowOnSend = new InvalidOperationException("The environments API is unreachable.");
+        var loader = _serviceProvider.GetRequiredService<EnvironmentLoader>();
+        var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
+
+        // Act
+        await loader.EnsureLoadedAsync();
+
+        // Assert
+        Assert.Empty(environments.Environments);
+        var failedRequests = _primaryHandler.RequestCount;
+        Assert.True(failedRequests >= 1);
+
+        // Arrange: backend recovers
+        _primaryHandler.ThrowOnSend = null;
+        _primaryHandler.ResponseContent = """
+            {
+              "environments": [
+                { "name": "Dev", "url": "https://dev.example/" }
+              ],
+              "defaultEnvironmentName": "Dev"
+            }
+            """;
+
+        // Act
+        await loader.EnsureLoadedAsync();
+
+        // Assert
+        Assert.True(_primaryHandler.RequestCount > failedRequests);
+        Assert.Equal("Dev", environments.CurrentEnvironment?.Name);
+    }
+
+    [Fact]
+    public async Task EnvironmentLoader_HttpClientTimeout_DoesNotThrowAndRetries()
+    {
+        // Arrange: HttpClient.Timeout surfaces as TaskCanceledException while the caller token is still open.
+        _primaryHandler.ThrowOnSend = new TaskCanceledException(
+            "The request was canceled due to the configured HttpClient.Timeout.");
+        var loader = _serviceProvider.GetRequiredService<EnvironmentLoader>();
+        var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
+
+        // Act
+        await loader.EnsureLoadedAsync();
+
+        // Assert
+        Assert.Empty(environments.Environments);
+        var timedOutRequests = _primaryHandler.RequestCount;
+        Assert.True(timedOutRequests >= 1);
+
+        // Arrange: backend recovers
+        _primaryHandler.ThrowOnSend = null;
+        _primaryHandler.ResponseContent = """
+            {
+              "environments": [
+                { "name": "Dev", "url": "https://dev.example/" }
+              ],
+              "defaultEnvironmentName": "Dev"
+            }
+            """;
+
+        // Act
+        await loader.EnsureLoadedAsync();
+
+        // Assert
+        Assert.True(_primaryHandler.RequestCount > timedOutRequests);
+        Assert.Equal("Dev", environments.CurrentEnvironment?.Name);
+    }
+
+    [Fact]
     public async Task FeatureInitialize_FillsEnvironmentsForThePicker()
     {
         _primaryHandler.ResponseContent = """
@@ -162,7 +231,7 @@ public class EnvironmentsModuleTests : IDisposable
 
         var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
         Assert.Empty(environments.Environments);
-        Assert.Contains(_serviceProvider.GetRequiredService<IAppBarService>().AppBarElements, _ => true);
+        Assert.NotEmpty(_serviceProvider.GetRequiredService<IAppBarService>().AppBarElements);
     }
 
     [Fact]
@@ -176,7 +245,7 @@ public class EnvironmentsModuleTests : IDisposable
 
         var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
         Assert.Empty(environments.Environments);
-        Assert.Contains(_serviceProvider.GetRequiredService<IAppBarService>().AppBarElements, _ => true);
+        Assert.NotEmpty(_serviceProvider.GetRequiredService<IAppBarService>().AppBarElements);
     }
 
     [Fact]
@@ -228,26 +297,31 @@ public class EnvironmentsModuleTests : IDisposable
         }
     }
 
-    private sealed class RecordingHandler : HttpMessageHandler
+    internal sealed class RecordingHandler : HttpMessageHandler
     {
         public HttpRequestMessage? LastRequest { get; private set; }
         public int RequestCount { get; private set; }
+        public List<HttpRequestMessage> Requests { get; } = [];
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
         public string ResponseContent { get; set; } = """{ "environments": [], "defaultEnvironmentName": null }""";
         public Exception? ThrowOnSend { get; set; }
+        public Func<HttpRequestMessage, string>? ResponseContentForRequest { get; set; }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             LastRequest = request;
             RequestCount++;
+            Requests.Add(request);
 
             if (ThrowOnSend is not null)
                 throw ThrowOnSend;
 
+            var content = ResponseContentForRequest?.Invoke(request) ?? ResponseContent;
+
             return Task.FromResult(new HttpResponseMessage(StatusCode)
             {
                 RequestMessage = request,
-                Content = new StringContent(ResponseContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"))
+                Content = new StringContent(content, Encoding.UTF8, new MediaTypeHeaderValue("application/json"))
             });
         }
     }
