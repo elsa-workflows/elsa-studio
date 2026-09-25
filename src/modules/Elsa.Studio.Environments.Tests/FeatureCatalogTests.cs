@@ -12,17 +12,82 @@ using Xunit;
 namespace Elsa.Studio.Environments.Tests;
 
 /// <summary>
-/// The default environment must be selected before <see cref="IRemoteFeatureProvider.ListAsync"/>
+/// The default environment must be selected before the remote feature catalog is fetched
 /// so features are gated against that environment's catalog, not the fallback backend.
 /// </summary>
-public class FeatureCatalogTests : IDisposable
+public class FeatureCatalogTests
 {
-    private readonly EnvironmentsModuleTests.RecordingHandler _handler = new();
-    private readonly DefaultOnlyFeature _defaultOnlyFeature = new();
-    private readonly FallbackOnlyFeature _fallbackOnlyFeature = new();
-    private readonly ServiceProvider _serviceProvider;
+    [Fact]
+    public Task InitializeFeatures_UsesDefaultCatalog_WhenEnvironmentsRegisteredFirst() =>
+        AssertUsesDefaultCatalog(environmentsFirst: true);
 
-    public FeatureCatalogTests()
+    [Fact]
+    public Task InitializeFeatures_UsesDefaultCatalog_WhenRemoteProviderRegisteredFirst() =>
+        AssertUsesDefaultCatalog(environmentsFirst: false);
+
+    [Fact]
+    public async Task InitializeFeatures_FailedThenSucceeds_SecondPassUsesDefaultCatalog()
+    {
+        // Arrange
+        var defaultOnly = new DefaultOnlyFeature();
+        var fallbackOnly = new FallbackOnlyFeature();
+        var handler = CreateCatalogHandler();
+        handler.RemainingEnvironmentFailures = 1;
+        using var provider = BuildServices(environmentsFirst: true, handler, defaultOnly, fallbackOnly);
+        var features = provider.GetRequiredService<IFeatureService>();
+        var environments = provider.GetRequiredService<IEnvironmentService>();
+
+        // Act
+        await features.InitializeFeaturesAsync();
+
+        // Assert: one failed load; stay on the fallback catalog for this pass.
+        Assert.Equal(1, handler.EnvironmentRequestCount);
+        Assert.Null(environments.CurrentEnvironment);
+        Assert.True(fallbackOnly.Initialized);
+        Assert.False(defaultOnly.Initialized);
+
+        // Act
+        await features.InitializeFeaturesAsync();
+
+        // Assert: the next pass loads Dev and gates against that catalog.
+        Assert.Equal(2, handler.EnvironmentRequestCount);
+        Assert.Equal("Dev", environments.CurrentEnvironment?.Name);
+        Assert.True(defaultOnly.Initialized);
+    }
+
+    private static async Task AssertUsesDefaultCatalog(bool environmentsFirst)
+    {
+        // Arrange
+        var defaultOnly = new DefaultOnlyFeature();
+        var fallbackOnly = new FallbackOnlyFeature();
+        var handler = CreateCatalogHandler();
+        using var provider = BuildServices(environmentsFirst, handler, defaultOnly, fallbackOnly);
+        var features = provider.GetRequiredService<IFeatureService>();
+        var environments = provider.GetRequiredService<IEnvironmentService>();
+
+        // Act
+        await features.InitializeFeaturesAsync();
+
+        // Assert
+        Assert.Equal(1, handler.EnvironmentRequestCount);
+        Assert.Equal("Dev", environments.CurrentEnvironment?.Name);
+        Assert.Equal(new Uri("https://dev.example/"), environments.CurrentEnvironment?.Url);
+        Assert.True(defaultOnly.Initialized);
+        Assert.False(fallbackOnly.Initialized);
+        Assert.Contains(handler.Requests, request =>
+            request.RequestUri is not null
+            && request.RequestUri.Host == "dev.example"
+            && request.RequestUri.AbsolutePath.Contains("features", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(handler.Requests, request =>
+            request.RequestUri is not null
+            && request.RequestUri.Host == "backend.example"
+            && request.RequestUri.AbsolutePath.Contains("features", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static ServiceProvider BuildServices(
+        bool environmentsFirst,
+        EnvironmentsModuleTests.RecordingHandler handler,
+        params IFeature[] extraFeatures)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -35,80 +100,71 @@ public class FeatureCatalogTests : IDisposable
         };
 
         services.AddRemoteBackend(backendApiConfig);
-        services.AddEnvironmentsModule(backendApiConfig);
-        // Same order as Host.Server: Workflows registers IRemoteFeatureProvider after Environments.
-        services.AddScoped<IRemoteFeatureProvider, RemoteFeatureProvider>();
-        services.AddSingleton<IFeature>(_defaultOnlyFeature);
-        services.AddSingleton<IFeature>(_fallbackOnlyFeature);
-        services.AddHttpClient(nameof(IEnvironmentsClient)).ConfigurePrimaryHttpMessageHandler(() => _handler);
-        services.AddHttpClient(nameof(IFeaturesApi)).ConfigurePrimaryHttpMessageHandler(() => _handler);
 
-        _handler.ResponseContentForRequest = request =>
+        if (environmentsFirst)
         {
-            var url = request.RequestUri?.ToString() ?? string.Empty;
-            if (url.Contains("/environments", StringComparison.OrdinalIgnoreCase))
-            {
-                return """
-                    {
-                      "environments": [
-                        { "name": "Fallback", "url": "https://backend.example/" },
-                        { "name": "Dev", "url": "https://dev.example/" }
-                      ],
-                      "defaultEnvironmentName": "Dev"
-                    }
-                    """;
-            }
+            services.AddEnvironmentsModule(backendApiConfig);
+            services.AddScoped<IRemoteFeatureProvider, RemoteFeatureProvider>();
+        }
+        else
+        {
+            services.AddScoped<IRemoteFeatureProvider, RemoteFeatureProvider>();
+            services.AddEnvironmentsModule(backendApiConfig);
+        }
 
-            if (url.Contains("dev.example", StringComparison.OrdinalIgnoreCase))
+        foreach (var feature in extraFeatures)
+            services.AddSingleton<IFeature>(feature);
+
+        services.AddHttpClient(nameof(IEnvironmentsClient)).ConfigurePrimaryHttpMessageHandler(() => handler);
+        services.AddHttpClient(nameof(IFeaturesApi)).ConfigurePrimaryHttpMessageHandler(() => handler);
+
+        return services.BuildServiceProvider();
+    }
+
+    private static EnvironmentsModuleTests.RecordingHandler CreateCatalogHandler()
+    {
+        var handler = new EnvironmentsModuleTests.RecordingHandler
+        {
+            ResponseContentForRequest = request =>
             {
+                var url = request.RequestUri?.ToString() ?? string.Empty;
+                if (url.Contains("/environments", StringComparison.OrdinalIgnoreCase))
+                {
+                    return """
+                        {
+                          "environments": [
+                            { "name": "Fallback", "url": "https://backend.example/" },
+                            { "name": "Dev", "url": "https://dev.example/" }
+                          ],
+                          "defaultEnvironmentName": "Dev"
+                        }
+                        """;
+                }
+
+                if (url.Contains("dev.example", StringComparison.OrdinalIgnoreCase))
+                {
+                    return """
+                        {
+                          "items": [
+                            { "fullName": "Elsa.DefaultOnly", "name": "DefaultOnly", "namespace": "Elsa" }
+                          ],
+                          "totalCount": 1
+                        }
+                        """;
+                }
+
                 return """
                     {
                       "items": [
-                        { "fullName": "Elsa.DefaultOnly", "name": "DefaultOnly", "namespace": "Elsa" }
+                        { "fullName": "Elsa.FallbackOnly", "name": "FallbackOnly", "namespace": "Elsa" }
                       ],
                       "totalCount": 1
                     }
                     """;
             }
-
-            return """
-                {
-                  "items": [
-                    { "fullName": "Elsa.FallbackOnly", "name": "FallbackOnly", "namespace": "Elsa" }
-                  ],
-                  "totalCount": 1
-                }
-                """;
         };
 
-        _serviceProvider = services.BuildServiceProvider();
-    }
-
-    public void Dispose() => _serviceProvider.Dispose();
-
-    [Fact]
-    public async Task InitializeFeatures_UsesTheDefaultEnvironmentCatalog()
-    {
-        // Arrange
-        var features = _serviceProvider.GetRequiredService<IFeatureService>();
-        var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
-
-        // Act
-        await features.InitializeFeaturesAsync();
-
-        // Assert
-        Assert.Equal("Dev", environments.CurrentEnvironment?.Name);
-        Assert.Equal(new Uri("https://dev.example/"), environments.CurrentEnvironment?.Url);
-        Assert.True(_defaultOnlyFeature.Initialized);
-        Assert.False(_fallbackOnlyFeature.Initialized);
-        Assert.Contains(_handler.Requests, request =>
-            request.RequestUri is not null
-            && request.RequestUri.Host == "dev.example"
-            && request.RequestUri.AbsolutePath.Contains("features", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(_handler.Requests, request =>
-            request.RequestUri is not null
-            && request.RequestUri.Host == "backend.example"
-            && request.RequestUri.AbsolutePath.Contains("features", StringComparison.OrdinalIgnoreCase));
+        return handler;
     }
 
     [RemoteFeature("Elsa.DefaultOnly")]

@@ -20,13 +20,11 @@ public static class ServiceCollectionExtensions
     /// <remarks>
     /// Environment switching updates <see cref="IRemoteBackendAccessor"/> so
     /// <see cref="DefaultBackendApiClientProvider"/> keeps minting clients.
-    /// Environments load from <see cref="Feature.InitializeAsync"/> after the app shell has a
-    /// circuit and user context. They are not registered as <see cref="IStartupTask"/> so Blazor
-    /// Server host startup does not call the environments API (or JS interop) during
-    /// <c>Host.StartAsync</c>.
-    /// <see cref="IRemoteFeatureProvider.ListAsync"/> waits for
-    /// <see cref="EnvironmentLoader.EnsureLoadedAsync"/> so the default environment is selected
-    /// before the remote feature catalog is fetched.
+    /// Environments load once from <see cref="EnvironmentAwareFeatureService"/> before
+    /// the remote feature catalog is fetched. They are not registered as
+    /// <see cref="IStartupTask"/> so Blazor Server host startup does not call the
+    /// environments API (or JS interop) during <c>Host.StartAsync</c>.
+    /// <see cref="Feature.InitializeAsync"/> only registers the picker.
     /// </remarks>
     public static IServiceCollection AddEnvironmentsModule(this IServiceCollection services, BackendApiConfig? backendApiConfig = null)
     {
@@ -35,29 +33,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<EnvironmentLoader>();
         services.AddScoped<IFeature, Feature>();
         services.AddRemoteApi<IEnvironmentsClient>(backendApiConfig);
-        DecorateRemoteFeatureProvider(services);
-        return services;
-    }
-
-    private static void DecorateRemoteFeatureProvider(IServiceCollection services)
-    {
-        services.TryAddScoped<RemoteFeatureProvider>();
-        services.Replace(ServiceDescriptor.Scoped<IRemoteFeatureProvider>(sp =>
-            new EnvironmentAwareRemoteFeatureProvider(
-                sp.GetRequiredService<RemoteFeatureProvider>(),
-                sp.GetRequiredService<EnvironmentLoader>())));
-
-        // DefaultFeatureService resolves a single IRemoteFeatureProvider (last registration).
-        // Workflows may add another after this module; wrap whatever is resolved at that point.
         services.Replace(ServiceDescriptor.Scoped<IFeatureService>(sp =>
-        {
-            var loader = sp.GetRequiredService<EnvironmentLoader>();
-            var remote = sp.GetService<IRemoteFeatureProvider>()
-                ?? sp.GetRequiredService<RemoteFeatureProvider>();
-            if (remote is not EnvironmentAwareRemoteFeatureProvider)
-                remote = new EnvironmentAwareRemoteFeatureProvider(remote, loader);
-
-            return new DefaultFeatureService(sp.GetServices<IFeature>(), remote);
-        }));
+            new EnvironmentAwareFeatureService(
+                new DefaultFeatureService(
+                    sp.GetServices<IFeature>(),
+                    sp.GetRequiredService<IRemoteFeatureProvider>()),
+                sp.GetRequiredService<EnvironmentLoader>())));
+        return services;
     }
 }

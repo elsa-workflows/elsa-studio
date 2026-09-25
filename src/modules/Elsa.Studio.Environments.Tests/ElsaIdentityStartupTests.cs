@@ -1,9 +1,9 @@
+using Elsa.Api.Client.Resources.Features.Models;
 using Elsa.Studio.Authentication.ElsaIdentity.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.Contracts;
 using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorServer.HostedServices;
-using Elsa.Studio.Environments;
 using Elsa.Studio.Environments.Contracts;
 using Elsa.Studio.Environments.Extensions;
 using Elsa.Studio.Extensions;
@@ -22,15 +22,14 @@ namespace Elsa.Studio.Environments.Tests;
 public class ElsaIdentityStartupTests
 {
     [Fact]
-    public async Task FeatureInitialize_DoesNotThrowWhenElsaIdentityTokenReadFails()
+    public async Task InitializeFeatures_DoesNotThrowWhenElsaIdentityTokenReadFails()
     {
         // Arrange
         var jwtAccessor = new ThrowingJwtAccessor();
         using var provider = BuildElsaIdentityServices(jwtAccessor, registerHostedService: false);
-        var feature = provider.GetServices<IFeature>().OfType<Feature>().Single();
 
         // Act
-        await feature.InitializeAsync();
+        await provider.GetRequiredService<IFeatureService>().InitializeFeaturesAsync();
 
         // Assert
         Assert.True(jwtAccessor.ReadCount > 0);
@@ -60,6 +59,7 @@ public class ElsaIdentityStartupTests
         services.AddCoreInternal();
         services.AddElsaIdentity();
         services.Replace(ServiceDescriptor.Scoped(_ => jwtAccessor));
+        services.AddSingleton<IRemoteFeatureProvider, EmptyRemoteFeatureProvider>();
 
         var backendApiConfig = new BackendApiConfig
         {
@@ -75,6 +75,15 @@ public class ElsaIdentityStartupTests
             services.AddHostedService<RunStartupTasksHostedService>();
 
         return services.BuildServiceProvider();
+    }
+
+    private sealed class EmptyRemoteFeatureProvider : IRemoteFeatureProvider
+    {
+        public Task<bool> IsEnabledAsync(string featureName, CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
+
+        public Task<IEnumerable<FeatureDescriptor>> ListAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IEnumerable<FeatureDescriptor>>([]);
     }
 
     private sealed class ThrowingJwtAccessor : IJwtAccessor
