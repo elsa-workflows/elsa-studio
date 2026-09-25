@@ -2,6 +2,7 @@ using System.Net;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Environments.Contracts;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 using Refit;
 
 namespace Elsa.Studio.Environments.Services;
@@ -51,6 +52,10 @@ public class EnvironmentLoader(
             or HttpStatusCode.Forbidden)
         {
             logger.LogWarning("Environments API returned {StatusCode}; the picker will stay empty.", (int)exception.StatusCode);
+        }
+        catch (Exception exception) when (exception is JSDisconnectedException or ObjectDisposedException)
+        {
+            logger.LogDebug(exception, "Could not load environments; the picker will stay empty.");
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
