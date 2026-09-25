@@ -4,6 +4,7 @@ using Elsa.Api.Client.Resources.Resilience.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Localization;
+using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,7 @@ public sealed class ActivityExecutionDetailsTests : BunitContext, IAsyncLifetime
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
         Services.AddSingleton<ILocalizer, TestLocalizer>();
+        Services.AddSingleton<ITimeFormatter, TestTimeFormatter>();
         Services.AddSingleton<IActivityExecutionService>(_executionService);
         Services.AddSingleton<IClipboard, ClipboardStub>();
         Render<MudPopoverProvider>();
@@ -138,6 +140,12 @@ public sealed class ActivityExecutionDetailsTests : BunitContext, IAsyncLifetime
     private sealed class ClipboardStub : IClipboard
     {
         public Task CopyText(string text, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class TestTimeFormatter : ITimeFormatter
+    {
+        public string Format(DateTimeOffset? value, string format = "G", string emptyString = "") =>
+            value?.ToString(format) ?? emptyString;
     }
 
     private sealed class TestLocalizer : ILocalizer
