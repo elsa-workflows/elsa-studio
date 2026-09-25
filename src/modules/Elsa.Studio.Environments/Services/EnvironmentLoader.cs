@@ -26,21 +26,17 @@ public class EnvironmentLoader(
     /// Successful loads are cached. Failures are logged, leave the picker empty,
     /// and are not cached so the next call tries again.
     /// </summary>
-    public Task EnsureLoadedAsync(CancellationToken cancellationToken = default)
-    {
-        return _loadTask ??= LoadAsync(cancellationToken);
-    }
+    public Task EnsureLoadedAsync(CancellationToken cancellationToken = default) =>
+        _loadTask ?? LoadAsync(cancellationToken);
 
     private async Task LoadAsync(CancellationToken cancellationToken)
     {
-        var succeeded = false;
-
         try
         {
             var environmentsClient = await backendApiClientProvider.GetApiAsync<IEnvironmentsClient>(cancellationToken);
             var response = await environmentsClient.ListEnvironmentsAsync(cancellationToken);
             environmentService.SetEnvironments(response.Environments, response.DefaultEnvironmentName);
-            succeeded = true;
+            _loadTask = Task.CompletedTask;
         }
         catch (OperationCanceledException exception) when (!cancellationToken.IsCancellationRequested)
         {
@@ -60,11 +56,6 @@ public class EnvironmentLoader(
         {
             // No token yet, JS interop unavailable, or any other load failure must not crash the circuit.
             logger.LogWarning(exception, "Could not load environments; the picker will stay empty.");
-        }
-        finally
-        {
-            if (!succeeded)
-                _loadTask = null;
         }
     }
 }
