@@ -6,7 +6,6 @@ using Elsa.Studio.Environments.Contracts;
 using Elsa.Studio.Environments.Extensions;
 using Elsa.Studio.Environments.Models;
 using Elsa.Studio.Environments.Services;
-using Elsa.Studio.Environments.Tasks;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Models;
 using Elsa.Studio.Services;
@@ -20,6 +19,10 @@ namespace Elsa.Studio.Environments.Tests;
 /// updating <see cref="IRemoteBackendAccessor"/> and reusing <see cref="DefaultBackendApiClientProvider"/>,
 /// not by replacing it with a private ServiceProvider factory.
 /// </summary>
+/// <remarks>
+/// Also covers #1062: Blazor Server host startup must not call the environments client.
+/// The list loads once from the deferred Feature / <see cref="EnvironmentLoader"/> path.
+/// </remarks>
 public class EnvironmentsModuleTests : IDisposable
 {
     private readonly RecordingHandler _primaryHandler = new();
@@ -59,7 +62,30 @@ public class EnvironmentsModuleTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadEnvironmentsStartupTask_PopulatesEnvironmentService()
+    public void AddEnvironmentsModule_DoesNotRegisterStartupTask()
+    {
+        Assert.Empty(_serviceProvider.GetServices<IStartupTask>());
+        Assert.Null(typeof(EnvironmentLoader).Assembly.GetType(
+            "Elsa.Studio.Environments.Tasks.LoadEnvironmentsStartupTask"));
+    }
+
+    [Fact]
+    public async Task BlazorServerStartupPath_DoesNotCallEnvironmentsClient()
+    {
+        // Arrange: same path as RunStartupTasksHostedService during Host.StartAsync.
+        var runner = _serviceProvider.GetRequiredService<IStartupTaskRunner>();
+
+        // Act
+        await runner.RunStartupTasksAsync();
+
+        // Assert
+        Assert.Null(_primaryHandler.LastRequest);
+        Assert.Equal(0, _primaryHandler.RequestCount);
+        Assert.Empty(_serviceProvider.GetRequiredService<IEnvironmentService>().Environments);
+    }
+
+    [Fact]
+    public async Task FeatureInitialize_LoadsEnvironmentsOnce()
     {
         _primaryHandler.ResponseContent = """
             {
@@ -71,13 +97,39 @@ public class EnvironmentsModuleTests : IDisposable
             }
             """;
 
-        var task = _serviceProvider.GetServices<IStartupTask>().OfType<LoadEnvironmentsStartupTask>().Single();
-        await task.LoadAsync();
-
+        var feature = _serviceProvider.GetServices<IFeature>().OfType<Feature>().Single();
         var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
+
+        await feature.InitializeAsync();
+        await feature.InitializeAsync();
+
+        Assert.Equal(1, _primaryHandler.RequestCount);
         Assert.Equal(["Dev", "Prod"], environments.Environments.Select(environment => environment.Name));
         Assert.Equal("Dev", environments.CurrentEnvironment?.Name);
         Assert.Equal(new Uri("https://dev.example/"), environments.CurrentEnvironment?.Url);
+    }
+
+    [Fact]
+    public async Task EnvironmentLoader_EnsureLoadedAsync_LoadsOnce()
+    {
+        _primaryHandler.ResponseContent = """
+            {
+              "environments": [
+                { "name": "Staging", "url": "https://staging.example/" }
+              ],
+              "defaultEnvironmentName": "Staging"
+            }
+            """;
+
+        var loader = _serviceProvider.GetRequiredService<EnvironmentLoader>();
+
+        await loader.EnsureLoadedAsync();
+        await loader.EnsureLoadedAsync();
+
+        var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
+        Assert.Equal(1, _primaryHandler.RequestCount);
+        Assert.Equal("Staging", environments.CurrentEnvironment?.Name);
+        Assert.Contains(environments.Environments, environment => environment.Name == "Staging");
     }
 
     [Fact]
@@ -104,6 +156,20 @@ public class EnvironmentsModuleTests : IDisposable
     public async Task FeatureInitialize_DoesNotThrowWhenEnvironmentsApiIsMissing()
     {
         _primaryHandler.StatusCode = HttpStatusCode.NotFound;
+
+        var feature = _serviceProvider.GetServices<IFeature>().OfType<Feature>().Single();
+        await feature.InitializeAsync();
+
+        var environments = _serviceProvider.GetRequiredService<IEnvironmentService>();
+        Assert.Empty(environments.Environments);
+        Assert.Contains(_serviceProvider.GetRequiredService<IAppBarService>().AppBarElements, _ => true);
+    }
+
+    [Fact]
+    public async Task FeatureInitialize_DoesNotThrowWhenJavaScriptInteropIsUnavailable()
+    {
+        _primaryHandler.ThrowOnSend = new InvalidOperationException(
+            "JavaScript interop calls cannot be issued at this time.");
 
         var feature = _serviceProvider.GetServices<IFeature>().OfType<Feature>().Single();
         await feature.InitializeAsync();
@@ -165,12 +231,19 @@ public class EnvironmentsModuleTests : IDisposable
     private sealed class RecordingHandler : HttpMessageHandler
     {
         public HttpRequestMessage? LastRequest { get; private set; }
+        public int RequestCount { get; private set; }
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
         public string ResponseContent { get; set; } = """{ "environments": [], "defaultEnvironmentName": null }""";
+        public Exception? ThrowOnSend { get; set; }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             LastRequest = request;
+            RequestCount++;
+
+            if (ThrowOnSend is not null)
+                throw ThrowOnSend;
+
             return Task.FromResult(new HttpResponseMessage(StatusCode)
             {
                 RequestMessage = request,
