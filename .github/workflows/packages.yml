@@ -1,6 +1,16 @@
 name: Packages
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Optional package version override (semver-ish, e.g. 3.8.1 or 3.8.0-preview.1). Required when publish is checked. Leave empty for default branch/tag versioning.'
+        required: false
+        type: string
+      publish:
+        description: 'Publish packed artifacts to feedz.io only. On main this never publishes to nuget.org or npmjs (3.10 is feedz-only until the maintainer allows otherwise). Requires a non-empty version override so a blank dispatch cannot ship 3.10.0-preview.N.'
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - 'main'
@@ -60,13 +70,33 @@ jobs:
             git branch --remote --contains | grep origin/${BRANCH_NAME}
           fi
       - name: Set VERSION variable
+        env:
+          # Dispatcher input via env — do not interpolate inputs.version into bash.
+          VERSION: ${{ github.event.inputs.version }}
+          PUBLISH: ${{ github.event.inputs.publish }}
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
+          set -euo pipefail
+          version_re='^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$'
+
+          if [[ "${PUBLISH:-}" == "true" ]]; then
+            if [[ -z "${VERSION:-}" || ! "$VERSION" =~ $version_re ]]; then
+              echo "publish requires a valid version (e.g. 3.8.1). Refusing to ship ${{ env.base_version }}-preview.N" >&2
+              exit 1
+            fi
+          fi
+
+          if [[ -n "${VERSION:-}" ]]; then
+            if [[ ! "$VERSION" =~ $version_re ]]; then
+              echo "Invalid version override. Expected a package version like 3.8.1 or 3.8.0-preview.1" >&2
+              exit 1
+            fi
+            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          elif [[ "${{ github.ref }}" == refs/tags/* && "${{ github.event_name }}" == "release" && ("${{ github.event.action }}" == "published" || "${{ github.event.action }}" == "prereleased") ]]; then
             TAG_NAME=${{ github.ref }} # e.g., refs/tags/3.0.0
             TAG_NAME=${TAG_NAME#refs/tags/} # remove the refs/tags/ prefix
-            echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
+            echo "VERSION=${TAG_NAME}" >> "$GITHUB_ENV"
           else
-            echo "VERSION=${{env.base_version}}-${PACKAGE_PREFIX}.${{github.run_number}}" >> $GITHUB_ENV
+            echo "VERSION=${{ env.base_version }}-${PACKAGE_PREFIX}.${{ github.run_number }}" >> "$GITHUB_ENV"
           fi
       - uses: actions/setup-dotnet@v4
         with:
@@ -154,7 +184,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+    if: ${{ github.event_name == 'release' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish && inputs.version != '') }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -227,11 +257,20 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    # Fail-closed public npm: workflow_dispatch is intentionally omitted.
+    # A "Run workflow" click with publish=true + version=3.10.x (or any version)
+    # must not reach npmjs. 3.10 is feedz-only until Sipke allows otherwise.
+    # The only public-publish path is a published GitHub Release (not dispatch).
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' && github.event_name != 'workflow_dispatch' }}
     permissions:
       contents: read
       id-token: write # Required: lets this job request the OIDC token npmjs.com exchanges for publish rights.
     steps:
+      - name: Refuse public npm publish from workflow_dispatch
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "Fail-closed: workflow_dispatch cannot publish to npmjs from main. 3.10.x is feedz-only until the maintainer allows otherwise." >&2
+          exit 1
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -300,7 +339,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' || github.event_name == 'push'}}
+    if: ${{ github.event_name == 'release' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish && inputs.version != '') }}
     steps:
       - name: Download Packages
         uses: actions/download-artifact@v4
@@ -316,11 +355,20 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    # Fail-closed public NuGet: workflow_dispatch is intentionally omitted.
+    # A "Run workflow" click with publish=true + version=3.10.x (or any version)
+    # must not reach nuget.org. 3.10 is feedz-only until Sipke allows otherwise.
+    # The only public-publish path is a published GitHub Release (not dispatch).
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' && github.event_name != 'workflow_dispatch' }}
     permissions:
       contents: read
       id-token: write # Required: lets this job request the OIDC token that nuget.org exchanges for a temporary API key.
     steps:
+      - name: Refuse public NuGet publish from workflow_dispatch
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "Fail-closed: workflow_dispatch cannot publish to nuget.org from main. 3.10.x is feedz-only until the maintainer allows otherwise." >&2
+          exit 1
       - name: Download Packages
         uses: actions/download-artifact@v4
         with:
