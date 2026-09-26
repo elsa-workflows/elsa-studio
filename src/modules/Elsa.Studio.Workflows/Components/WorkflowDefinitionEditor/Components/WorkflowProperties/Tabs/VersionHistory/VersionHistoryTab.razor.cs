@@ -18,7 +18,13 @@ public partial class VersionHistoryTab : IDisposable
     /// Gets or sets the definition ID.
     [Parameter] public string DefinitionId { get; set; } = default!;
 
-    [CascadingParameter] private WorkflowDefinitionWorkspace Workspace { get; set; } = default!;
+    /// <remarks>
+    /// Null whenever no workspace of this exact type is cascaded - a host that renders this tab under its own
+    /// copy of <see cref="WorkflowDefinitionWorkspace"/> leaves it unset. Every use below tolerates that: the
+    /// version list stays readable and the actions that need a workspace turn themselves off, because throwing
+    /// from <see cref="IDisposable.Dispose"/> here would tear down the entire Blazor circuit.
+    /// </remarks>
+    [CascadingParameter] private WorkflowDefinitionWorkspace? Workspace { get; set; }
     [Inject] private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = default!;
     [Inject] private IWorkflowDefinitionHistoryService WorkflowDefinitionHistoryService { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
@@ -26,19 +32,21 @@ public partial class VersionHistoryTab : IDisposable
     
     private HashSet<WorkflowDefinitionSummary> SelectedDefinitions { get; set; } = new();
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
-    private bool IsReadOnly => Workspace.IsReadOnly;
-    private bool HasWorkflowEditPermission => Workspace.HasWorkflowEditPermission;
+    private bool IsReadOnly => Workspace?.IsReadOnly ?? true;
+    private bool HasWorkflowEditPermission => Workspace?.HasWorkflowEditPermission ?? false;
     private long _recordCount = 0;
 
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        Workspace.WorkflowDefinitionUpdated += OnWorkflowDefinitionUpdated;
+        if (Workspace is not null)
+            Workspace.WorkflowDefinitionUpdated += OnWorkflowDefinitionUpdated;
     }
 
     void IDisposable.Dispose()
     {
-        Workspace.WorkflowDefinitionUpdated -= OnWorkflowDefinitionUpdated;
+        if (Workspace is not null)
+            Workspace.WorkflowDefinitionUpdated -= OnWorkflowDefinitionUpdated;
     }
 
     private async Task<TableData<WorkflowDefinitionSummary>> LoadVersionsAsync(TableState tableState, CancellationToken cancellationToken)
@@ -67,6 +75,9 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task ViewVersionAsync(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
+        if (Workspace is null)
+            return;
+
         var workflowDefinition = (await WorkflowDefinitionService.FindByIdAsync(workflowDefinitionSummary.Id))!;
         await Workspace.DisplayWorkflowDefinitionVersionAsync(workflowDefinition);
     }
@@ -104,7 +115,7 @@ public partial class VersionHistoryTab : IDisposable
         await WorkflowDefinitionService.DeleteVersionAsync(workflowDefinitionVersion);
         await ReloadTableAsync();
 
-        if (Workspace.IsSelectedDefinition(workflowDefinitionVersion.WorkflowDefinitionVersionId))
+        if (Workspace?.IsSelectedDefinition(workflowDefinitionVersion.WorkflowDefinitionVersionId) == true)
             await Workspace.DisplayLatestWorkflowDefinitionVersionAsync();
     }
 
@@ -125,6 +136,9 @@ public partial class VersionHistoryTab : IDisposable
         await WorkflowDefinitionService.BulkDeleteVersionsAsync(definitionVersions);
         await ReloadTableAsync();
 
+        if (Workspace is null)
+            return;
+
         var selectedDefinition = Workspace.GetSelectedDefinition();
         if (selectedDefinition != null && definitionVersions.Any(x => x.WorkflowDefinitionVersionId == selectedDefinition.Id))
             await Workspace.DisplayLatestWorkflowDefinitionVersionAsync();
@@ -132,6 +146,9 @@ public partial class VersionHistoryTab : IDisposable
 
     private async Task OnRollbackClicked(WorkflowDefinitionSummary workflowDefinitionSummary)
     {
+        if (Workspace is null)
+            return;
+
         var definitionVersionId = workflowDefinitionSummary.Id;
         var definitionId = workflowDefinitionSummary.DefinitionId;
         var version = workflowDefinitionSummary.Version;
