@@ -17,7 +17,8 @@ This module provides the Blazor WebAssembly-specific implementation for OpenID C
 - `WasmTokenProvider` - Retrieves tokens from framework's `IAccessTokenProvider`
 - `NavigateToLogin` - Component that redirects to OIDC authentication page
 - `Authentication.razor` - Authentication page handling callbacks (`/authentication/{action}`)
-- `OpenIdConnectBlazorWasmFeature` - Registers authentication routes and pages
+- `OpenIdConnectBlazorWasmFeature` - Registers authentication routes and pages, and adds the app bar user menu
+- `OpenIdConnectUserMenu` - App bar user menu with a **Sign out** entry; see [Signing Out](../Elsa.Studio.Authentication.OpenIdConnect/README.md#signing-out)
 - Automatic token refresh and expiration handling
 
 ## Installation
@@ -213,7 +214,8 @@ Elsa.Studio.Authentication.OpenIdConnect.BlazorWasm/ (This module)
 ├── Services/
 │   └── WasmTokenProvider.cs                         (Token access via IAccessTokenProvider)
 ├── Components/
-│   └── NavigateToLogin.razor                        (Redirect to login page)
+│   ├── NavigateToLogin.razor                        (Redirect to login page)
+│   └── OpenIdConnectUserMenu.razor                  (App bar user menu with sign-out)
 ├── Pages/
 │   └── Authentication.razor                         (Authentication callback page)
 └── OpenIdConnectBlazorWasmFeature.cs                (Feature registration)
@@ -259,6 +261,7 @@ These routes are registered via `OpenIdConnectBlazorWasmFeature` and use the `Re
 You can trigger login/logout programmatically via navigation:
 
 ```razor
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject NavigationManager Navigation
 
 <button @onclick="Login">Login</button>
@@ -266,9 +269,11 @@ You can trigger login/logout programmatically via navigation:
 
 @code {
     void Login() => Navigation.NavigateTo("/authentication/login");
-    void Logout() => Navigation.NavigateTo("/authentication/logout");
+    void Logout() => Navigation.NavigateToLogout("authentication/logout", Navigation.BaseUri);
 }
 ```
+
+Sign out with `NavigateToLogout`. `RemoteAuthenticatorView` rejects a plain navigation to `/authentication/logout` as a logout that wasn't started from within the page.
 
 Or use the `NavigateToLogin` component provided by this module:
 

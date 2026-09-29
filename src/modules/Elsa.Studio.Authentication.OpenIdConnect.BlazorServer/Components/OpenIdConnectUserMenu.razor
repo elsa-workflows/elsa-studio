@@ -1,0 +1,26 @@
+@using Elsa.Studio.Components.AppBar
+@using Microsoft.AspNetCore.Antiforgery
+@using Microsoft.AspNetCore.Http
+@using MudBlazor
+@inject IAntiforgery Antiforgery
+@inject IHttpContextAccessor HttpContextAccessor
+
+<UserMenu>
+    <form method="post" action="/authentication/logout">
+        @if (_antiforgeryToken?.RequestToken is { } requestToken)
+        {
+            <input type="hidden" name="@_antiforgeryToken.FormFieldName" value="@requestToken" />
+        }
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Text" FullWidth="true">Sign out</MudButton>
+    </form>
+</UserMenu>
+
+@code {
+    private AntiforgeryTokenSet? _antiforgeryToken;
+
+    // The token is bound to the signed-in user, and only a signed-in user sees the menu.
+    protected override void OnInitialized() =>
+        _antiforgeryToken = HttpContextAccessor.HttpContext is { User.Identity.IsAuthenticated: true } context
+            ? Antiforgery.GetAndStoreTokens(context)
+            : null;
+}

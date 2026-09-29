@@ -18,7 +18,8 @@ This module provides the Blazor Server-specific implementation for OpenID Connec
 - `AuthCookieEvents` - Automatic token refresh on every HTTP request
 - `TokenRefreshService` - Shared token refresh logic for session and backend API tokens
 - `ChallengeToLogin` - Component that initiates OIDC authentication challenge
-- `AuthenticationController` - Controller endpoint for manual token refresh (optional)
+- `AuthenticationController` - Sign-in challenge (`GET /authentication/login`) and antiforgery-protected sign-out (`POST /authentication/logout`) endpoints
+- `OpenIdConnectUserMenu` - App bar user menu with a **Sign out** entry, added by `OpenIdConnectBlazorServerFeature`; see [Signing Out](../Elsa.Studio.Authentication.OpenIdConnect/README.md#signing-out)
 
 ## Installation
 
@@ -189,15 +190,17 @@ Elsa.Studio.Authentication.OpenIdConnect/            (Shared core)
 
 Elsa.Studio.Authentication.OpenIdConnect.BlazorServer/ (This module)
 ├── Controllers/
-│   └── AuthenticationController.cs                   (Optional manual refresh endpoint)
+│   └── AuthenticationController.cs                   (Sign-in challenge and sign-out endpoints)
 ├── Services/
 │   ├── ServerTokenProvider.cs                        (Token access via HttpContext)
 │   ├── TokenRefreshService.cs                        (Shared refresh logic)
 │   └── AuthCookieEvents.cs                           (Automatic refresh on request)
 ├── Components/
-│   └── ChallengeToLogin.razor                        (OIDC challenge component)
-└── Models/
-    └── TokenRefreshResult.cs                         (Refresh result DTO)
+│   ├── ChallengeToLogin.razor                        (OIDC challenge component)
+│   └── OpenIdConnectUserMenu.razor                   (App bar user menu with sign-out)
+├── Models/
+│   └── TokenRefreshResult.cs                         (Refresh result DTO)
+└── OpenIdConnectBlazorServerFeature.cs               (Adds the user menu to the app bar)
 ```
 
 ## Features

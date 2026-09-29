@@ -55,7 +55,9 @@ public static class ServiceCollectionExtensions
 
         // Register core services
         services.AddHttpContextAccessor();
+        services.AddAntiforgery();
         services.AddSingleton(options);
+        services.AddScoped<IFeature, OpenIdConnectBlazorServerFeature>();
         services.AddScoped<ITokenProvider, ServerTokenProvider>();
         services.AddScoped<IHttpConnectionOptionsConfigurator, OpenIdConnect.Services.OidcHttpConnectionOptionsConfigurator>();
         
@@ -117,6 +119,19 @@ public static class ServiceCollectionExtensions
                     NameClaimType = options.NameClaimType,
                     RoleClaimType = options.RoleClaimType,
                     ValidateIssuer = true
+                };
+
+                // Without an end_session_endpoint the handler throws instead of redirecting, failing the sign-out
+                // request. End the local session only.
+                oidcOptions.Events.OnRedirectToIdentityProviderForSignOut = context =>
+                {
+                    if (string.IsNullOrEmpty(context.ProtocolMessage.IssuerAddress))
+                    {
+                        context.Response.Redirect(context.Properties.RedirectUri ?? "/");
+                        context.HandleResponse();
+                    }
+
+                    return Task.CompletedTask;
                 };
             });
 
