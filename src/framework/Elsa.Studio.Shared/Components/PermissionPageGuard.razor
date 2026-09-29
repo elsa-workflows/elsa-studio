@@ -1,0 +1,53 @@
+@using Elsa.Studio.Authorization
+@inject IPermissionService PermissionService
+
+@if (_missingPermissions == null)
+{
+    @* Resolving permissions for a gated page: render nothing rather than letting the page issue API calls. *@
+}
+else if (_missingPermissions.Count > 0)
+{
+    <PageTitle>Access denied</PageTitle>
+    <AccessDenied MissingPermissions="_missingPermissions" />
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    private static readonly IReadOnlyCollection<Permission> None = [];
+    private Type? _pageType;
+    private IReadOnlyCollection<Permission>? _missingPermissions;
+
+    /// <summary>The current route, cascaded by the shell's router.</summary>
+    [CascadingParameter] public RouteData? RouteData { get; set; }
+
+    /// <summary>The page content to render when the user holds every permission the page declares.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        var pageType = RouteData?.PageType;
+
+        if (pageType == _pageType && _missingPermissions != null)
+            return;
+
+        _pageType = pageType;
+        var required = pageType != null ? RequirePermissionAttribute.GetRequiredPermissions(pageType) : None;
+
+        if (required.Count == 0)
+        {
+            _missingPermissions = None;
+            return;
+        }
+
+        _missingPermissions = null;
+        var permissions = await PermissionService.GetPermissionsAsync();
+
+        // Ignore the result if the user navigated elsewhere while permissions were being resolved.
+        if (pageType == _pageType)
+            _missingPermissions = permissions.GetMissing(required);
+    }
+}
