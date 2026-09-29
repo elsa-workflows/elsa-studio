@@ -7,7 +7,7 @@
 
 <MudPaper Outlined="true" Class="pa-4">
     <MudText Typo="Typo.h6">Elsa account</MudText>
-    <MudForm @ref="_form" Disabled="_busy">
+    <MudForm @ref="_form" Disabled="_busy.IsBusy">
         <MudTextField @bind-Value="_username"
                       Label="User name"
                       autocomplete="username"
@@ -24,10 +24,10 @@
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
                    FullWidth="true"
-                   Disabled="_busy"
-                   aria-busy="@(_busy ? "true" : "false")"
+                   Disabled="_busy.IsBusy"
+                   aria-busy="@(_busy.IsBusy ? "true" : "false")"
                    OnClick="SignInAsync">
-            <BusyButtonContent Busy="_busy" BusyText="Signing in…">Sign in</BusyButtonContent>
+            <BusyButtonContent Busy="_busy.IsBusy" BusyText="Signing in…">Sign in</BusyButtonContent>
         </MudButton>
     </MudForm>
 </MudPaper>
@@ -39,41 +39,26 @@
     private MudForm _form = default!;
     private string _username = string.Empty;
     private string _password = string.Empty;
-    private bool _busy;
+    private readonly BusyState _busy = new();
 
-    private async Task SignInAsync()
+    private Task SignInAsync() => _busy.RunAsync(async () =>
     {
-        if (_busy)
-            return;
+        await _form.Validate();
+        if (!_form.IsValid)
+            return false;
 
-        // Go busy before the first await so the event handler renders the busy state while the request is in flight.
-        _busy = true;
-        var navigating = false;
-
-        try
+        var result = await CredentialsValidator.ValidateCredentialsAsync(_username, _password);
+        if (!result.IsValid)
         {
-            await _form.Validate();
-            if (!_form.IsValid)
-                return;
-
-            var result = await CredentialsValidator.ValidateCredentialsAsync(_username, _password);
-            if (!result.IsValid)
-            {
-                await Context.ReportFailureAsync("Invalid credentials. Try again.");
-                return;
-            }
-
-            await JwtAccessor.WriteTokenAsync(Elsa.Studio.Authentication.ElsaIdentity.TokenNames.AccessToken, result.AccessToken!);
-            await JwtAccessor.WriteTokenAsync(Elsa.Studio.Authentication.ElsaIdentity.TokenNames.RefreshToken, result.RefreshToken!);
-            if (AuthenticationStateProvider is Elsa.Studio.Authentication.ElsaIdentity.Services.AccessTokenAuthenticationStateProvider stateProvider)
-                stateProvider.NotifyAuthenticationStateChanged();
-            navigating = true;
-            Navigation.NavigateTo(Context.ReturnPath, forceLoad: true);
+            await Context.ReportFailureAsync("Invalid credentials. Try again.");
+            return false;
         }
-        finally
-        {
-            // Stay busy while a successful sign-in unloads the page, so the button does not flash back to idle.
-            _busy = navigating;
-        }
-    }
+
+        await JwtAccessor.WriteTokenAsync(Elsa.Studio.Authentication.ElsaIdentity.TokenNames.AccessToken, result.AccessToken!);
+        await JwtAccessor.WriteTokenAsync(Elsa.Studio.Authentication.ElsaIdentity.TokenNames.RefreshToken, result.RefreshToken!);
+        if (AuthenticationStateProvider is Elsa.Studio.Authentication.ElsaIdentity.Services.AccessTokenAuthenticationStateProvider stateProvider)
+            stateProvider.NotifyAuthenticationStateChanged();
+        Navigation.NavigateTo(Context.ReturnPath, forceLoad: true);
+        return true;
+    });
 }

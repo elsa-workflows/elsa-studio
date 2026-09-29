@@ -33,7 +33,7 @@
     }
     else
     {
-        <MudForm @ref="_form" Disabled="_busy">
+        <MudForm @ref="_form" Disabled="_busy.IsBusy">
             <MudTextField @bind-Value="_username"
                           Label="User name"
                           autocomplete="username"
@@ -50,10 +50,10 @@
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        FullWidth="true"
-                       Disabled="_busy"
-                       aria-busy="@(_busy ? "true" : "false")"
+                       Disabled="_busy.IsBusy"
+                       aria-busy="@(_busy.IsBusy ? "true" : "false")"
                        OnClick="SignInAsync">
-                <BusyButtonContent Busy="_busy" BusyText="Signing in…">Sign in</BusyButtonContent>
+                <BusyButtonContent Busy="_busy.IsBusy" BusyText="Signing in…">Sign in</BusyButtonContent>
             </MudButton>
         </MudForm>
     }
@@ -67,7 +67,7 @@
     private string _username = string.Empty;
     private string _password = string.Empty;
     private Elsa.Studio.ExternalAuthentication.Services.ExternalAuthenticationAntiforgeryToken? _antiforgeryToken;
-    private bool _busy;
+    private readonly BusyState _busy = new();
 
     protected override void OnInitialized()
     {
@@ -78,32 +78,22 @@
         _antiforgeryToken = provider?.GetToken();
     }
 
-    private async Task SignInAsync()
+    // A completed BeginLocalAsync has redirected to continue the sign-in; failures throw.
+    private Task SignInAsync() => _busy.RunAsync(async () =>
     {
-        if (_busy)
-            return;
-
-        // Go busy before the first await so the event handler renders the busy state while the request is in flight.
-        _busy = true;
-        var navigating = false;
-
         try
         {
             await _form.Validate();
             if (!_form.IsValid)
-                return;
+                return false;
 
             await LoginCoordinator.BeginLocalAsync(_username, _password, Context.ReturnPath);
-            navigating = true;
+            return true;
         }
         catch
         {
             await Context.ReportFailureAsync("Sign-in failed. Check your credentials and try again.");
+            return false;
         }
-        finally
-        {
-            // Stay busy while a successful sign-in unloads the page, so the button does not flash back to idle.
-            _busy = navigating;
-        }
-    }
+    });
 }
