@@ -2,11 +2,15 @@ using System.Diagnostics.CodeAnalysis;
 using Bunit;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Authorization;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Labels.Client;
+using Elsa.Studio.Labels.Components;
+using Elsa.Studio.Labels.Contracts;
 using Elsa.Studio.Labels.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Secrets.Client;
+using Elsa.Studio.Secrets.Components;
 using Elsa.Studio.Secrets.Models;
 using Elsa.Studio.Testing;
 using Microsoft.AspNetCore.Components;
@@ -33,6 +37,7 @@ public sealed class PermissionGatedActionsTests : BunitContext, IAsyncLifetime
         Services.AddMudServices();
         Services.AddSingleton<ILocalizer>(new TestLocalizer());
         Services.AddSingleton<IBackendApiClientProvider>(new ApiProvider());
+        Services.AddSingleton<IWorkflowDefinitionLabelsProvider>(new DefinitionLabelsProvider());
         Render<MudPopoverProvider>();
     }
 
@@ -117,6 +122,29 @@ public sealed class PermissionGatedActionsTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() => Assert.Contains("Save", cut.Markup));
     }
 
+    [Theory]
+    [InlineData(new[] { "secrets:view" }, false)]
+    [InlineData(new[] { "secrets:view", "secrets:write" }, true)]
+    public void SecretPicker_OffersInlineCreateOnlyWithWriteAccess(string[] grants, bool offered)
+    {
+        var cut = RenderPage<SecretPicker>(grants);
+
+        Assert.Equal(offered, cut.FindComponents<MudIconButton>().Any(x => x.Instance.Icon == Icons.Material.Filled.Add));
+    }
+
+    [Theory]
+    [InlineData(new[] { "workflows/definitions/labels:view" }, false, false)]
+    [InlineData(new[] { "workflows/definitions/labels:view", "workflows/definitions/labels:update" }, true, false)]
+    [InlineData(new[] { "workflows/definitions/labels:view", "workflows/definitions/labels:update", "labels:view" }, true, true)]
+    public void DefinitionLabelsEditor_OffersRemovingAndAddingPerPermission(string[] grants, bool canRemove, bool canAdd)
+    {
+        var cut = RenderPage<WorkflowDefinitionLabelsEditor>(grants, parameters => parameters.Add(x => x.WorkflowDefinition, new WorkflowDefinition { DefinitionId = "definition-1" }));
+
+        cut.WaitForAssertion(() => Assert.Contains(Urgent.Name!, cut.Markup));
+        Assert.Equal(canRemove, cut.FindAll(".mud-chip-close-button").Any());
+        Assert.Equal(canAdd, cut.Markup.Contains("Add Label"));
+    }
+
     // The shell's page guard cascades the user's permissions to the page.
     private IRenderedComponent<TPage> RenderPage<TPage>(string[] grants, Action<ComponentParameterCollectionBuilder<TPage>>? parameters = null) where TPage : IComponent =>
         Render<TPage>(builder =>
@@ -148,7 +176,17 @@ public sealed class PermissionGatedActionsTests : BunitContext, IAsyncLifetime
         public Task<SecretModel> RevokeAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task DeleteAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<SecretTestResponse> TestAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<SecretPickerResponse> PickAsync(SecretPickerRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<SecretPickerResponse> PickAsync(SecretPickerRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new SecretPickerResponse { Items = [ApiKey], CanCreateInline = true });
+    }
+
+    private sealed class DefinitionLabelsProvider : IWorkflowDefinitionLabelsProvider
+    {
+        public Task<IEnumerable<WorkflowDefinitionLabelDescriptor>> ListAsync(string workflowDefinitionId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IEnumerable<WorkflowDefinitionLabelDescriptor>>([new() { Id = Urgent.Id, Name = Urgent.Name }]);
+
+        public Task<IEnumerable<WorkflowDefinitionLabelDescriptor>> UpdateAsync(string workflowDefinitionId, IEnumerable<string> selectedLabelsIds, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
     }
 
     private sealed class LabelsApi : ILabelsApi
