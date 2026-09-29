@@ -11,6 +11,7 @@ namespace Elsa.Studio.Authentication.ElsaIdentity.Services;
 /// </summary>
 public class ElsaIdentitySignOutService(
     IJwtAccessor jwtAccessor,
+    ElsaIdentitySessionGate sessionGate,
     AuthenticationStateProvider authenticationStateProvider,
     NavigationManager navigationManager) : ISignOutService
 {
@@ -22,7 +23,12 @@ public class ElsaIdentitySignOutService(
     /// <inheritdoc />
     public async Task SignOutAsync()
     {
-        await jwtAccessor.ClearTokensAsync();
+        // Serialized with a refresh storing its response, so the refresh sees the cleared session and backs off.
+        await sessionGate.RunAsync(async () =>
+        {
+            await jwtAccessor.ClearTokensAsync();
+            return true;
+        });
 
         if (authenticationStateProvider is AccessTokenAuthenticationStateProvider accessTokenAuthenticationStateProvider)
             accessTokenAuthenticationStateProvider.NotifyAuthenticationStateChanged();

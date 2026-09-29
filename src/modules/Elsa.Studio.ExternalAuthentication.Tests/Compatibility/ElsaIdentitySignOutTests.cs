@@ -90,13 +90,33 @@ public sealed class ElsaIdentitySignOutTests : BunitContext, IAsyncLifetime
         SignIn("alice");
         var refreshResponse = new PausedHandler();
         var refreshTokenService = new ElsaIdentityRefreshTokenService(
-            new StaticRemoteBackendAccessor(), _tokens, new StaticHttpClientFactory(refreshResponse));
+            new StaticRemoteBackendAccessor(), _tokens, new StaticHttpClientFactory(refreshResponse), Services.GetRequiredService<ElsaIdentitySessionGate>());
 
         var refresh = refreshTokenService.RefreshTokenAsync(CancellationToken.None);
         await Services.GetRequiredService<ISignOutService>().SignOutAsync();
         refreshResponse.Respond("""{ "isAuthenticated": true, "accessToken": "new-access", "refreshToken": "new-refresh" }""");
 
         Assert.False((await refresh).IsAuthenticated);
+        Assert.Empty(_tokens.Tokens);
+    }
+
+    [Fact]
+    public async Task SignOutWhileARefreshStoresItsTokens_StillEndsTheSession()
+    {
+        SignIn("alice");
+        var refreshResponse = new PausedHandler();
+        var refreshTokenService = new ElsaIdentityRefreshTokenService(
+            new StaticRemoteBackendAccessor(), _tokens, new StaticHttpClientFactory(refreshResponse), Services.GetRequiredService<ElsaIdentitySessionGate>());
+        var pausedWrite = _tokens.PauseNextWrite();
+
+        var refresh = refreshTokenService.RefreshTokenAsync(CancellationToken.None);
+        refreshResponse.Respond("""{ "isAuthenticated": true, "accessToken": "new-access", "refreshToken": "new-refresh" }""");
+        await pausedWrite.Started;
+        var signOut = Services.GetRequiredService<ISignOutService>().SignOutAsync();
+        pausedWrite.Release();
+        await refresh;
+        await signOut;
+
         Assert.Empty(_tokens.Tokens);
     }
 
@@ -126,6 +146,22 @@ public sealed class ElsaIdentitySignOutTests : BunitContext, IAsyncLifetime
     private static string Base64Url(string value) =>
         Convert.ToBase64String(Encoding.UTF8.GetBytes(value)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
+    private sealed class PausedWrite
+    {
+        private readonly TaskCompletionSource _started = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _released = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task Started => _started.Task;
+
+        public void Release() => _released.SetResult();
+
+        public Task WaitAsync()
+        {
+            _started.SetResult();
+            return _released.Task;
+        }
+    }
+
     private sealed class PausedHandler : HttpMessageHandler
     {
         private readonly TaskCompletionSource<HttpResponseMessage> _response = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -148,14 +184,20 @@ public sealed class ElsaIdentitySignOutTests : BunitContext, IAsyncLifetime
 
     private sealed class InMemoryJwtAccessor : IJwtAccessor
     {
+        private PausedWrite? _pausedWrite;
+
         public Dictionary<string, string> Tokens { get; } = new();
+
+        public PausedWrite PauseNextWrite() => _pausedWrite = new();
 
         public ValueTask<string?> ReadTokenAsync(string name) => ValueTask.FromResult(Tokens.GetValueOrDefault(name));
 
-        public ValueTask WriteTokenAsync(string name, string token)
+        public async ValueTask WriteTokenAsync(string name, string token)
         {
+            if (Interlocked.Exchange(ref _pausedWrite, null) is { } pausedWrite)
+                await pausedWrite.WaitAsync();
+
             Tokens[name] = token;
-            return ValueTask.CompletedTask;
         }
 
         public ValueTask ClearTokenAsync(string name)

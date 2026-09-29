@@ -7,7 +7,7 @@ using Elsa.Studio.Contracts;
 namespace Elsa.Studio.Authentication.ElsaIdentity.Services;
 
 ///<inheritdoc/>
-public class ElsaIdentityRefreshTokenService(IRemoteBackendAccessor remoteBackendAccessor, IJwtAccessor jwtAccessor, IHttpClientFactory httpClientFactory) : IRefreshTokenService
+public class ElsaIdentityRefreshTokenService(IRemoteBackendAccessor remoteBackendAccessor, IJwtAccessor jwtAccessor, IHttpClientFactory httpClientFactory, ElsaIdentitySessionGate sessionGate) : IRefreshTokenService
 {
     internal const string AnonymousClientName = "Elsa.Studio.Authentication.ElsaIdentity.Anonymous";
 
@@ -38,20 +38,21 @@ public class ElsaIdentityRefreshTokenService(IRemoteBackendAccessor remoteBacken
         // Parse response into tokens.
         var tokens = (await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken))!;
 
-        // Sign-out (in this or another tab) clears the stored tokens while the request is in flight. Storing the
+        // Sign-out (in this or another tab) may clear the stored tokens while the request is in flight. Storing the
         // response then would silently restore the ended session, so only store if the refresh token we sent is
-        // still the current one.
-        if (await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken) != refreshToken)
-            return new(false, null, null);
+        // still the current one. The gate keeps sign-out in this scope from interleaving with the check and writes.
+        return await sessionGate.RunAsync(async () =>
+        {
+            if (await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken) != refreshToken)
+                return new LoginResponse(false, null, null);
 
-        // Store tokens.
-        if (!string.IsNullOrWhiteSpace(tokens.RefreshToken))
-            await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken);
+            if (!string.IsNullOrWhiteSpace(tokens.RefreshToken))
+                await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken);
 
-        if (!string.IsNullOrWhiteSpace(tokens.AccessToken))
-            await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.AccessToken);
+            if (!string.IsNullOrWhiteSpace(tokens.AccessToken))
+                await jwtAccessor.WriteTokenAsync(TokenNames.AccessToken, tokens.AccessToken);
 
-        // Return tokens.
-        return tokens;
+            return tokens;
+        }, cancellationToken);
     }
 }
