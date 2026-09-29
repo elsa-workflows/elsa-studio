@@ -82,9 +82,9 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     [CascadingParameter] private UserPermissions Permissions { get; set; } = UserPermissions.Unknown;
 
-    private bool CanDelete => Permissions.Has(WorkflowPermissions.Instances, PermissionVerbs.Delete);
-    private bool CanCancel => Permissions.Has(WorkflowPermissions.Instances, WorkflowVerbs.Cancel);
-    private bool CanImport => Permissions.Has(WorkflowPermissions.Instances, PermissionVerbs.Write);
+    private bool CanDelete => Permissions.CanDeleteInstances();
+    private bool CanCancel => Permissions.CanCancelInstances();
+    private bool CanImport => Permissions.CanImportInstances();
     private bool CanAlter => Permissions.CanAlterInstances();
 
     private void Reload() => _table.ReloadServerData();
@@ -399,7 +399,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         // Cancelling every match submits an alteration plan rather than cancelling the selected instances.
         var parameters = new DialogParameters<BulkCancelDialog>
         {
-            { x => x.CanApplyToAllMatches, Permissions.Has(WorkflowPermissions.Alterations, PermissionVerbs.Execute) }
+            { x => x.CanApplyToAllMatches, Permissions.CanExecuteAlterations() }
         };
         var reference = await DialogService.ShowAsync<BulkCancelDialog>(Localizer["Cancel selected workflow instances?"], parameters);
         var dialogResult = await reference.Result;

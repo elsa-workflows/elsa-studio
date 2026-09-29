@@ -8,6 +8,7 @@ using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Domain.Notifications;
+using Elsa.Studio.Workflows.Extensions;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -33,8 +34,8 @@ public partial class VersionHistoryTab : IDisposable
     [CascadingParameter] private UserPermissions Permissions { get; set; } = UserPermissions.Unknown;
 
     // Deleting a version (singly or in bulk) goes through the definition endpoints; rolling back through the version ones.
-    private bool CanDeleteVersions => Permissions.Has(WorkflowPermissions.Definitions, PermissionVerbs.Delete);
-    private bool CanRevertVersions => Permissions.Has(WorkflowPermissions.DefinitionVersions, WorkflowVerbs.Revert);
+    private bool CanDeleteVersions => Permissions.CanDeleteDefinitions();
+    private bool CanRevertVersions => Permissions.CanRevertDefinitionVersions();
     private long _recordCount = 0;
 
     /// <inheritdoc />

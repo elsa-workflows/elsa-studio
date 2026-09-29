@@ -6,6 +6,7 @@ using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -53,7 +54,7 @@ public abstract class WorkflowEditorComponentBase : StudioComponentBase
     /// <summary>
     /// Whether the user may run the workflow.
     /// </summary>
-    protected bool CanRun => Permissions.Has(WorkflowPermissions.Definitions, PermissionVerbs.Execute);
+    protected bool CanRun => Permissions.CanExecuteDefinitions();
 
     /// <summary>
     /// Invoked when the user clicked the "Run Workflow" button.

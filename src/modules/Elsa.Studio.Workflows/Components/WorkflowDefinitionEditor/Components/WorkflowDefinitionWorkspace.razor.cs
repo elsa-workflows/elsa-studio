@@ -56,7 +56,7 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
 
     /// <inheritdoc />
     /// <remarks>A user who cannot save workflow definitions gets the read-only viewer and read-only properties.</remarks>
-    public bool IsReadOnly => _selectedWorkflowDefinition.GetIsReadOnly() || !Permissions.Has(WorkflowPermissions.Definitions, PermissionVerbs.Write);
+    public bool IsReadOnly => _selectedWorkflowDefinition.GetIsReadOnly() || !Permissions.CanWriteDefinitions();
 
     /// <inheritdoc />
     public bool HasWorkflowEditPermission => (_selectedWorkflowDefinition?.Links?.Count(l => l.Rel == "publish") ?? 0) > 0;

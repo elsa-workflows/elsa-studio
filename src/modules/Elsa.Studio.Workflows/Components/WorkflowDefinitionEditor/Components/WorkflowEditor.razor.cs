@@ -126,8 +126,8 @@ public partial class WorkflowEditor : WorkflowEditorComponentBase, INotification
 
     private JsonObject? Activity => _workflowDefinition?.Root;
     private bool IsDirty => _isDirty || _bpmnDocumentSession?.IsDirty == true;
-    private bool CanPublish => Permissions.Has(WorkflowPermissions.Definitions, WorkflowVerbs.Publish);
-    private bool CanRetract => Permissions.Has(WorkflowPermissions.Definitions, WorkflowVerbs.Retract);
+    private bool CanPublish => Permissions.CanPublishDefinitions();
+    private bool CanRetract => Permissions.CanRetractDefinitions();
     private JsonObject? SelectedActivity { get; set; }
     private ActivityDescriptor? ActivityDescriptor { get; set; }
     private ActivityPropertiesPanel? ActivityPropertiesPanel { get; set; }

@@ -11,6 +11,7 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Extensions;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -45,12 +46,12 @@ public partial class WorkflowDefinitionList
     [CascadingParameter] private UserPermissions Permissions { get; set; } = UserPermissions.Unknown;
 
     // Creating, importing and duplicating require workflows/definitions:write.
-    private bool CanWrite => Permissions.Has(WorkflowPermissions.Definitions, PermissionVerbs.Write);
-    private bool CanDelete => Permissions.Has(WorkflowPermissions.Definitions, PermissionVerbs.Delete);
-    private bool CanPublish => Permissions.Has(WorkflowPermissions.Definitions, WorkflowVerbs.Publish);
-    private bool CanRetract => Permissions.Has(WorkflowPermissions.Definitions, WorkflowVerbs.Retract);
-    private bool CanExecute => Permissions.Has(WorkflowPermissions.Definitions, PermissionVerbs.Execute);
-    private bool CanCancelInstances => Permissions.Has(WorkflowPermissions.Instances, WorkflowVerbs.Cancel);
+    private bool CanWrite => Permissions.CanWriteDefinitions();
+    private bool CanDelete => Permissions.CanDeleteDefinitions();
+    private bool CanPublish => Permissions.CanPublishDefinitions();
+    private bool CanRetract => Permissions.CanRetractDefinitions();
+    private bool CanExecute => Permissions.CanExecuteDefinitions();
+    private bool CanCancelInstances => Permissions.CanCancelInstances();
 
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }

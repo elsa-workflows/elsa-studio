@@ -13,6 +13,7 @@ using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Activ
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Outputs.Components;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.ActivityProperties.Tabs.Tests;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Extensions;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -78,7 +79,7 @@ public partial class ActivityPropertiesPanel
 
     [CascadingParameter] private UserPermissions Permissions { get; set; } = UserPermissions.Unknown;
 
-    private bool CanRunTests => Permissions.Has(WorkflowPermissions.Tests, PermissionVerbs.Execute);
+    private bool CanRunTests => Permissions.CanRunActivityTests();
     private ActivityStatus TestResultStatus { get; set; } = ActivityStatus.Canceled;
     private Color TestIconColor => TestResultStatus switch
     {
