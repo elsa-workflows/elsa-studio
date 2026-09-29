@@ -33,7 +33,7 @@
     }
     else
     {
-        <MudForm @ref="_form">
+        <MudForm @ref="_form" Disabled="_busy">
             <MudTextField @bind-Value="_username"
                           Label="User name"
                           autocomplete="username"
@@ -47,7 +47,14 @@
                           Required="true"
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense" />
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="SignInAsync">Sign in</MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Disabled="_busy"
+                       aria-busy="@(_busy ? "true" : "false")"
+                       OnClick="SignInAsync">
+                <BusyButtonContent Busy="_busy" BusyText="Signing in…">Sign in</BusyButtonContent>
+            </MudButton>
         </MudForm>
     }
 </MudPaper>
@@ -60,6 +67,7 @@
     private string _username = string.Empty;
     private string _password = string.Empty;
     private Elsa.Studio.ExternalAuthentication.Services.ExternalAuthenticationAntiforgeryToken? _antiforgeryToken;
+    private bool _busy;
 
     protected override void OnInitialized()
     {
@@ -72,17 +80,27 @@
 
     private async Task SignInAsync()
     {
-        await _form.Validate();
-        if (!_form.IsValid)
+        if (_busy)
             return;
+
+        // Go busy before the first await so the event handler renders the busy state while the request is in flight.
+        _busy = true;
 
         try
         {
+            await _form.Validate();
+            if (!_form.IsValid)
+                return;
+
             await LoginCoordinator.BeginLocalAsync(_username, _password, Context.ReturnPath);
         }
         catch
         {
             await Context.ReportFailureAsync("Sign-in failed. Check your credentials and try again.");
+        }
+        finally
+        {
+            _busy = false;
         }
     }
 }

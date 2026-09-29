@@ -1,14 +1,20 @@
 <MudButton ButtonType="ButtonType.Button"
            Class="elsa-login-method-button"
            Color="Color.Inherit"
-           EndIcon="@Icons.Material.Outlined.ArrowForward"
+           Disabled="_busy"
+           EndIcon="@(_busy ? null : Icons.Material.Outlined.ArrowForward)"
            FullWidth="true"
            Size="Size.Large"
            StartIcon="@Icon"
            Variant="Variant.Text"
            aria-label="@Localizer["Sign in with {0}", Method.DisplayName]"
+           aria-busy="@(_busy ? "true" : "false")"
            OnClick="HandleClickAsync">
-    <span class="elsa-login-method-button__label">@Method.DisplayName</span>
+    <span class="elsa-login-method-button__label">@(_busy ? Localizer["Signing in with {0}…", Method.DisplayName].Value : Method.DisplayName)</span>
+    @if (_busy)
+    {
+        <MudProgressCircular Size="Size.Small" Indeterminate="true" aria-hidden="true" />
+    }
 </MudButton>
 
 @code {
@@ -21,5 +27,23 @@
     [Parameter]
     public EventCallback OnClick { get; set; }
 
-    private Task HandleClickAsync() => OnClick.InvokeAsync();
+    private bool _busy;
+
+    private async Task HandleClickAsync()
+    {
+        if (_busy)
+            return;
+
+        // Go busy before the first await so the event handler renders the busy state while the sign-in starts.
+        _busy = true;
+
+        try
+        {
+            await OnClick.InvokeAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
 }
