@@ -1,3 +1,4 @@
+using System.Reflection;
 using Bunit;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
@@ -78,16 +79,33 @@ public sealed class WorkflowActionPermissionTests : BunitContext, IAsyncLifetime
     {
         var cut = Render<VersionHistoryTab>(parameters => parameters
             .Add(x => x.DefinitionId, "definition-1")
-            .AddCascadingValue(new WorkflowDefinitionWorkspace())
+            .AddCascadingValue(EditableWorkspace())
             .AddCascadingValue(StubPermissionService.Grants(grants)));
 
-        cut.WaitForElement("tbody .mud-menu button").Click();
+        var bulkActions = cut.FindAll(".mud-menu").FirstOrDefault(x => x.TextContent.Contains("Bulk actions"));
+        cut.WaitForElements("tbody .mud-menu button");
+        cut.FindAll("tbody .mud-menu button").Last().Click(); // The older version, the only row that can be rolled back to.
 
         var items = _popovers.FindAll(".mud-menu-item").Select(x => x.TextContent.Trim()).ToList();
         Assert.Contains("View", items);
         Assert.Equal(canRollback, items.Contains("Rollback to this version"));
         Assert.Equal(canDelete, items.Contains("Delete"));
-        Assert.Equal(canDelete, cut.Markup.Contains("Bulk actions"));
+        Assert.Equal(canDelete, bulkActions is not null);
+
+        // The definition being viewed is editable, so every action the user is granted must also be usable.
+        var menuItems = _popovers.FindAll(".mud-menu-item");
+        Assert.All(menuItems.Where(x => x.TextContent.Trim() is "Rollback to this version" or "Delete"), x => Assert.False(x.HasAttribute("disabled") || x.ClassList.Contains("mud-disabled")));
+        if (canDelete)
+            Assert.DoesNotContain("mud-disabled", bulkActions!.ClassList.Concat(bulkActions.QuerySelectorAll("*").SelectMany(x => x.ClassList)));
+    }
+
+    /// <summary>A workspace viewing a definition that carries the <c>publish</c> link, which is what makes it editable.</summary>
+    private static WorkflowDefinitionWorkspace EditableWorkspace()
+    {
+        var workspace = new WorkflowDefinitionWorkspace();
+        var editable = new WorkflowDefinition { Id = "definition-1:2", DefinitionId = "definition-1", Links = [new("/publish", "publish", "POST")] };
+        typeof(WorkflowDefinitionWorkspace).GetField("_selectedWorkflowDefinition", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(workspace, editable);
+        return workspace;
     }
 
     [Theory]
