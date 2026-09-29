@@ -35,6 +35,18 @@
     /// <summary>The content to render instead when the user lacks a required permission. Renders nothing by default.</summary>
     [Parameter] public RenderFragment? Denied { get; set; }
 
+    /// <summary>
+    /// Gates <paramref name="childContent"/> on <c>{resource}:{verb}</c>, for render trees built in code (such as widgets).
+    /// </summary>
+    public static RenderFragment Wrap(string resource, string verb, RenderFragment childContent) => builder =>
+    {
+        builder.OpenComponent<PermissionView>(0);
+        builder.AddComponentParameter(1, nameof(Resource), resource);
+        builder.AddComponentParameter(2, nameof(Verb), verb);
+        builder.AddComponentParameter(3, nameof(ChildContent), childContent);
+        builder.CloseComponent();
+    };
+
     private UserPermissions? EffectivePermissions => PagePermissions ?? TrackedPermissions;
 
     private IEnumerable<Permission> RequiredPermissions =>

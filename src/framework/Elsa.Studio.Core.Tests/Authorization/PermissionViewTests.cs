@@ -108,6 +108,19 @@ public sealed class PermissionViewTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Wrap_GatesContentBuiltInCode()
+    {
+        var fragment = PermissionView.Wrap("secrets", PermissionVerbs.Write, builder => builder.AddContent(0, Action));
+
+        var denied = Render(fragment);
+        _permissions.Permissions = StubPermissionService.Grants("secrets:write");
+        var permitted = Render(fragment);
+
+        Assert.DoesNotContain(Action, denied.Markup);
+        Assert.Contains(Action, permitted.Markup);
+    }
+
+    [Fact]
     public void AResourceWithoutAVerb_IsRejected() =>
         Assert.Throws<InvalidOperationException>(() => Render<PermissionView>(parameters => parameters
             .AddCascadingValue(UserPermissions.Unknown)
