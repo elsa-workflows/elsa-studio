@@ -1,5 +1,4 @@
 using Bunit;
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
@@ -15,12 +14,9 @@ using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Workf
 using Elsa.Studio.Workflows.Components.WorkflowInstanceViewer.Components;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
-using Elsa.Studio.Workflows.Domain.Models;
 using Elsa.Studio.Workflows.Extensions;
-using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Elsa.Studio.Workflows.Tests.Support;
-using Elsa.Studio.Workflows.UI.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
