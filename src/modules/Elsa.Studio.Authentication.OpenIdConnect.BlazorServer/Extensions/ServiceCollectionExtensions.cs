@@ -121,18 +121,8 @@ public static class ServiceCollectionExtensions
                     ValidateIssuer = true
                 };
 
-                // Without an end_session_endpoint the handler throws instead of redirecting, failing the sign-out
-                // request. End the local session only.
-                oidcOptions.Events.OnRedirectToIdentityProviderForSignOut = context =>
-                {
-                    if (string.IsNullOrEmpty(context.ProtocolMessage.IssuerAddress))
-                    {
-                        context.Response.Redirect(context.Properties.RedirectUri ?? "/");
-                        context.HandleResponse();
-                    }
-
-                    return Task.CompletedTask;
-                };
+                // Fall back to a local-only sign-out when the provider has no end_session_endpoint.
+                oidcOptions.Events.OnRedirectToIdentityProviderForSignOut = OidcSignOutEvents.RedirectToIdentityProviderForSignOut;
             });
 
         // Add authorization services
