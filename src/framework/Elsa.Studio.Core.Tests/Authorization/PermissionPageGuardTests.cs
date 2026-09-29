@@ -2,6 +2,7 @@ using Bunit;
 using Elsa.Studio.Authorization;
 using Elsa.Studio.Components;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 using Xunit;
@@ -65,6 +66,24 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
         var cut = Render<PermissionPageGuard>(parameters => parameters.AddChildContent(PageContent));
 
         Assert.Contains(PageContent, cut.Markup);
+    }
+
+    [Fact]
+    public void AMountedPage_FollowsPermissionChangesWhenTheAuthenticationStateChanges()
+    {
+        var permissions = new StubPermissionService("workflows/*:view");
+        var authentication = new NotifyingAuthenticationStateProvider();
+        Services.AddSingleton<AuthenticationStateProvider>(authentication);
+        var cut = RenderGuard<WorkflowInstancesPage>(permissions);
+        Assert.Contains(PageContent, cut.Markup);
+
+        permissions.Permissions = StubPermissionService.Grants("secrets:view");
+        authentication.Notify();
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='access-denied']")));
+
+        permissions.Permissions = StubPermissionService.Grants("workflows/*:view");
+        authentication.Notify();
+        cut.WaitForAssertion(() => Assert.Contains(PageContent, cut.Markup));
     }
 
     public Task InitializeAsync() => Task.CompletedTask;

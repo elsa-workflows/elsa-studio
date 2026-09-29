@@ -5,7 +5,9 @@ namespace Elsa.Studio.Core.Tests.Authorization;
 /// <summary>Returns fixed permissions and counts how often they were requested.</summary>
 internal sealed class StubPermissionService(UserPermissions permissions) : IPermissionService
 {
-    public StubPermissionService(params string[] grants) : this(UserPermissions.FromGrants(grants.Select(Parse)))
+    public UserPermissions Permissions { get; set; } = permissions;
+
+    public StubPermissionService(params string[] grants) : this(Grants(grants))
     {
     }
 
@@ -14,8 +16,10 @@ internal sealed class StubPermissionService(UserPermissions permissions) : IPerm
     public ValueTask<UserPermissions> GetPermissionsAsync(CancellationToken cancellationToken = default)
     {
         Calls++;
-        return new(permissions);
+        return new(Permissions);
     }
+
+    public static UserPermissions Grants(params string[] grants) => UserPermissions.FromGrants(grants.Select(Parse));
 
     private static Permission Parse(string value) => Permission.TryParse(value, out var permission) ? permission : throw new FormatException(value);
 }
