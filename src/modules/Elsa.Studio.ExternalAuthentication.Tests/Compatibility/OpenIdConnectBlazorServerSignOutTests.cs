@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -158,7 +159,7 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
             _browserCookies[cookie.Name.ToString()] = cookie.Value.ToString();
         await DisposeComponentsAsync();
 
-        var menu = RenderWhileHandling(BrowserRequest(HttpMethods.Get, "/_blazor"), Circuit);
+        var menu = RenderWhileHandling(StartedResponse(BrowserRequest(HttpMethods.Get, "/_blazor")), Circuit);
         var signOut = FindInOpenMenu(menu, "button[type=submit]");
         Assert.Equal("Sign out", signOut.TextContent.Trim());
 
@@ -200,6 +201,13 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
         }
     };
 
+    /// <summary>Marks the response as started, so that setting any cookie or header on it throws, as it does on the wire.</summary>
+    private static DefaultHttpContext StartedResponse(DefaultHttpContext request)
+    {
+        request.Features.Set<IHttpResponseFeature>(new StartedResponseFeature());
+        return request;
+    }
+
     private DefaultHttpContext FormRequest(string method, string path, Dictionary<string, StringValues> fields)
     {
         var request = BrowserRequest(method, path);
@@ -218,6 +226,13 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
     {
         await _studio.DisposeAsync();
         await base.DisposeAsyncCore();
+    }
+
+    private sealed class StartedResponseFeature : HttpResponseFeature
+    {
+        public StartedResponseFeature() => Headers = new HeaderDictionary { IsReadOnly = true };
+
+        public override bool HasStarted => true;
     }
 
     private sealed class StubHttpContextAccessor : IHttpContextAccessor
