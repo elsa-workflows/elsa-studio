@@ -2,6 +2,8 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Shared.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.Localization;
 
 namespace Elsa.Studio.Workflows.Tests.Support;
@@ -39,4 +41,15 @@ internal sealed class TestActivityRegistry(IEnumerable<ActivityDescriptor> activ
     public void MarkStale()
     {
     }
+}
+
+/// <summary>
+/// A <see cref="DiagramDesignerWrapper"/> that renders only its toolbar slot, which carries the permission-gated
+/// actions of the editor and the instance viewer, without the designer canvas behind it.
+/// </summary>
+internal sealed class TestDiagramDesignerWrapper : DiagramDesignerWrapper
+{
+    protected override Task OnInitializedAsync() => Task.CompletedTask;
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, CustomToolbarItems);
 }
