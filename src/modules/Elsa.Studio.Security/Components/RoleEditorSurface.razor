@@ -222,14 +222,20 @@ else
                         }
                         @foreach (var grant in _advanced)
                         {
-                            <RoleAdvancedGrantCard Grant="@grant"
+                            <RoleAdvancedGrantCard @key="grant"
+                                                    Grant="@grant"
                                                     Reach="@(_reach.TryGetValue(grant, out var reach) ? reach : null)"
                                                     ReachLoading="@_reachLoading.Contains(grant)"
                                                     ReachError="@(_reachErrors.TryGetValue(grant, out var reachError) ? reachError : null)"
                                                     MaterializedDuplicates="@GetMaterializedDuplicates(grant)"
                                                     IsReadOnly="@IsReadOnly"
                                                     OnRemove="@(() => RemoveAdvancedGrant(grant))"
-                                                    OnLoadReach="@(() => LoadReachAsync(grant))" />
+                                                    OnLoadReach="@(() => LoadReachAsync(grant))"
+                                                    IsEditing="@(_editingGrant == grant)"
+                                                    EditError="@(_editingGrant == grant ? _editError : null)"
+                                                    OnEdit="@(() => BeginEditAdvancedGrant(grant))"
+                                                    OnSaveEdit="SaveAdvancedGrantEditAsync"
+                                                    OnCancelEdit="CancelEditAdvancedGrant" />
                         }
                     </MudStack>
                 </MudTabPanel>
@@ -286,6 +292,8 @@ else
     private string? _loadError;
     private string? _saveError;
     private string? _advancedError;
+    private string? _editingGrant;
+    private string? _editError;
     private bool _loading = true;
     private bool _saving;
     private bool _deleteDialogOpen;
@@ -426,6 +434,7 @@ else
         _reach.Clear();
         _reachLoading.Clear();
         _reachErrors.Clear();
+        CancelEditAdvancedGrant();
     }
 
     private void SortGrantState()
@@ -519,28 +528,13 @@ else
 
     private async Task AddAdvancedGrant()
     {
-        _advancedError = null;
-        var value = _advancedDraft.Trim();
-        if (!RolePermissionAuthoring.TryParse(value, out var pattern) || !RolePermissionAuthoring.IsValidPattern(pattern))
-        {
-            _advancedError = "Enter a valid grant. Wildcards may be *, a trailing resource /*, or the entire verb *.";
+        if (!TryValidateAdvancedGrant(_advancedDraft, null, out var value, out _advancedError))
             return;
-        }
 
-        if (!pattern.HasWildcard)
-        {
-            _advancedError = "This is an exact permission. Select it on the Exact permissions tab.";
-            return;
-        }
-
-        if (!_advanced.Contains(value, StringComparer.Ordinal))
-            _advanced.Add(value);
+        _advanced.Add(value);
         _advanced.Sort(StringComparer.Ordinal);
-        _advancedError = null;
         _advancedDraft = string.Empty;
-        _reach.Remove(value);
-        _reachErrors.Remove(value);
-        await LoadReachAsync(value);
+        await RefreshReachAsync(value);
     }
 
     private void RemoveAdvancedGrant(string grant)
@@ -548,7 +542,69 @@ else
         if (IsReadOnly)
             return;
 
+        if (_editingGrant == grant)
+            CancelEditAdvancedGrant();
         _advanced.Remove(grant);
+        ForgetReach(grant);
+    }
+
+    private void BeginEditAdvancedGrant(string grant)
+    {
+        if (IsReadOnly)
+            return;
+
+        _editingGrant = grant;
+        _editError = null;
+    }
+
+    private void CancelEditAdvancedGrant()
+    {
+        _editingGrant = null;
+        _editError = null;
+    }
+
+    private async Task SaveAdvancedGrantEditAsync(string draft)
+    {
+        if (IsReadOnly || _editingGrant is not { } original)
+            return;
+
+        if (!TryValidateAdvancedGrant(draft, original, out var value, out _editError))
+            return;
+
+        CancelEditAdvancedGrant();
+        var index = _advanced.IndexOf(original);
+        if (value == original || index < 0)
+            return;
+
+        _advanced[index] = value;
+        ForgetReach(original);
+        await RefreshReachAsync(value);
+    }
+
+    // Shared by add and in-place edit so both apply identical normalization, wildcard rules and duplicate detection.
+    // `original` is the grant being edited, which may legitimately be kept as-is.
+    private bool TryValidateAdvancedGrant(string? input, string? original, out string value, out string? error)
+    {
+        value = (input ?? string.Empty).Trim();
+        error = null;
+        if (!RolePermissionAuthoring.TryParse(value, out var pattern) || !RolePermissionAuthoring.IsValidPattern(pattern))
+            error = "Enter a valid grant. Wildcards may be *, a trailing resource /*, or the entire verb *.";
+        else if (!pattern.HasWildcard)
+            error = "This is an exact permission. Select it on the Exact permissions tab.";
+        else if (value != original && _advanced.Contains(value, StringComparer.Ordinal))
+            error = $"{value} is already an advanced grant.";
+
+        return error == null;
+    }
+
+    private async Task RefreshReachAsync(string grant)
+    {
+        ForgetReach(grant);
+        await LoadReachAsync(grant);
+    }
+
+    private void ForgetReach(string grant)
+    {
         _reach.Remove(grant);
         _reachErrors.Remove(grant);
     }
