@@ -85,6 +85,7 @@
 
         // Go busy before the first await so the event handler renders the busy state while the request is in flight.
         _busy = true;
+        var navigating = false;
 
         try
         {
@@ -93,6 +94,7 @@
                 return;
 
             await LoginCoordinator.BeginLocalAsync(_username, _password, Context.ReturnPath);
+            navigating = true;
         }
         catch
         {
@@ -100,7 +102,8 @@
         }
         finally
         {
-            _busy = false;
+            // Stay busy while a successful sign-in unloads the page, so the button does not flash back to idle.
+            _busy = navigating;
         }
     }
 }

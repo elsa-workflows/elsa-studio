@@ -66,7 +66,7 @@ public sealed class ElsaIdentityLoginMethodTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void SignIn_NavigatesToTheReturnPathOnceCredentialsAreAccepted()
+    public void SignIn_NavigatesToTheReturnPathAndStaysBusyOnceCredentialsAreAccepted()
     {
         SubmitCredentials();
         _cut.WaitForAssertion(() => Assert.True(_cut.Find(SignInButton).HasAttribute("disabled")));
@@ -76,6 +76,7 @@ public sealed class ElsaIdentityLoginMethodTests : BunitContext, IAsyncLifetime
         _cut.WaitForAssertion(() =>
             Assert.EndsWith("/workflows", Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal));
         Assert.Empty(_failures);
+        Assert.True(_cut.Find(SignInButton).HasAttribute("disabled"));
     }
 
     [Fact]
