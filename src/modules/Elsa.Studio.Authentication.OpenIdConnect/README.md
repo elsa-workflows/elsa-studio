@@ -172,7 +172,7 @@ The user then lands on the Studio home page, which starts a new sign-in.
 
 Register the post-logout redirect URI with the provider. Otherwise the provider rejects the request or doesn't redirect back.
 
-Blazor Server needs a WebSocket circuit for Sign out to work; see the [Blazor Server troubleshooting note](../Elsa.Studio.Authentication.OpenIdConnect.BlazorServer/README.md#backend-calls-have-no-access-token-or-sign-out-returns-400).
+Blazor Server needs `<persist-component-state />` on the host page for Sign out to work on long-polling circuits; see the [Blazor Server troubleshooting note](../Elsa.Studio.Authentication.OpenIdConnect.BlazorServer/README.md#backend-calls-have-no-access-token-or-sign-out-returns-400).
 
 On Blazor Server, `/authentication/logout` accepts only an antiforgery-protected `POST`, so another site can't sign users out. Earlier versions also signed out on `GET /authentication/logout`. Custom links or buttons that used it must now submit a form with an antiforgery token, as `OpenIdConnectUserMenu` does.
 

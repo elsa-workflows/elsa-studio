@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.WebUtilities;
@@ -40,6 +41,7 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
     private static readonly RendererInfo Circuit = new("Server", isInteractive: true);
     private readonly OpenIdConnectConfiguration _provider = new() { EndSessionEndpoint = EndSessionEndpoint };
     private readonly StubHttpContextAccessor _httpContextAccessor = new();
+    private readonly PersistedAntiforgeryState _persistedAntiforgery = new();
     private readonly Dictionary<string, string> _browserCookies = [];
     private readonly WebApplication _studio;
     private readonly RequestDelegate _handleRequest;
@@ -65,6 +67,7 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
         Services.AddOpenIdConnectAuth(ConfigureIdentityProvider);
         Services.AddSingleton(_studio.Services.GetRequiredService<IAntiforgery>());
         Services.AddSingleton<IHttpContextAccessor>(_httpContextAccessor);
+        Services.AddSingleton<AntiforgeryStateProvider>(_persistedAntiforgery);
     }
 
     private CookieAuthenticationOptions SessionCookieOptions =>
@@ -84,6 +87,17 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
         Assert.Equal(EndSessionEndpoint, endSession.GetLeftPart(UriPartial.Path));
         Assert.Equal(IdToken, query["id_token_hint"]);
         Assert.Equal("https://studio.example/signout-callback-oidc", query["post_logout_redirect_uri"]);
+    }
+
+    [Fact]
+    public async Task SignOutFromALongPollingCircuit_UsesTheAntiforgeryTokenThePrerenderPersisted()
+    {
+        SignIn();
+
+        var response = await SignOutFromTheLiveCircuitAsync(longPolling: true);
+
+        Assert.True(EndsTheSession(response));
+        Assert.Equal(StatusCodes.Status302Found, response.StatusCode);
     }
 
     [Fact]
@@ -149,9 +163,10 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
     /// Renders the menu the way the host's ServerPrerendered mode does, then clicks Sign out. The menu is prerendered
     /// while handling the page request, whose cookies the browser keeps, and rendered again in the live circuit. There
     /// the HttpContext is the circuit connection's request, whose response has already started, so nothing rendered in
-    /// the circuit can set a cookie.
+    /// the circuit can set a cookie. On long polling the circuit has no HttpContext at all, only the antiforgery token that
+    /// the prerender persisted in the page.
     /// </summary>
-    private async Task<HttpResponse> SignOutFromTheLiveCircuitAsync(string? returnUrl = null)
+    private async Task<HttpResponse> SignOutFromTheLiveCircuitAsync(string? returnUrl = null, bool longPolling = false)
     {
         var page = BrowserRequest(HttpMethods.Get, "/");
         RenderWhileHandling(page, Prerender);
@@ -159,7 +174,11 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
             _browserCookies[cookie.Name.ToString()] = cookie.Value.ToString();
         await DisposeComponentsAsync();
 
-        var menu = RenderWhileHandling(StartedResponse(BrowserRequest(HttpMethods.Get, "/_blazor")), Circuit);
+        // The framework persists the token the prerender issued, so that a circuit without an HttpContext can post it back.
+        if (longPolling)
+            _persistedAntiforgery.Persist(_studio.Services.GetRequiredService<IAntiforgery>().GetAndStoreTokens(page));
+        var circuitRequest = longPolling ? null : StartedResponse(BrowserRequest(HttpMethods.Get, "/_blazor"));
+        var menu = RenderWhileHandling(circuitRequest, Circuit);
         var signOut = FindInOpenMenu(menu, "button[type=submit]");
         Assert.Equal("Sign out", signOut.TextContent.Trim());
 
@@ -171,10 +190,11 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
         return await SendAsync(FormRequest(form.Method.ToUpperInvariant(), form.GetAttribute("action")!, fields));
     }
 
-    /// <summary>Renders the menu while Blazor Server handles <paramref name="request"/>, authenticated as the host would.</summary>
-    private IRenderedComponent<OpenIdConnectUserMenu> RenderWhileHandling(HttpContext request, RendererInfo renderer)
+    /// <summary>Renders the menu while Blazor Server handles <paramref name="request"/>, authenticated as the host would, or without any request.</summary>
+    private IRenderedComponent<OpenIdConnectUserMenu> RenderWhileHandling(HttpContext? request, RendererInfo renderer)
     {
-        request.User = _user;
+        if (request is not null)
+            request.User = _user;
         _httpContextAccessor.HttpContext = request;
         SetRendererInfo(renderer);
         return RenderAppBarMenu();
@@ -233,6 +253,16 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
         public StartedResponseFeature() => Headers = new HeaderDictionary { IsReadOnly = true };
 
         public override bool HasStarted => true;
+    }
+
+    /// <summary>The antiforgery token the prerender persisted in the page, which the circuit's provider hands back.</summary>
+    private sealed class PersistedAntiforgeryState : AntiforgeryStateProvider
+    {
+        private AntiforgeryRequestToken? _token;
+
+        public void Persist(AntiforgeryTokenSet tokens) => _token = new AntiforgeryRequestToken(tokens.RequestToken!, tokens.FormFieldName);
+
+        public override AntiforgeryRequestToken? GetAntiforgeryToken() => _token;
     }
 
     private sealed class StubHttpContextAccessor : IHttpContextAccessor
