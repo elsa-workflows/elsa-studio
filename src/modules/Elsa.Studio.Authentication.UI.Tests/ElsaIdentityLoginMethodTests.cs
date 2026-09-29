@@ -88,11 +88,38 @@ public sealed class ElsaIdentityLoginMethodTests : BunitContext, IAsyncLifetime
         Assert.Equal(0, _validator.Calls);
     }
 
+    [Fact]
+    public void PressingEnterInThePasswordField_StartsSignIn()
+    {
+        FillCredentials();
+
+        _cut.FindAll("input")[1].KeyDown(Key.Enter);
+
+        _cut.WaitForAssertion(() => Assert.True(_cut.Find(SignInButton).HasAttribute("disabled")));
+        Assert.Equal(1, _validator.Calls);
+    }
+
+    [Fact]
+    public void PressingEnterWhileSigningIn_DoesNotStartASecondRequest()
+    {
+        SubmitCredentials();
+        _cut.WaitForAssertion(() => Assert.True(_cut.Find(SignInButton).HasAttribute("disabled")));
+
+        _cut.FindAll("input")[1].KeyDown(Key.Enter);
+
+        Assert.Equal(1, _validator.Calls);
+    }
+
     private void SubmitCredentials()
     {
-        _cut.FindAll("input")[0].Change("alice");
-        _cut.FindAll("input")[1].Change("secret");
+        FillCredentials();
         _cut.Find(SignInButton).Click();
+    }
+
+    private void FillCredentials()
+    {
+        _cut.FindAll("input")[0].Input("alice");
+        _cut.FindAll("input")[1].Input("secret");
     }
 
     private void AssertIdle()

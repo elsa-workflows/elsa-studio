@@ -203,8 +203,8 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
 
         var cut = RenderLoginPage();
         cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("input").Count));
-        cut.FindAll("input")[0].Change("alice");
-        cut.FindAll("input")[1].Change("secret");
+        cut.FindAll("input")[0].Input("alice");
+        cut.FindAll("input")[1].Input("secret");
         cut.Find(LocalSignInButton).Click();
 
         cut.WaitForAssertion(() =>
@@ -222,6 +222,24 @@ public sealed class LoginChooserTests : BunitContext, IAsyncLifetime
             AssertIdle(cut.Find(LocalSignInButton), "Sign in");
             Assert.All(cut.FindAll("input"), input => Assert.False(input.HasAttribute("disabled")));
         });
+    }
+
+    [Fact]
+    public void BrowserLocalMethod_StartsSignInOnEnterAndIgnoresEnterWhileBusy()
+    {
+        var coordinator = Register(new([Method("local", "Elsa account", "local", 0)], null));
+        coordinator.HoldSignIn();
+
+        var cut = RenderLoginPage();
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("input").Count));
+        cut.FindAll("input")[0].Input("alice");
+        cut.FindAll("input")[1].Input("secret");
+        cut.FindAll("input")[1].KeyDown(Key.Enter);
+
+        cut.WaitForAssertion(() => AssertBusy(cut.Find(LocalSignInButton), "Signing in…"));
+        cut.FindAll("input")[1].KeyDown(Key.Enter);
+
+        Assert.Equal(1, coordinator.LocalBegins);
     }
 
     [Fact]
