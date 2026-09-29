@@ -108,7 +108,8 @@ builder.Services.AddOpenIdConnectAuth(options =>
 
     // Callback paths (relative to your app)
     options.CallbackPath = "/authentication/login-callback"; // Default
-    options.SignedOutCallbackPath = "/authentication/logout-callback"; // Default
+    // SignedOutCallbackPath isn't applied here: the post-logout redirect URI is always
+    // <base-uri>authentication/logout-callback (see Signing Out in the shared OpenIdConnect README).
 
     // Discovery
     options.MetadataAddress = "https://.../.well-known/openid-configuration"; // Auto-discovered if not set
@@ -305,7 +306,6 @@ builder.Services.AddOpenIdConnectAuth(options =>
     options.AuthenticationScopes = new[] { "openid", "profile", "offline_access" };
     options.BackendApiScopes = new[] { "api://your-api/scope" };
     options.CallbackPath = "/authentication/login-callback";
-    options.SignedOutCallbackPath = "/authentication/logout-callback";
 });
 
 // Configure the Elsa backend HTTP client to use OIDC tokens.
