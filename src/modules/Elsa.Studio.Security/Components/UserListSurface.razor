@@ -42,7 +42,7 @@
                       Clearable="true"
                       Immediate="true"
                       Class="users-search"
-                      aria-label="Search users by name, ID, role, or tenant" />
+                      aria-label="Search users by name, ID, or role" />
 
         @if (Access.CanCreate)
         {
@@ -106,7 +106,7 @@
             <MudPaper Outlined="true" Class="users-state-card">
                 <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Color="Color.Secondary" Size="Size.Large" aria-hidden="true" />
                 <MudText Typo="Typo.h6">No matching users</MudText>
-                <MudText Typo="Typo.body2">Try a different name, ID, role, or tenant.</MudText>
+                <MudText Typo="Typo.body2">Try a different name, ID, or role.</MudText>
             </MudPaper>
         }
         else
