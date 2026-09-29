@@ -29,6 +29,7 @@
     private IEnumerable<MenuItem> _menuItems = new List<MenuItem>();
 
     private AuthenticationStateProvider? _authenticationStateProvider;
+    private int _load;
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
@@ -50,8 +51,16 @@
 
     private async Task LoadMenuAsync()
     {
-        _menuItemsGroups = (await MenuService.GetMenuItemGroupsAsync()).ToDictionary(x => x.Name);
-        _menuItems = await MenuService.GetMenuItemsAsync();
+        var load = ++_load;
+        var groups = (await MenuService.GetMenuItemGroupsAsync()).ToDictionary(x => x.Name);
+        var items = await MenuService.GetMenuItemsAsync();
+
+        // A newer load (e.g. from a later authentication change) wins over one that resolves after it.
+        if (load != _load)
+            return;
+
+        _menuItemsGroups = groups;
+        _menuItems = items;
     }
 
     private async void OnAuthenticationStateChanged(Task<AuthenticationState> state) =>

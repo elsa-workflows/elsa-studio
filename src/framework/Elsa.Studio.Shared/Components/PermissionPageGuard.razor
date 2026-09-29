@@ -23,6 +23,7 @@ else
     private static readonly IReadOnlyCollection<Permission> None = [];
     private Type? _pageType;
     private IReadOnlyCollection<Permission>? _missingPermissions;
+    private int _evaluation;
 
     /// <summary>The current route, cascaded by the shell's router.</summary>
     [CascadingParameter] public RouteData? RouteData { get; set; }
@@ -63,6 +64,7 @@ else
 
     private async Task EvaluateAsync(Type? pageType)
     {
+        var evaluation = ++_evaluation;
         var required = pageType != null ? RequirePermissionAttribute.GetRequiredPermissions(pageType) : None;
 
         if (required.Count == 0)
@@ -73,8 +75,8 @@ else
 
         var permissions = await PermissionService.GetPermissionsAsync();
 
-        // Ignore the result if the user navigated elsewhere while permissions were being resolved.
-        if (pageType == _pageType)
+        // Ignore the result if the user navigated, or permissions were re-evaluated, while this one was resolving.
+        if (evaluation == _evaluation)
             _missingPermissions = permissions.GetMissing(required);
     }
 
