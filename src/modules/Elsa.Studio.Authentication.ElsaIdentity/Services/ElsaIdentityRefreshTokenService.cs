@@ -31,19 +31,24 @@ public class ElsaIdentityRefreshTokenService(IRemoteBackendAccessor remoteBacken
         // Send request.
         var response = await httpClient.SendAsync(refreshRequestMessage, cancellationToken);
 
-        // If the refresh token is invalid, we can't do anything.
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            return new(false, null, null);
+        // An invalid refresh token yields no tokens.
+        var tokens = response.StatusCode == HttpStatusCode.Unauthorized
+            ? null
+            : (await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken))!;
 
-        // Parse response into tokens.
-        var tokens = (await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken))!;
-
-        // Sign-out (in this or another tab) may clear the stored tokens while the request is in flight. Storing the
-        // response then would silently restore the ended session, so only store if the refresh token we sent is
-        // still the current one. The gate keeps sign-out in this scope from interleaving with the check and writes.
+        // The gate keeps sign-out in this scope from interleaving with the check and writes below.
         return await sessionGate.RunAsync(async () =>
         {
-            if (await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken) != refreshToken)
+            // If this or another tab signed out, signed in or refreshed while the request was in flight, the stored
+            // session is newer than this response. Storing the response would resurrect or overwrite it, and
+            // reporting a failure would make the caller clear it, so defer to whatever is stored now.
+            var currentRefreshToken = await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken);
+            if (currentRefreshToken != refreshToken)
+                return string.IsNullOrWhiteSpace(currentRefreshToken)
+                    ? new LoginResponse(false, null, null)
+                    : new LoginResponse(true, await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken), currentRefreshToken);
+
+            if (tokens == null)
                 return new LoginResponse(false, null, null);
 
             if (!string.IsNullOrWhiteSpace(tokens.RefreshToken))

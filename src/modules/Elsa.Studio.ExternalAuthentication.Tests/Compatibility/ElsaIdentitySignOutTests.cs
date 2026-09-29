@@ -89,8 +89,7 @@ public sealed class ElsaIdentitySignOutTests : BunitContext, IAsyncLifetime
     {
         SignIn("alice");
         var refreshResponse = new PausedHandler();
-        var refreshTokenService = new ElsaIdentityRefreshTokenService(
-            new StaticRemoteBackendAccessor(), _tokens, new StaticHttpClientFactory(refreshResponse), Services.GetRequiredService<ElsaIdentitySessionGate>());
+        var refreshTokenService = CreateRefreshTokenService(refreshResponse);
 
         var refresh = refreshTokenService.RefreshTokenAsync(CancellationToken.None);
         await Services.GetRequiredService<ISignOutService>().SignOutAsync();
@@ -105,8 +104,7 @@ public sealed class ElsaIdentitySignOutTests : BunitContext, IAsyncLifetime
     {
         SignIn("alice");
         var refreshResponse = new PausedHandler();
-        var refreshTokenService = new ElsaIdentityRefreshTokenService(
-            new StaticRemoteBackendAccessor(), _tokens, new StaticHttpClientFactory(refreshResponse), Services.GetRequiredService<ElsaIdentitySessionGate>());
+        var refreshTokenService = CreateRefreshTokenService(refreshResponse);
         var pausedWrite = _tokens.PauseNextWrite();
 
         var refresh = refreshTokenService.RefreshTokenAsync(CancellationToken.None);
@@ -119,6 +117,28 @@ public sealed class ElsaIdentitySignOutTests : BunitContext, IAsyncLifetime
 
         Assert.Empty(_tokens.Tokens);
     }
+
+    [Fact]
+    public async Task RefreshOutlivedBySignInInAnotherTab_KeepsTheNewerSession()
+    {
+        _tokens.Tokens[TokenNames.AccessToken] = CreateJwt("alice", TimeSpan.FromMinutes(-5));
+        _tokens.Tokens[TokenNames.RefreshToken] = "refresh-token";
+        var refreshResponse = new PausedHandler();
+        var tokenProvider = new JwtTokenProvider(_tokens, new JwtParser(), new SingleFlightCoordinator(), CreateRefreshTokenService(refreshResponse));
+
+        var accessToken = tokenProvider.GetAccessTokenAsync();
+        var bobAccessToken = CreateJwt("bob");
+        _tokens.Tokens[TokenNames.AccessToken] = bobAccessToken;
+        _tokens.Tokens[TokenNames.RefreshToken] = "bob-refresh-token";
+        refreshResponse.Respond("""{ "isAuthenticated": true, "accessToken": "alice-access", "refreshToken": "alice-refresh" }""");
+
+        Assert.Equal(bobAccessToken, await accessToken);
+        Assert.Equal(bobAccessToken, _tokens.Tokens[TokenNames.AccessToken]);
+        Assert.Equal("bob-refresh-token", _tokens.Tokens[TokenNames.RefreshToken]);
+    }
+
+    private ElsaIdentityRefreshTokenService CreateRefreshTokenService(HttpMessageHandler handler) =>
+        new(new StaticRemoteBackendAccessor(), _tokens, new StaticHttpClientFactory(handler), Services.GetRequiredService<ElsaIdentitySessionGate>());
 
     private async Task<IRenderedComponent<ElsaIdentityUserMenu>> RenderAppBarMenuAsync()
     {
@@ -133,12 +153,12 @@ public sealed class ElsaIdentitySignOutTests : BunitContext, IAsyncLifetime
         _tokens.Tokens[TokenNames.RefreshToken] = "refresh-token";
     }
 
-    private static string CreateJwt(string userName)
+    private static string CreateJwt(string userName, TimeSpan? expiresIn = null)
     {
         var payload = JsonSerializer.Serialize(new
         {
             name = userName,
-            exp = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()
+            exp = DateTimeOffset.UtcNow.Add(expiresIn ?? TimeSpan.FromHours(1)).ToUnixTimeSeconds()
         });
         return $"{Base64Url("{\"alg\":\"none\"}")}.{Base64Url(payload)}.signature";
     }
