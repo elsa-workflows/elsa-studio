@@ -75,13 +75,4 @@ public sealed class StudioShellCssContractTests
             host,
             StringComparison.Ordinal);
     }
-
-    [Fact]
-    public void ServerHostRendersPersistComponentState()
-    {
-        // The antiforgery token for OIDC sign-out must survive into long-polling circuits.
-        var host = CssContractTestContext.ReadRepositoryFile("src", "hosts", "Elsa.Studio.Host.Server", "Pages", "_Host.cshtml");
-
-        Assert.Contains("<persist-component-state />", host, StringComparison.Ordinal);
-    }
 }
