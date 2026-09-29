@@ -67,7 +67,7 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         {
             Assert.Contains("Edit role — Auditors", cut.Markup);
             Assert.Equal("Edit role — Auditors", cut.Find("h1").TextContent.Trim());
-            Assert.Contains("Direct grant", cut.Markup);
+            Assert.DoesNotContain("Direct grant", cut.Markup);
             Assert.Contains("Covered by workflows/*:view", cut.Markup);
             Assert.Contains("Unverified · verified:false", cut.Markup);
             Assert.Contains("WorkflowDefinitions:Publish", cut.Markup);
@@ -403,6 +403,72 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
         Assert.Equal(["secrets/*:view", "workflows/*:view"], RenderedGrants(cut));
         Assert.Empty(cut.FindAll("button[aria-label^='Edit advanced grant']"));
         Assert.Empty(cut.FindAll("button[aria-label^='Remove advanced grant']"));
+    }
+
+    [Fact]
+    public void ExactGrantAlsoCoveredByAWildcardSaysSo()
+    {
+        var roles = new StubRolesApi
+        {
+            Response = new ListRolesResponse
+            {
+                Roles = [new RoleSummary { Id = "auditors", Name = "Auditors", Permissions = ["workflows/*:view", "workflows/definitions:view"] }]
+            }
+        };
+        var permissions = new StubPermissionsApi
+        {
+            Response = new PermissionCatalogResponse
+            {
+                Resources =
+                [
+                    new PermissionResourceDescriptor
+                    {
+                        Resource = "workflows/definitions",
+                        DisplayName = "Definitions",
+                        Category = "Workflows",
+                        SupportedVerbs = ["view"]
+                    }
+                ]
+            }
+        };
+        Register(roles, permissions);
+
+        var cut = Render<RoleEditorSurface>(parameters => parameters
+            .Add(x => x.RoleId, "auditors")
+            .Add(x => x.Access, ReadyAccess));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Also covered by workflows/*:view", cut.Markup);
+            Assert.DoesNotContain(">Covered by workflows/*:view", cut.Markup);
+        });
+    }
+
+    [Fact]
+    public void SavingTheRoleAppliesAnOpenAdvancedGrantEdit()
+    {
+        var (cut, roles) = RenderRoleWithAdvancedGrants();
+        StartEditing(cut, "secrets/*:view");
+        EditInput(cut, "secrets/*:view").Input("secrets/*:update");
+
+        ClickButton(cut, "Save changes");
+
+        cut.WaitForAssertion(() => Assert.Equal(1, roles.UpdateCalls));
+        Assert.Equal(["secrets/*:update", "workflows/*:view"], roles.LastUpdate!.Permissions);
+    }
+
+    [Fact]
+    public void SavingTheRoleWithAnInvalidOpenAdvancedGrantEditKeepsTheEditOpenAndDoesNotSave()
+    {
+        var (cut, roles) = RenderRoleWithAdvancedGrants();
+        StartEditing(cut, "secrets/*:view");
+        EditInput(cut, "secrets/*:view").Input("not a grant");
+
+        ClickButton(cut, "Save changes");
+
+        cut.WaitForAssertion(() => Assert.Contains("Enter a valid grant.", cut.Markup));
+        Assert.Single(cut.FindAll("input[aria-label='Edit advanced grant secrets/*:view']"));
+        Assert.Equal(0, roles.UpdateCalls);
     }
 
     private (IRenderedComponent<RoleEditorSurface> Cut, StubRolesApi Roles) RenderRoleWithAdvancedGrants(RoleAdministrationAccess? access = null)

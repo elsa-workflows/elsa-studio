@@ -16,19 +16,19 @@
 {
     <MudPaper Outlined="true" Elevation="0" Class="pa-3">
         <div class="role-reach-header">
-            @if (IsEditing)
+            @if (Edit != null)
             {
                 <div class="role-grant-edit">
                     <MudTextField T="string"
                                   Label="Advanced grant"
                                   Placeholder="workflows/*:view or *"
-                                  Value="@_draft"
-                                  ValueChanged="@((string value) => _draft = value)"
+                                  Value="@Edit.Draft"
+                                  ValueChanged="@((string value) => Edit.Draft = value)"
                                   Immediate="true"
                                   AutoFocus="true"
                                   OnKeyDown="OnEditKeyDown"
-                                  Error="@(EditError != null)"
-                                  ErrorText="@EditError"
+                                  Error="@(Edit.Error != null)"
+                                  ErrorText="@Edit.Error"
                                   Variant="Variant.Outlined"
                                   Margin="Margin.Dense"
                                   aria-label="@($"Edit advanced grant {Grant}")" />
@@ -112,25 +112,15 @@
     [Parameter] public bool IsReadOnly { get; set; }
     [Parameter] public EventCallback OnRemove { get; set; }
     [Parameter] public EventCallback OnLoadReach { get; set; }
-    [Parameter] public bool IsEditing { get; set; }
-    [Parameter] public string? EditError { get; set; }
+    [Parameter] public AdvancedGrantEdit? Edit { get; set; }
     [Parameter] public EventCallback OnEdit { get; set; }
-    [Parameter] public EventCallback<string> OnSaveEdit { get; set; }
+    [Parameter] public EventCallback OnSaveEdit { get; set; }
     [Parameter] public EventCallback OnCancelEdit { get; set; }
     private bool _showCoverage;
-    private bool _wasEditing;
-    private string _draft = string.Empty;
-
-    protected override void OnParametersSet()
-    {
-        if (IsEditing && !_wasEditing)
-            _draft = Grant;
-        _wasEditing = IsEditing;
-    }
 
     private void ToggleCoverage() => _showCoverage = !_showCoverage;
 
-    private Task SaveEdit() => OnSaveEdit.InvokeAsync(_draft);
+    private Task SaveEdit() => OnSaveEdit.InvokeAsync();
 
     private Task OnEditKeyDown(KeyboardEventArgs args) => args.Key switch
     {

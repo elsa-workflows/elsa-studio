@@ -180,9 +180,11 @@ else
                                                         var covering = FindCoveringWildcard(resource.Resource, verb);
                                                         <div class="role-verb-option">
                                                             <MudCheckBox T="bool" Label="@verb" Dense="true" Value="@direct" ValueChanged="@((bool value) => SetDirectGrant(permission, value))" Disabled="@(IsReadOnly || (!direct && covering != null))" Color="Color.Primary" aria-label="@permission" />
-                                                            @if (direct)
+                                                            @if (covering != null && direct)
                                                             {
-                                                                <span class="role-grant-state">Direct grant</span>
+                                                                <MudTooltip Text="The wildcard already grants this; the exact grant is redundant.">
+                                                                    <span class="role-grant-state">Also covered by @covering</span>
+                                                                </MudTooltip>
                                                             }
                                                             else if (covering != null)
                                                             {
@@ -231,10 +233,9 @@ else
                                                     IsReadOnly="@IsReadOnly"
                                                     OnRemove="@(() => RemoveAdvancedGrant(grant))"
                                                     OnLoadReach="@(() => LoadReachAsync(grant))"
-                                                    IsEditing="@(_editingGrant == grant)"
-                                                    EditError="@(_editingGrant == grant ? _editError : null)"
+                                                    Edit="@(_edit?.Original == grant ? _edit : null)"
                                                     OnEdit="@(() => BeginEditAdvancedGrant(grant))"
-                                                    OnSaveEdit="SaveAdvancedGrantEditAsync"
+                                                    OnSaveEdit="@(() => ApplyAdvancedGrantEditAsync())"
                                                     OnCancelEdit="CancelEditAdvancedGrant" />
                         }
                     </MudStack>
@@ -292,12 +293,12 @@ else
     private string? _loadError;
     private string? _saveError;
     private string? _advancedError;
-    private string? _editingGrant;
-    private string? _editError;
+    private AdvancedGrantEdit? _edit;
     private bool _loading = true;
     private bool _saving;
     private bool _deleteDialogOpen;
     private bool _initialized;
+    private const int AdvancedGrantsTab = 1;
     private int _activeTab;
     private RoleSummary? _role;
     private readonly HashSet<string> _direct = new(StringComparer.Ordinal);
@@ -542,7 +543,7 @@ else
         if (IsReadOnly)
             return;
 
-        if (_editingGrant == grant)
+        if (_edit?.Original == grant)
             CancelEditAdvancedGrant();
         _advanced.Remove(grant);
         ForgetReach(grant);
@@ -553,32 +554,32 @@ else
         if (IsReadOnly)
             return;
 
-        _editingGrant = grant;
-        _editError = null;
+        _edit = new(grant);
     }
 
-    private void CancelEditAdvancedGrant()
-    {
-        _editingGrant = null;
-        _editError = null;
-    }
+    private void CancelEditAdvancedGrant() => _edit = null;
 
-    private async Task SaveAdvancedGrantEditAsync(string draft)
+    // Returns false when an open edit is invalid; the error is shown on its row and the edit stays open.
+    private async Task<bool> ApplyAdvancedGrantEditAsync()
     {
-        if (IsReadOnly || _editingGrant is not { } original)
-            return;
+        if (IsReadOnly || _edit is not { } edit)
+            return true;
 
-        if (!TryValidateAdvancedGrant(draft, original, out var value, out _editError))
-            return;
+        if (!TryValidateAdvancedGrant(edit.Draft, edit.Original, out var value, out var error))
+        {
+            edit.Error = error;
+            return false;
+        }
 
         CancelEditAdvancedGrant();
-        var index = _advanced.IndexOf(original);
-        if (value == original || index < 0)
-            return;
+        var index = _advanced.IndexOf(edit.Original);
+        if (value == edit.Original || index < 0)
+            return true;
 
         _advanced[index] = value;
-        ForgetReach(original);
+        ForgetReach(edit.Original);
         await RefreshReachAsync(value);
+        return true;
     }
 
     // Shared by add and in-place edit so both apply identical normalization, wildcard rules and duplicate detection.
@@ -728,6 +729,13 @@ else
         _saveError = null;
         try
         {
+            // An edit the user typed but never confirmed is part of what they mean to save.
+            if (!await ApplyAdvancedGrantEditAsync())
+            {
+                _activeTab = AdvancedGrantsTab;
+                return;
+            }
+
             await _form.Validate();
             if (!_form.IsValid)
                 return;
