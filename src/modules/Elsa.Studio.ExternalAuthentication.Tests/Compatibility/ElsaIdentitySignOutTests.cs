@@ -5,6 +5,7 @@ using Bunit.TestDoubles;
 using Elsa.Studio.Authentication.ElsaIdentity;
 using Elsa.Studio.Authentication.ElsaIdentity.Contracts;
 using Elsa.Studio.Authentication.ElsaIdentity.Extensions;
+using Elsa.Studio.Authentication.ElsaIdentity.Services;
 using Elsa.Studio.Authentication.ElsaIdentity.UI;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Components;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
@@ -83,6 +84,22 @@ public sealed class ElsaIdentitySignOutTests : BunitContext, IAsyncLifetime
         Assert.True(navigation.Options.ForceLoad);
     }
 
+    [Fact]
+    public async Task RefreshCompletingAfterSignOut_DoesNotRestoreTheSession()
+    {
+        SignIn("alice");
+        var refreshResponse = new PausedHandler();
+        var refreshTokenService = new ElsaIdentityRefreshTokenService(
+            new StaticRemoteBackendAccessor(), _tokens, new StaticHttpClientFactory(refreshResponse));
+
+        var refresh = refreshTokenService.RefreshTokenAsync(CancellationToken.None);
+        await Services.GetRequiredService<ISignOutService>().SignOutAsync();
+        refreshResponse.Respond("""{ "isAuthenticated": true, "accessToken": "new-access", "refreshToken": "new-refresh" }""");
+
+        Assert.False((await refresh).IsAuthenticated);
+        Assert.Empty(_tokens.Tokens);
+    }
+
     private async Task<IRenderedComponent<ElsaIdentityUserMenu>> RenderAppBarMenuAsync()
     {
         await Services.GetServices<IFeature>().OfType<ElsaIdentityUIFeature>().Single().InitializeAsync();
@@ -108,6 +125,26 @@ public sealed class ElsaIdentitySignOutTests : BunitContext, IAsyncLifetime
 
     private static string Base64Url(string value) =>
         Convert.ToBase64String(Encoding.UTF8.GetBytes(value)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+    private sealed class PausedHandler : HttpMessageHandler
+    {
+        private readonly TaskCompletionSource<HttpResponseMessage> _response = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void Respond(string json) =>
+            _response.SetResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") });
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => _response.Task;
+    }
+
+    private sealed class StaticHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
+    }
+
+    private sealed class StaticRemoteBackendAccessor : IRemoteBackendAccessor
+    {
+        public Elsa.Studio.Models.RemoteBackend RemoteBackend { get; } = new(new Uri("https://backend.example"));
+    }
 
     private sealed class InMemoryJwtAccessor : IJwtAccessor
     {

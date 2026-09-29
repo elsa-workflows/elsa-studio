@@ -38,6 +38,12 @@ public class ElsaIdentityRefreshTokenService(IRemoteBackendAccessor remoteBacken
         // Parse response into tokens.
         var tokens = (await response.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: cancellationToken))!;
 
+        // Sign-out (in this or another tab) clears the stored tokens while the request is in flight. Storing the
+        // response then would silently restore the ended session, so only store if the refresh token we sent is
+        // still the current one.
+        if (await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken) != refreshToken)
+            return new(false, null, null);
+
         // Store tokens.
         if (!string.IsNullOrWhiteSpace(tokens.RefreshToken))
             await jwtAccessor.WriteTokenAsync(TokenNames.RefreshToken, tokens.RefreshToken);
