@@ -45,7 +45,7 @@
                         }
                         @if (CanBulkCancel)
                         {
-                            <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkCancelClicked">@Localizer["Cancel"]</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="@(CanCancel && !(_selectedRows?.Any() ?? false))" OnClick="@OnBulkCancelClicked">@Localizer["Cancel"]</MudMenuItem>
                         }
                         @* <MudMenuItem Disabled="true">@Localizer["Retry"]</MudMenuItem> *@
                         @* <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="@OnBulkExportClicked">Export</MudMenuItem> *@

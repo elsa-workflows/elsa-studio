@@ -95,14 +95,16 @@ public sealed class WorkflowListPermissionTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void InstanceList_AlterationsWithoutCancel_OffersBulkCancelOnly()
+    public void InstanceList_AlterationsWithoutCancel_OffersCancellingEveryMatchWithoutASelection()
     {
+        var dialogs = Render<MudDialogProvider>();
         var cut = RenderList<WorkflowInstanceList>(InstanceId, "workflows/*:view", "alterations:execute");
 
         cut.FindAll("button").Single(x => x.TextContent.Contains("Bulk actions")).Click();
-
-        Assert.Contains("Cancel", _popovers.Markup);
         Assert.DoesNotContain("Delete", _popovers.Markup);
+        _popovers.FindAll(".mud-menu-item").Single(x => x.TextContent.Trim() == "Cancel").Click();
+
+        dialogs.WaitForAssertion(() => Assert.Contains("Cancel all matching workflow instances?", dialogs.Markup));
     }
 
     [Fact]
