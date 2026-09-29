@@ -4,10 +4,17 @@
     </TitleContent>
     <DialogContent>
         <MudStack>
-            <MudText Typo="Typo.body1">Are you sure you want to cancel the selected workflow instances?</MudText>
-            @if (CanApplyToAllMatches)
+            @if (CanCancelSelected)
             {
-                <MudCheckBox @bind-Value="ApplyToAllMatches" Label="Apply to all matches"/>
+                <MudText Typo="Typo.body1">Are you sure you want to cancel the selected workflow instances?</MudText>
+                @if (CanApplyToAllMatches)
+                {
+                    <MudCheckBox @bind-Value="ApplyToAllMatches" Label="Apply to all matches"/>
+                }
+            }
+            else
+            {
+                <MudText Typo="Typo.body1">Are you sure you want to cancel every workflow instance matching the current filters, not only the selected ones?</MudText>
             }
         </MudStack>
     </DialogContent>

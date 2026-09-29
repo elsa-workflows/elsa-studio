@@ -84,6 +84,10 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private bool CanDelete => Permissions.CanDeleteInstances();
     private bool CanCancel => Permissions.CanCancelInstances();
+
+    // Bulk cancel either cancels the selection (instances:cancel) or submits an alteration plan for every match
+    // (alterations:execute); either permission makes it reachable, and the dialog offers only what the user can do.
+    private bool CanBulkCancel => CanCancel || Permissions.CanExecuteAlterations();
     private bool CanImport => Permissions.CanImportInstances();
     private bool CanAlter => Permissions.CanAlterInstances();
 
@@ -399,6 +403,7 @@ public partial class WorkflowInstanceList : IAsyncDisposable
         // Cancelling every match submits an alteration plan rather than cancelling the selected instances.
         var parameters = new DialogParameters<BulkCancelDialog>
         {
+            { x => x.CanCancelSelected, CanCancel },
             { x => x.CanApplyToAllMatches, Permissions.CanExecuteAlterations() }
         };
         var reference = await DialogService.ShowAsync<BulkCancelDialog>(Localizer["Cancel selected workflow instances?"], parameters);

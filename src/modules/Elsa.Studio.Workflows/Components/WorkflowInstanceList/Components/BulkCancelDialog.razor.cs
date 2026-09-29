@@ -16,7 +16,12 @@ public partial class BulkCancelDialog : ComponentBase
     /// </summary>
     [Parameter] public bool CanApplyToAllMatches { get; set; } = true;
 
-    private void Submit() => MudDialog.Close(DialogResult.Ok(ApplyToAllMatches));
+    /// <summary>
+    /// Whether the user can cancel the selected instances directly. Without it, only cancelling every match is offered.
+    /// </summary>
+    [Parameter] public bool CanCancelSelected { get; set; } = true;
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(ApplyToAllMatches || !CanCancelSelected));
 
     private void Cancel() => MudDialog.Close(DialogResult.Cancel());
 }

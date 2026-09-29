@@ -36,14 +36,14 @@
                 @bind-SelectedItems="_selectedRows">
         <ToolBarContent>
             <MudPaper Class="gap-3 d-flex" Elevation="0">
-                @if (CanDelete || CanCancel)
+                @if (CanDelete || CanBulkCancel)
                 {
                     <MudMenu EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Bulk actions"]" Color="Color.Default" Variant="Variant.Filled" AnchorOrigin="Origin.BottomLeft" Dense="true">
                         @if (CanDelete)
                         {
                             <MudMenuItem Icon="@Icons.Material.Outlined.Delete" Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkDeleteClicked">@Localizer["Delete"]</MudMenuItem>
                         }
-                        @if (CanCancel)
+                        @if (CanBulkCancel)
                         {
                             <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" Disabled="!(_selectedRows?.Any() ?? false)" OnClick="@OnBulkCancelClicked">@Localizer["Cancel"]</MudMenuItem>
                         }

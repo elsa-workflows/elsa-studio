@@ -11,6 +11,7 @@ using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Testing;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList;
+using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Components;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Tests.Support;
@@ -91,6 +92,34 @@ public sealed class WorkflowListPermissionTests : BunitContext, IAsyncLifetime
         Assert.Contains("Bulk actions", cut.Markup);
         var rowActions = OpenRowActions(cut);
         Assert.All(new[] { "View", "Alter", "Cancel", "Delete" }, action => Assert.Contains(action, rowActions));
+    }
+
+    [Fact]
+    public void InstanceList_AlterationsWithoutCancel_OffersBulkCancelOnly()
+    {
+        var cut = RenderList<WorkflowInstanceList>(InstanceId, "workflows/*:view", "alterations:execute");
+
+        cut.FindAll("button").Single(x => x.TextContent.Contains("Bulk actions")).Click();
+
+        Assert.Contains("Cancel", _popovers.Markup);
+        Assert.DoesNotContain("Delete", _popovers.Markup);
+    }
+
+    [Fact]
+    public async Task BulkCancelDialog_WithoutCancelPermission_OnlyCancelsEveryMatch()
+    {
+        var dialogs = Render<MudDialogProvider>();
+        var parameters = new DialogParameters<BulkCancelDialog>
+        {
+            { x => x.CanCancelSelected, false },
+            { x => x.CanApplyToAllMatches, true }
+        };
+        var reference = await dialogs.InvokeAsync(() => Services.GetRequiredService<IDialogService>().ShowAsync<BulkCancelDialog>("Cancel", parameters));
+
+        Assert.Empty(dialogs.FindAll("input[type=checkbox]"));
+        dialogs.FindAll("button").Single(x => x.TextContent.Trim() == "Yes").Click();
+
+        Assert.True((bool)(await reference.Result)!.Data!);
     }
 
     // The shell's page guard cascades the user's permissions to the page.
