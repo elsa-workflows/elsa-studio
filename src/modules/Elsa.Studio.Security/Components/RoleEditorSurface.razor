@@ -25,9 +25,10 @@
     .role-resource-heading { align-items: center; display: flex; flex-wrap: wrap; gap: .35rem; }
     .role-resource-description { color: var(--mud-palette-text-secondary); display: block; line-height: 1.25; margin-top: .15rem; }
     .role-verb-list { align-items: start; display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: flex-start; min-width: 0; }
-    .role-verb-option { align-items: center; display: flex; flex-wrap: wrap; min-height: 2rem; min-width: 9rem; }
-    .role-verb-option .mud-checkbox { margin: 0; }
-    .role-grant-state { color: var(--mud-palette-text-secondary); font-size: .7rem; margin-left: -.2rem; }
+    .role-verb-option { align-items: center; display: flex; flex-wrap: wrap; gap: 0 .5rem; max-width: 100%; min-height: 2rem; min-width: 9rem; }
+    .role-verb-option .mud-checkbox,
+    .role-verb-option .mud-chip { margin: 0; }
+    .role-grant-state { color: var(--mud-palette-text-secondary); font-size: .7rem; white-space: nowrap; }
 
     @@media (max-width: 959.98px) {
         .role-editor-details,
