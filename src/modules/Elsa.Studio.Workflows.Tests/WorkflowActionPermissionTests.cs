@@ -1,10 +1,10 @@
 using Bunit;
+using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Shared.Models;
-using Elsa.Api.Client.Resources.Scripting.Models;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Localization;
@@ -49,7 +49,7 @@ public sealed class WorkflowActionPermissionTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<IActivityRegistry>(new TestActivityRegistry([]));
         Services.AddSingleton<IWorkflowDefinitionService, VersionsWorkflowDefinitionService>();
         Services.AddSingleton<IRemoteFeatureProvider, EnabledRemoteFeatureProvider>();
-        Services.AddSingleton<IExpressionService, NoExpressionService>();
+        Services.AddSingleton<IExpressionService, StubExpressionService>();
         Services.AddSingleton<IWorkflowInstanceObserverFactory, UnusedObserverFactory>();
         ComponentFactories.Add<DiagramDesignerWrapper, TestDiagramDesignerWrapper>();
         _popovers = Render<MudPopoverProvider>();
@@ -87,9 +87,10 @@ public sealed class WorkflowActionPermissionTests : BunitContext, IAsyncLifetime
 
         cut.WaitForElement("tbody .mud-menu button").Click();
 
-        Assert.Contains("View", _popovers.Markup);
-        Assert.Equal(canRollback, _popovers.Markup.Contains("Rollback to this version"));
-        Assert.Equal(canDelete, _popovers.Markup.Contains("Delete"));
+        var items = _popovers.FindAll(".mud-menu-item").Select(x => x.TextContent.Trim()).ToList();
+        Assert.Contains("View", items);
+        Assert.Equal(canRollback, items.Contains("Rollback to this version"));
+        Assert.Equal(canDelete, items.Contains("Delete"));
         Assert.Equal(canDelete, cut.Markup.Contains("Bulk actions"));
     }
 
@@ -100,7 +101,8 @@ public sealed class WorkflowActionPermissionTests : BunitContext, IAsyncLifetime
     {
         var cut = Render<ActivityPropertiesPanel>(parameters => parameters.AddCascadingValue(StubPermissionService.Grants(grants)));
 
-        var tabs = cut.WaitForElements(".mud-tab").Select(x => x.TextContent.Trim()).ToList();
+        cut.WaitForElements(".mud-tab");
+        var tabs = cut.FindComponents<MudTabPanel>().Select(x => x.Instance.Text).ToList();
         Assert.Contains("Common", tabs);
         Assert.Equal(canTest, tabs.Contains("Test"));
     }
@@ -119,24 +121,5 @@ public sealed class WorkflowActionPermissionTests : BunitContext, IAsyncLifetime
                 Items = [new() { Id = "definition-1:2", DefinitionId = "definition-1", Version = 2, IsLatest = true }, new() { Id = "definition-1:1", DefinitionId = "definition-1", Version = 1 }],
                 TotalCount = 2
             });
-    }
-
-    private sealed class NoExpressionService : IExpressionService
-    {
-        public Task<IEnumerable<ExpressionDescriptor>> ListDescriptorsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ExpressionDescriptor>>([]);
-        public Task<ExpressionDescriptor?> GetByTypeAsync(string type, CancellationToken cancellationToken = default) => Task.FromResult<ExpressionDescriptor?>(null);
-    }
-
-    // The designer only creates an observer once its diagram is up, which these tests never render.
-    private sealed class UnusedObserverFactory : IWorkflowInstanceObserverFactory
-    {
-        public Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId) => throw new NotSupportedException();
-        public Task<IWorkflowInstanceObserver> CreateAsync(WorkflowInstanceObserverContext context) => throw new NotSupportedException();
-    }
-
-    private sealed class EnabledRemoteFeatureProvider : IRemoteFeatureProvider
-    {
-        public Task<bool> IsEnabledAsync(string featureName, CancellationToken cancellationToken = default) => Task.FromResult(true);
-        public Task<IEnumerable<Elsa.Api.Client.Resources.Features.Models.FeatureDescriptor>> ListAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 }

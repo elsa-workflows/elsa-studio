@@ -82,8 +82,9 @@ public sealed class WorkflowEditorLifecycleTests : BunitContext, IAsyncLifetime
 
         cut.Find(".mud-menu button").Click();
 
-        Assert.Contains("Save As", _popovers.Markup);
-        Assert.Equal(canUnpublish, _popovers.Markup.Contains("Unpublish"));
+        var items = _popovers.FindAll(".mud-menu-item").Select(x => x.TextContent.Trim()).ToList();
+        Assert.Contains("Save As", items);
+        Assert.Equal(canUnpublish, items.Contains("Unpublish"));
     }
 
     [Fact]

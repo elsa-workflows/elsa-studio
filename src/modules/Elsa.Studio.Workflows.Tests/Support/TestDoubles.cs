@@ -1,7 +1,12 @@
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
+using Elsa.Api.Client.Resources.Features.Models;
+using Elsa.Api.Client.Resources.Scripting.Models;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Localization.Time;
+using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.Localization;
@@ -52,4 +57,33 @@ internal sealed class TestDiagramDesignerWrapper : DiagramDesignerWrapper
     protected override Task OnInitializedAsync() => Task.CompletedTask;
 
     protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, CustomToolbarItems);
+}
+
+/// <summary>
+/// An <see cref="IExpressionService"/> that offers a fixed pair of expression descriptors.
+/// </summary>
+internal sealed class StubExpressionService : IExpressionService
+{
+    private static readonly ExpressionDescriptor[] Descriptors = [new("Literal", "Literal"), new("JavaScript", "JavaScript")];
+
+    public Task<IEnumerable<ExpressionDescriptor>> ListDescriptorsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IEnumerable<ExpressionDescriptor>>(Descriptors);
+    public Task<ExpressionDescriptor?> GetByTypeAsync(string type, CancellationToken cancellationToken = default) => Task.FromResult(Descriptors.FirstOrDefault(x => x.Type == type));
+}
+
+/// <summary>
+/// An <see cref="IRemoteFeatureProvider"/> that reports every feature as enabled.
+/// </summary>
+internal sealed class EnabledRemoteFeatureProvider : IRemoteFeatureProvider
+{
+    public Task<bool> IsEnabledAsync(string featureName, CancellationToken cancellationToken = default) => Task.FromResult(true);
+    public Task<IEnumerable<FeatureDescriptor>> ListAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// An <see cref="IWorkflowInstanceObserverFactory"/> for tests whose designer never gets as far as observing an instance.
+/// </summary>
+internal sealed class UnusedObserverFactory : IWorkflowInstanceObserverFactory
+{
+    public Task<IWorkflowInstanceObserver> CreateAsync(string workflowInstanceId) => throw new NotSupportedException();
+    public Task<IWorkflowInstanceObserver> CreateAsync(WorkflowInstanceObserverContext context) => throw new NotSupportedException();
 }
