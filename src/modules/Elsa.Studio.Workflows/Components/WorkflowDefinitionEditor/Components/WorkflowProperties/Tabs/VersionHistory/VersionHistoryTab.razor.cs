@@ -2,6 +2,7 @@ using Elsa.Api.Client.Resources.WorkflowDefinitions.Enums;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Authorization;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Workflows.Domain.Contracts;
@@ -28,6 +29,12 @@ public partial class VersionHistoryTab : IDisposable
     private MudTable<WorkflowDefinitionSummary> Table { get; set; } = default!;
     private bool IsReadOnly => Workspace.IsReadOnly;
     private bool HasWorkflowEditPermission => Workspace.HasWorkflowEditPermission;
+
+    [CascadingParameter] private UserPermissions Permissions { get; set; } = UserPermissions.Unknown;
+
+    // Deleting a version (singly or in bulk) goes through the definition endpoints; rolling back through the version ones.
+    private bool CanDeleteVersions => Permissions.Has(WorkflowPermissions.Definitions, PermissionVerbs.Delete);
+    private bool CanRevertVersions => Permissions.Has(WorkflowPermissions.DefinitionVersions, WorkflowVerbs.Revert);
     private long _recordCount = 0;
 
     /// <inheritdoc />

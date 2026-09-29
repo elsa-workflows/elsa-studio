@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.WorkflowInstances.Enums;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
 using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
+using Elsa.Studio.Authorization;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Constants;
 using Elsa.Studio.DomInterop.Contracts;
@@ -12,6 +13,7 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Components;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Extensions;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -77,6 +79,13 @@ public partial class WorkflowInstanceList : IAsyncDisposable
     private bool? HasIncidents { get; set; }
     private bool IsDateRangePopoverOpen { get; set; }
     private bool IsAlterationsEnabled { get; set; }
+
+    [CascadingParameter] private UserPermissions Permissions { get; set; } = UserPermissions.Unknown;
+
+    private bool CanDelete => Permissions.Has(WorkflowPermissions.Instances, PermissionVerbs.Delete);
+    private bool CanCancel => Permissions.Has(WorkflowPermissions.Instances, WorkflowVerbs.Cancel);
+    private bool CanImport => Permissions.Has(WorkflowPermissions.Instances, PermissionVerbs.Write);
+    private bool CanAlter => Permissions.CanAlterInstances();
 
     private void Reload() => _table.ReloadServerData();
     private async Task ViewAsync(string instanceId) => await ViewWorkflowInstance.InvokeAsync(instanceId);
@@ -387,7 +396,12 @@ public partial class WorkflowInstanceList : IAsyncDisposable
 
     private async Task OnBulkCancelClicked()
     {
-        var reference = await DialogService.ShowAsync<BulkCancelDialog>(Localizer["Cancel selected workflow instances?"]);
+        // Cancelling every match submits an alteration plan rather than cancelling the selected instances.
+        var parameters = new DialogParameters<BulkCancelDialog>
+        {
+            { x => x.CanApplyToAllMatches, Permissions.Has(WorkflowPermissions.Alterations, PermissionVerbs.Execute) }
+        };
+        var reference = await DialogService.ShowAsync<BulkCancelDialog>(Localizer["Cancel selected workflow instances?"], parameters);
         var dialogResult = await reference.Result;
 
         if (dialogResult == null || dialogResult.Canceled)

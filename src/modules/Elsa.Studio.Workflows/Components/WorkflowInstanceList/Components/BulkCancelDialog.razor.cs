@@ -11,6 +11,11 @@ public partial class BulkCancelDialog : ComponentBase
     private bool ApplyToAllMatches { get; set; }
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
 
+    /// <summary>
+    /// Whether to offer cancelling every matching instance, which requires permission to submit alteration plans.
+    /// </summary>
+    [Parameter] public bool CanApplyToAllMatches { get; set; } = true;
+
     private void Submit() => MudDialog.Close(DialogResult.Ok(ApplyToAllMatches));
 
     private void Cancel() => MudDialog.Close(DialogResult.Cancel());
