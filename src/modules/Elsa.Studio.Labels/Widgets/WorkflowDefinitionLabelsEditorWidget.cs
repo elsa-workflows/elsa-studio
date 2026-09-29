@@ -1,4 +1,7 @@
+using Elsa.Studio.Authorization;
+using Elsa.Studio.Components;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Labels;
 using Elsa.Studio.Labels.Components;
 using Microsoft.AspNetCore.Components;
 
@@ -18,10 +21,17 @@ public class WorkflowDefinitionLabelsEditorWidget : IWidget
     /// <inheritdoc />
     public Func<IDictionary<string, object?>, RenderFragment> Render => attributes => builder =>
     {
-        builder.OpenComponent<WorkflowDefinitionLabelsEditor>(0);
-        builder.AddAttribute(1, nameof(WorkflowDefinitionLabelsEditor.WorkflowDefinition), attributes["WorkflowDefinition"]);
-        builder.AddAttribute(2, nameof(WorkflowDefinitionLabelsEditor.WorkflowDefinitionUpdated), attributes["WorkflowDefinitionUpdated"]);
+        // The editor lists the definition's labels as soon as it initializes, so it is not rendered at all without access.
+        builder.OpenComponent<PermissionView>(0);
+        builder.AddAttribute(1, nameof(PermissionView.Resource), LabelPermissions.WorkflowDefinitionLabels);
+        builder.AddAttribute(2, nameof(PermissionView.Verb), PermissionVerbs.View);
+        builder.AddAttribute(3, nameof(PermissionView.ChildContent), (RenderFragment)(editor =>
+        {
+            editor.OpenComponent<WorkflowDefinitionLabelsEditor>(0);
+            editor.AddAttribute(1, nameof(WorkflowDefinitionLabelsEditor.WorkflowDefinition), attributes["WorkflowDefinition"]);
+            editor.AddAttribute(2, nameof(WorkflowDefinitionLabelsEditor.WorkflowDefinitionUpdated), attributes["WorkflowDefinitionUpdated"]);
+            editor.CloseComponent();
+        }));
         builder.CloseComponent();
-
     };
 }

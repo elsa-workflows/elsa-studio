@@ -1,7 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using Bunit;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Authorization;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Labels.Client;
+using Elsa.Studio.Labels.Models;
+using Elsa.Studio.Localization;
 using Elsa.Studio.Secrets.Client;
 using Elsa.Studio.Secrets.Models;
 using Elsa.Studio.Testing;
@@ -10,6 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
 using Xunit;
+using LabelPage = Elsa.Studio.Labels.UI.Pages.Label;
+using LabelsPage = Elsa.Studio.Labels.UI.Pages.Labels;
 using SecretPage = Elsa.Studio.Secrets.Pages.Secret;
 using SecretsPage = Elsa.Studio.Secrets.Pages.Secrets;
 
@@ -19,11 +25,13 @@ namespace Elsa.Studio.Administration.Tests;
 public sealed class PermissionGatedActionsTests : BunitContext, IAsyncLifetime
 {
     private static readonly SecretModel ApiKey = new() { Id = "1", Name = "api-key", DisplayName = "API key", TypeName = "Text", StoreName = "Database" };
+    private static readonly Label Urgent = new() { Id = "urgent", Name = "Urgent" };
 
     public PermissionGatedActionsTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
+        Services.AddSingleton<ILocalizer>(new TestLocalizer());
         Services.AddSingleton<IBackendApiClientProvider>(new ApiProvider());
         Render<MudPopoverProvider>();
     }
@@ -72,6 +80,43 @@ public sealed class PermissionGatedActionsTests : BunitContext, IAsyncLifetime
         Assert.Contains("Rotation", cut.Markup);
     }
 
+    [Fact]
+    public void LabelsList_ViewOnly_HidesCreateAndBulkActions()
+    {
+        var cut = RenderPage<LabelsPage>(["labels:view"]);
+
+        cut.WaitForAssertion(() => Assert.Contains(Urgent.Name!, cut.Markup));
+        Assert.DoesNotContain("Create Label", cut.Markup);
+        Assert.DoesNotContain("Bulk actions", cut.Markup);
+    }
+
+    [Fact]
+    public void LabelsList_WithCreateAndDeleteAccess_ShowsCreateAndBulkActions()
+    {
+        var cut = RenderPage<LabelsPage>(["labels:view", "labels:create", "labels:delete"]);
+
+        cut.WaitForAssertion(() => Assert.Contains(Urgent.Name!, cut.Markup));
+        Assert.Contains("Create Label", cut.Markup);
+        Assert.Contains("Bulk actions", cut.Markup);
+    }
+
+    [Fact]
+    public void Label_ViewOnly_HidesSave()
+    {
+        var cut = RenderPage<LabelPage>(["labels:view"], parameters => parameters.Add(x => x.LabelId, Urgent.Id));
+
+        cut.WaitForAssertion(() => Assert.Contains($"Label: {Urgent.Name}", cut.Markup));
+        Assert.DoesNotContain("Save", cut.Markup);
+    }
+
+    [Fact]
+    public void Label_WithUpdateAccess_ShowsSave()
+    {
+        var cut = RenderPage<LabelPage>(["labels:view", "labels:update"], parameters => parameters.Add(x => x.LabelId, Urgent.Id));
+
+        cut.WaitForAssertion(() => Assert.Contains("Save", cut.Markup));
+    }
+
     // The shell's page guard cascades the user's permissions to the page.
     private IRenderedComponent<TPage> RenderPage<TPage>(string[] grants, Action<ComponentParameterCollectionBuilder<TPage>>? parameters = null) where TPage : IComponent =>
         Render<TPage>(builder =>
@@ -82,7 +127,7 @@ public sealed class PermissionGatedActionsTests : BunitContext, IAsyncLifetime
 
     private sealed class ApiProvider : IBackendApiClientProvider
     {
-        private readonly object[] _apis = [new SecretsApi()];
+        private readonly object[] _apis = [new SecretsApi(), new LabelsApi()];
 
         public Uri Url => new("https://elsa.example.test");
 
@@ -104,5 +149,14 @@ public sealed class PermissionGatedActionsTests : BunitContext, IAsyncLifetime
         public Task DeleteAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<SecretTestResponse> TestAsync(string name, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<SecretPickerResponse> PickAsync(SecretPickerRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    private sealed class LabelsApi : ILabelsApi
+    {
+        public Task<ListResponse<Label>> ListAsync(CancellationToken cancellationToken = default) => Task.FromResult(new ListResponse<Label>([Urgent], 1));
+        public Task<Label> GetAsync(string id, CancellationToken cancellationToken = default) => Task.FromResult(Urgent);
+        public Task DeleteAsync(string id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task UpdateAsync(string id, LabelInputModel model, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<Label> CreateAsync(LabelInputModel? inputModel, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 }
