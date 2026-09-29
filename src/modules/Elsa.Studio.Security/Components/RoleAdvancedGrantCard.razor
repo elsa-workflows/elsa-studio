@@ -23,7 +23,7 @@
                                   Label="Advanced grant"
                                   Placeholder="workflows/*:view or *"
                                   Value="@Edit.Draft"
-                                  ValueChanged="@((string value) => Edit.Draft = value)"
+                                  ValueChanged="@((string value) => { Edit.Draft = value; Edit.Error = null; })"
                                   Immediate="true"
                                   AutoFocus="true"
                                   OnKeyDown="OnEditKeyDown"

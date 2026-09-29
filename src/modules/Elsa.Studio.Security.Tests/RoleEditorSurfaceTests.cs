@@ -396,6 +396,50 @@ public sealed class RoleEditorSurfaceTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void SwitchingToAnotherAdvancedGrantAppliesTheOpenEdit()
+    {
+        var (cut, _) = RenderRoleWithAdvancedGrants();
+        StartEditing(cut, "secrets/*:view");
+        EditInput(cut, "secrets/*:view").Input("secrets/*:update");
+
+        StartEditing(cut, "workflows/*:view");
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Single(cut.FindAll("input[aria-label='Edit advanced grant workflows/*:view']"));
+            Assert.Contains("secrets/*:update", RenderedGrants(cut));
+        });
+    }
+
+    [Fact]
+    public void SwitchingAwayFromAnInvalidAdvancedGrantEditKeepsItOpen()
+    {
+        var (cut, _) = RenderRoleWithAdvancedGrants();
+        StartEditing(cut, "secrets/*:view");
+        EditInput(cut, "secrets/*:view").Input("not a grant");
+
+        StartEditing(cut, "workflows/*:view");
+
+        cut.WaitForAssertion(() => Assert.Contains("Enter a valid grant.", cut.Markup));
+        Assert.Single(cut.FindAll("input[aria-label^='Edit advanced grant']"));
+        Assert.Single(cut.FindAll("input[aria-label='Edit advanced grant secrets/*:view']"));
+    }
+
+    [Fact]
+    public void EditingTheDraftClearsAnEarlierValidationError()
+    {
+        var (cut, _) = RenderRoleWithAdvancedGrants();
+        StartEditing(cut, "secrets/*:view");
+        EditInput(cut, "secrets/*:view").Input("not a grant");
+        ClickButton(cut, "Save");
+        cut.WaitForAssertion(() => Assert.Contains("Enter a valid grant.", cut.Markup));
+
+        EditInput(cut, "secrets/*:view").Input("secrets/*:update");
+
+        cut.WaitForAssertion(() => Assert.DoesNotContain("Enter a valid grant.", cut.Markup));
+    }
+
+    [Fact]
     public void ReadOnlyRoleDoesNotOfferAdvancedGrantEditing()
     {
         var (cut, _) = RenderRoleWithAdvancedGrants(ReadyAccess with { CanUpdate = false });

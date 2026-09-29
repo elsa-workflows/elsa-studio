@@ -549,9 +549,10 @@ else
         ForgetReach(grant);
     }
 
-    private void BeginEditAdvancedGrant(string grant)
+    private async Task BeginEditAdvancedGrant(string grant)
     {
-        if (IsReadOnly)
+        // Switching rows keeps the open edit's work: apply it first, and stay on it if it is invalid.
+        if (IsReadOnly || !await ApplyAdvancedGrantEditAsync())
             return;
 
         _edit = new(grant);
