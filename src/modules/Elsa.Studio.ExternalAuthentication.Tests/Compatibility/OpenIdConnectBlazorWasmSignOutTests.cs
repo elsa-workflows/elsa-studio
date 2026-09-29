@@ -21,10 +21,10 @@ public sealed class OpenIdConnectBlazorWasmSignOutTests
     public OpenIdConnectBlazorWasmSignOutTests() => Services.AddOpenIdConnectAuth(ConfigureIdentityProvider);
 
     [Fact]
-    public async Task SignOut_StartsTheRemoteSignOutAndReturnsToStudio()
+    public void SignOut_StartsTheRemoteSignOutAndReturnsToStudio()
     {
-        SignIn("alice");
-        var menu = await RenderAppBarMenuAsync();
+        SignIn();
+        var menu = RenderAppBarMenu();
 
         var signOut = FindInOpenMenu(menu, ".mud-menu-item");
         Assert.Equal("Sign out", signOut.TextContent.Trim());

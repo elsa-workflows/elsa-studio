@@ -1,6 +1,7 @@
-using System.Reflection;
 using System.Security.Claims;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using Bunit;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Components;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Controllers;
@@ -11,16 +12,15 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Elsa.Studio.ExternalAuthentication.Tests.Compatibility;
@@ -32,58 +32,53 @@ namespace Elsa.Studio.ExternalAuthentication.Tests.Compatibility;
 public sealed class OpenIdConnectBlazorServerSignOutTests
     : OpenIdConnectUserMenuTests<OpenIdConnectBlazorServerFeature, OpenIdConnectUserMenu>
 {
-    private const string IdToken = "alice-id-token";
+    private const string IdToken = "id-token";
     private const string EndSessionEndpoint = "https://idp.example/logout";
-    private readonly DefaultHttpContext _page = CreateHttpContext(HttpMethods.Get, "/");
+    private const string SignOutPath = "/authentication/logout";
+    private static readonly RendererInfo Prerender = new("Static", isInteractive: false);
+    private static readonly RendererInfo Circuit = new("Server", isInteractive: true);
     private readonly OpenIdConnectConfiguration _provider = new() { EndSessionEndpoint = EndSessionEndpoint };
+    private readonly StubHttpContextAccessor _httpContextAccessor = new();
+    private readonly Dictionary<string, string> _browserCookies = [];
+    private readonly WebApplication _studio;
+    private readonly RequestDelegate _handleRequest;
+    private ClaimsPrincipal _user = new(new ClaimsIdentity());
 
     public OpenIdConnectBlazorServerSignOutTests()
     {
+        // The Server host's services and request pipeline, down to the controller and the authentication handlers.
+        var host = WebApplication.CreateSlimBuilder();
+        host.Services.AddRazorPages().AddApplicationPart(typeof(AuthenticationController).Assembly);
+        host.Services.AddOpenIdConnectAuth(ConfigureIdentityProvider);
+        host.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options => options.Configuration = _provider);
+        host.Services.AddSingleton<ISingleFlightCoordinator, SingleFlightCoordinator>();
+        _studio = host.Build();
+        var app = new ApplicationBuilder(_studio.Services);
+        app.UseRouting();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseEndpoints(endpoints => endpoints.MapControllers());
+        _handleRequest = app.Build();
+
+        // Blazor Server renders in the same app, so the menu issues antiforgery tokens with the host's keys.
         Services.AddOpenIdConnectAuth(ConfigureIdentityProvider);
-        Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options => options.Configuration = _provider);
-        Services.AddSingleton<IHttpContextAccessor>(new PageHttpContextAccessor(_page));
-        Services.AddSingleton<ISingleFlightCoordinator, SingleFlightCoordinator>();
+        Services.AddSingleton(_studio.Services.GetRequiredService<IAntiforgery>());
+        Services.AddSingleton<IHttpContextAccessor>(_httpContextAccessor);
     }
 
-    [Fact]
-    public async Task SignOut_SubmitsARequestTheSignOutEndpointAccepts()
-    {
-        SignIn("alice");
-        var menu = await RenderAppBarMenuAsync();
-
-        var form = FindInOpenMenu(menu, "form");
-
-        Assert.Equal("post", form.GetAttribute("method"));
-        Assert.Equal("/authentication/logout", form.GetAttribute("action"));
-        Assert.Equal("Sign out", form.QuerySelector("button[type=submit]")?.TextContent.Trim());
-        Assert.True(await Services.GetRequiredService<IAntiforgery>().IsRequestValidAsync(Submit(form)));
-    }
+    private CookieAuthenticationOptions SessionCookieOptions =>
+        _studio.Services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>().Get(CookieAuthenticationDefaults.AuthenticationScheme);
 
     [Fact]
-    public async Task AnonymousUser_IsNotIssuedAnAntiforgeryCookie()
+    public async Task SignOutFromTheLiveCircuit_EndsTheLocalSessionAndRedirectsToTheProvidersEndSessionEndpoint()
     {
-        await RenderAppBarMenuAsync();
+        SignIn();
 
-        Assert.Empty(_page.Response.Headers.SetCookie.ToArray());
-    }
+        var response = await SignOutFromTheLiveCircuitAsync();
 
-    [Fact]
-    public void SignOutEndpoint_AcceptsOnlyAntiforgeryProtectedPosts()
-    {
-        var logout = typeof(AuthenticationController).GetMethod(nameof(AuthenticationController.Logout))!;
-
-        Assert.NotNull(logout.GetCustomAttribute<ValidateAntiForgeryTokenAttribute>());
-        Assert.Equal([HttpMethods.Post], logout.GetCustomAttributes<HttpMethodAttribute>().SelectMany(attribute => attribute.HttpMethods));
-    }
-
-    [Fact]
-    public async Task SignOut_EndsTheLocalSessionAndRedirectsToTheProvidersEndSessionEndpoint()
-    {
-        var response = await SignOutAsync("/workflows");
-
-        AssertSessionCookieDeleted(response);
         var endSession = new Uri(response.Headers.Location.ToString());
         var query = QueryHelpers.ParseQuery(endSession.Query);
+        Assert.True(EndsTheSession(response));
         Assert.Equal(StatusCodes.Status302Found, response.StatusCode);
         Assert.Equal(EndSessionEndpoint, endSession.GetLeftPart(UriPartial.Path));
         Assert.Equal(IdToken, query["id_token_hint"]);
@@ -94,71 +89,139 @@ public sealed class OpenIdConnectBlazorServerSignOutTests
     public async Task SignOutWithoutAnEndSessionEndpoint_EndsTheLocalSessionOnly()
     {
         _provider.EndSessionEndpoint = null;
+        SignIn();
 
-        var response = await SignOutAsync("/workflows");
+        var response = await SignOutFromTheLiveCircuitAsync(returnUrl: "/workflows");
 
-        AssertSessionCookieDeleted(response);
+        Assert.True(EndsTheSession(response));
         Assert.Equal(StatusCodes.Status302Found, response.StatusCode);
         Assert.Equal("/workflows", response.Headers.Location.ToString());
     }
 
-    protected override void SignIn(string userName)
+    [Fact]
+    public void AnonymousUser_IsNotIssuedAnAntiforgeryCookie()
     {
-        base.SignIn(userName);
-        _page.User = CreateUser(userName);
+        var page = BrowserRequest(HttpMethods.Get, "/");
+
+        RenderWhileHandling(page, Prerender);
+
+        Assert.Empty(SetCookies(page.Response));
     }
 
-    /// <summary>Runs the sign-out endpoint through the real cookie and OpenID Connect handlers.</summary>
-    private async Task<HttpResponse> SignOutAsync(string returnUrl)
+    [Fact]
+    public async Task SignOutEndpoint_DoesNotSignOutOnGet()
     {
-        await using var scope = Services.CreateAsyncScope();
-        var context = CreateHttpContext(HttpMethods.Post, "/authentication/logout");
-        context.RequestServices = scope.ServiceProvider;
-        context.Request.Headers.Cookie = SessionCookie(scope.ServiceProvider);
+        SignIn();
 
-        var result = new AuthenticationController().Logout(returnUrl);
-        await result.ExecuteResultAsync(new ActionContext(context, new RouteData(), new ActionDescriptor()));
+        var response = await SendAsync(BrowserRequest(HttpMethods.Get, SignOutPath));
 
-        return context.Response;
+        Assert.Equal(StatusCodes.Status405MethodNotAllowed, response.StatusCode);
+        Assert.False(EndsTheSession(response));
     }
 
-    /// <summary>Builds the POST the browser sends when the form is submitted from the page that rendered it.</summary>
-    private HttpContext Submit(IElement form)
+    [Theory]
+    [InlineData(null)]
+    [InlineData("forged-token")]
+    public async Task SignOutEndpoint_RejectsAPostWithoutAValidAntiforgeryToken(string? token)
     {
-        var context = CreateHttpContext(form.GetAttribute("method")!.ToUpperInvariant(), form.GetAttribute("action")!);
-        context.User = _page.User;
-        context.Request.Headers.Cookie = string.Join("; ", _page.Response.Headers.SetCookie.Select(cookie => cookie!.Split(';')[0]));
-        context.Request.ContentType = "application/x-www-form-urlencoded";
-        context.Request.Form = new FormCollection(form.QuerySelectorAll("input").ToDictionary(
-            input => input.GetAttribute("name")!,
-            input => new StringValues(input.GetAttribute("value"))));
-        return context;
+        SignIn();
+        var fields = token is null ? [] : new Dictionary<string, StringValues> { ["__RequestVerificationToken"] = token };
+
+        var response = await SendAsync(FormRequest(HttpMethods.Post, SignOutPath, fields));
+
+        Assert.Equal(StatusCodes.Status400BadRequest, response.StatusCode);
+        Assert.False(EndsTheSession(response));
     }
 
-    private static string SessionCookie(IServiceProvider services)
+    protected override void SignIn()
     {
-        var options = services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>().Get(CookieAuthenticationDefaults.AuthenticationScheme);
+        base.SignIn();
+        _user = new(new ClaimsIdentity(
+            [new Claim("sub", UserName), new Claim("name", UserName)], CookieAuthenticationDefaults.AuthenticationScheme, "name", "role"));
         var properties = new AuthenticationProperties();
         properties.StoreTokens([new AuthenticationToken { Name = "id_token", Value = IdToken }]);
-        var ticket = new AuthenticationTicket(CreateUser("alice"), properties, CookieAuthenticationDefaults.AuthenticationScheme);
-        return $"{options.Cookie.Name}={options.TicketDataFormat.Protect(ticket)}";
+        var ticket = new AuthenticationTicket(_user, properties, CookieAuthenticationDefaults.AuthenticationScheme);
+        _browserCookies[SessionCookieOptions.Cookie.Name!] = SessionCookieOptions.TicketDataFormat.Protect(ticket);
     }
 
-    private static void AssertSessionCookieDeleted(HttpResponse response) =>
-        Assert.Contains(response.Headers.SetCookie, cookie =>
-            cookie!.StartsWith("ElsaStudio.Auth=;", StringComparison.Ordinal) &&
-            cookie.Contains("expires=Thu, 01 Jan 1970", StringComparison.Ordinal));
-
-    private static ClaimsPrincipal CreateUser(string userName) =>
-        new(new ClaimsIdentity([new Claim("sub", userName), new Claim("name", userName)], CookieAuthenticationDefaults.AuthenticationScheme, "name", "role"));
-
-    private static DefaultHttpContext CreateHttpContext(string method, string path) => new()
+    /// <summary>
+    /// Renders the menu the way the host's ServerPrerendered mode does, then clicks Sign out. The menu is prerendered
+    /// while handling the page request, whose cookies the browser keeps, and rendered again in the live circuit. There
+    /// the HttpContext is the circuit connection's request, whose response has already started, so nothing rendered in
+    /// the circuit can set a cookie.
+    /// </summary>
+    private async Task<HttpResponse> SignOutFromTheLiveCircuitAsync(string? returnUrl = null)
     {
-        Request = { Method = method, Scheme = "https", Host = new HostString("studio.example"), Path = path }
+        var page = BrowserRequest(HttpMethods.Get, "/");
+        RenderWhileHandling(page, Prerender);
+        foreach (var cookie in SetCookies(page.Response))
+            _browserCookies[cookie.Name.ToString()] = cookie.Value.ToString();
+        await DisposeComponentsAsync();
+
+        var menu = RenderWhileHandling(BrowserRequest(HttpMethods.Get, "/_blazor"), Circuit);
+        var signOut = FindInOpenMenu(menu, "button[type=submit]");
+        Assert.Equal("Sign out", signOut.TextContent.Trim());
+
+        // Clicking the button submits its form.
+        var form = ((IHtmlButtonElement)signOut).Form!;
+        var fields = form.QuerySelectorAll("input").ToDictionary(input => input.GetAttribute("name")!, input => new StringValues(input.GetAttribute("value")));
+        if (returnUrl is not null)
+            fields["returnUrl"] = returnUrl;
+        return await SendAsync(FormRequest(form.Method.ToUpperInvariant(), form.GetAttribute("action")!, fields));
+    }
+
+    /// <summary>Renders the menu while Blazor Server handles <paramref name="request"/>, authenticated as the host would.</summary>
+    private IRenderedComponent<OpenIdConnectUserMenu> RenderWhileHandling(HttpContext request, RendererInfo renderer)
+    {
+        request.User = _user;
+        _httpContextAccessor.HttpContext = request;
+        SetRendererInfo(renderer);
+        return RenderAppBarMenu();
+    }
+
+    private async Task<HttpResponse> SendAsync(HttpContext request)
+    {
+        await using var scope = _studio.Services.CreateAsyncScope();
+        request.RequestServices = scope.ServiceProvider;
+        await _handleRequest(request);
+        return request.Response;
+    }
+
+    /// <summary>A request from the browser to Studio, carrying the cookies the browser holds.</summary>
+    private DefaultHttpContext BrowserRequest(string method, string path) => new()
+    {
+        Request =
+        {
+            Method = method,
+            Scheme = "https",
+            Host = new HostString("studio.example"),
+            Path = path,
+            Headers = { Cookie = string.Join("; ", _browserCookies.Select(cookie => $"{cookie.Key}={cookie.Value}")) }
+        }
     };
 
-    private sealed class PageHttpContextAccessor(HttpContext page) : IHttpContextAccessor
+    private DefaultHttpContext FormRequest(string method, string path, Dictionary<string, StringValues> fields)
     {
-        public HttpContext? HttpContext { get; set; } = page;
+        var request = BrowserRequest(method, path);
+        request.Request.ContentType = "application/x-www-form-urlencoded";
+        request.Request.Form = new FormCollection(fields);
+        return request;
+    }
+
+    private bool EndsTheSession(HttpResponse response) =>
+        SetCookies(response).Any(cookie => cookie.Name == SessionCookieOptions.Cookie.Name && cookie.Expires < DateTimeOffset.UtcNow);
+
+    private static IList<SetCookieHeaderValue> SetCookies(HttpResponse response) =>
+        SetCookieHeaderValue.ParseList(response.Headers.SetCookie.ToArray()!);
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        await _studio.DisposeAsync();
+        await base.DisposeAsyncCore();
+    }
+
+    private sealed class StubHttpContextAccessor : IHttpContextAccessor
+    {
+        public HttpContext? HttpContext { get; set; }
     }
 }

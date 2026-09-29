@@ -19,6 +19,7 @@ public abstract class OpenIdConnectUserMenuTests<TFeature, TMenu> : BunitContext
     where TFeature : IFeature
     where TMenu : IComponent
 {
+    protected const string UserName = "alice";
     private readonly BunitAuthorizationContext _authorization;
     private IRenderedComponent<MudPopoverProvider>? _popoverProvider;
 
@@ -30,23 +31,24 @@ public abstract class OpenIdConnectUserMenuTests<TFeature, TMenu> : BunitContext
         _authorization = AddAuthorization();
     }
 
-    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    // The shell initializes features before it renders anything.
+    Task IAsyncLifetime.InitializeAsync() => Services.GetServices<IFeature>().OfType<TFeature>().Single().InitializeAsync().AsTask();
     async Task IAsyncLifetime.DisposeAsync() => await base.DisposeAsync();
 
     [Fact]
-    public async Task SignedInUser_SeesTheirNameInTheAppBar()
+    public void SignedInUser_SeesTheirNameInTheAppBar()
     {
-        SignIn("alice");
+        SignIn();
 
-        var menu = await RenderAppBarMenuAsync();
+        var menu = RenderAppBarMenu();
 
-        menu.WaitForAssertion(() => Assert.Contains("alice", menu.Markup, StringComparison.Ordinal));
+        menu.WaitForAssertion(() => Assert.Contains(UserName, menu.Markup, StringComparison.Ordinal));
     }
 
     [Fact]
-    public async Task AnonymousUser_SeesNoUserMenu()
+    public void AnonymousUser_SeesNoUserMenu()
     {
-        var menu = await RenderAppBarMenuAsync();
+        var menu = RenderAppBarMenu();
 
         Assert.Empty(menu.FindAll(".mud-menu"));
     }
@@ -57,12 +59,11 @@ public abstract class OpenIdConnectUserMenuTests<TFeature, TMenu> : BunitContext
         options.ClientId = "elsa-studio";
     }
 
-    protected virtual void SignIn(string userName) => _authorization.SetAuthorized(userName);
+    protected virtual void SignIn() => _authorization.SetAuthorized(UserName);
 
-    /// <summary>Renders the app bar component the provider's feature contributes, the way the shell does.</summary>
-    protected async Task<IRenderedComponent<TMenu>> RenderAppBarMenuAsync()
+    /// <summary>Renders the app bar component the provider's feature contributed, the way the shell does.</summary>
+    protected IRenderedComponent<TMenu> RenderAppBarMenu()
     {
-        await Services.GetServices<IFeature>().OfType<TFeature>().Single().InitializeAsync();
         var element = Assert.Single(Services.GetRequiredService<IAppBarService>().AppBarElements);
         _popoverProvider = Render<MudPopoverProvider>();
         return Render(element.Component).FindComponent<TMenu>();
