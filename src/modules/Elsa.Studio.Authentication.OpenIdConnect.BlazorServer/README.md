@@ -314,6 +314,12 @@ SignalR connections (for workflow monitoring) automatically receive tokens via `
 
 ## Troubleshooting
 
+### Backend calls have no access token, or Sign out returns 400
+
+The integration needs the interactive circuit to run over WebSockets, which is Blazor Server's default transport. The circuit's `HttpContext` is the `/_blazor` WebSocket request, which carries the sign-in and antiforgery cookies. `ServerTokenProvider` reads backend access tokens from it, and the app bar's **Sign out** reads its antiforgery token from it.
+
+If a proxy or network forces the long-polling fallback, the circuit has no `HttpContext`. Backend calls then go out without an access token, and Sign out is rejected with a 400. Make sure WebSocket connections to `/_blazor` are allowed end to end.
+
 ### "SaveTokens must be true" error
 
 Ensure `SaveTokens = true` in your OIDC configuration (it's the default):
