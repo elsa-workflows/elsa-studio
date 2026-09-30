@@ -1,3 +1,4 @@
+using Elsa.Studio.Authorization;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Dashboard.Models;
 using Elsa.Studio.Dashboard.Services;
@@ -10,13 +11,13 @@ namespace Elsa.Studio.Dashboard.Pages;
 public partial class Index : IAsyncDisposable
 {
     private CancellationTokenSource? _loadCancellationTokenSource;
+    private DataScope? _loadedScope;
     private DashboardSnapshot? _snapshot;
     private DashboardLoadStatus _status = DashboardLoadStatus.Unavailable;
     private string _selectedRange = DashboardRangeKeys.TwentyFourHours;
     private string? _message;
     private bool _loading;
     private bool _disposed;
-    private bool _subscribedToFeatureInitialized;
     private DateTimeOffset? _lastRefreshedAt;
 
     [Inject] private IDashboardService DashboardService { get; set; } = null!;
@@ -24,6 +25,9 @@ public partial class Index : IAsyncDisposable
     [Inject] private IEnumerable<DashboardWidgetDescriptor> Widgets { get; set; } = [];
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private IFeatureService FeatureService { get; set; } = null!;
+
+    /// <summary>The user's permissions, cascaded by the shell's page guard.</summary>
+    [CascadingParameter] private UserPermissions Permissions { get; set; } = UserPermissions.Unknown;
 
     private DashboardWidgetContext WidgetContext => new(
         _selectedRange,
@@ -50,7 +54,17 @@ public partial class Index : IAsyncDisposable
 
     private string LastRefreshedLabel => _lastRefreshedAt == null ? "Not refreshed yet" : $"Refreshed {DashboardMetricFormatter.RelativeTimestamp(_lastRefreshedAt)}";
 
-    private bool IsLoadingFirstSnapshot => _loading && _snapshot == null;
+    private bool IsLoadingFirstSnapshot => _snapshot == null && (_loading || AwaitingWidgets);
+
+    // Until the features are initialized, the widgets they contribute may still be on their way.
+    private bool AwaitingWidgets => PermittedWidgets.Count == 0 && !FeatureService.IsInitialized;
+
+    private bool ShowWelcome => PermittedWidgets.Count == 0 && FeatureService.IsInitialized;
+
+    private bool ShowRuntime =>
+        _snapshot is { } snapshot
+        && !snapshot.Overview.Runtime.Capability.IsUnauthorized
+        && Permissions.HasAny(DashboardPermissions.ForData(DashboardPermissions.WorkflowRuntime));
 
     private string StatusLabel => _status switch
     {
@@ -73,28 +87,32 @@ public partial class Index : IAsyncDisposable
         _ => Severity.Error
     };
 
-    private IReadOnlyCollection<DashboardWidgetDescriptor> GetWidgets(string zone) =>
+    private IReadOnlyCollection<DashboardWidgetDescriptor> PermittedWidgets =>
         Widgets
             .Concat(WidgetRegistry.List())
             .DistinctBy(x => x.Id)
+            .Where(x => x.IsPermitted(Permissions))
+            .ToList();
+
+    // The data the permitted widgets need, limited to what the dashboard API serves this user: nothing without a widget,
+    // and the workflow instance data behind trends, activity, findings and hotspots only to users who may read it.
+    private DataScope RequiredScope =>
+        PermittedWidgets.Count == 0 ? DataScope.None
+        : Permissions.HasAny(DashboardPermissions.ForData(DashboardPermissions.WorkflowInstances)) ? DataScope.Everything
+        : DataScope.Overview;
+
+    private IReadOnlyCollection<DashboardWidgetDescriptor> GetWidgets(string zone) =>
+        PermittedWidgets
             .Where(x => x.Zone == zone && x.IsVisible(WidgetContext))
             .OrderBy(x => x.Order)
             .ThenBy(x => x.Id, StringComparer.Ordinal)
             .ToList();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await RefreshAsync();
-    }
+    // Subscribed before the first render, so widgets registered while it is on its way are not missed.
+    protected override void OnInitialized() => FeatureService.Initialized += OnFeatureServiceInitialized;
 
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (!firstRender || _disposed)
-            return;
-
-        FeatureService.Initialized += OnFeatureServiceInitialized;
-        _subscribedToFeatureInitialized = true;
-    }
+    // Loads on the first render, and again when a change in the user's permissions changes the data the page needs.
+    protected override Task OnParametersSetAsync() => LoadIfScopeChangedAsync();
 
     private void OnFeatureServiceInitialized()
     {
@@ -108,11 +126,23 @@ public partial class Index : IAsyncDisposable
 
         try
         {
-            await InvokeAsync(StateHasChanged);
+            await InvokeAsync(async () =>
+            {
+                var loading = LoadIfScopeChangedAsync();
+                StateHasChanged();
+                await loading;
+                StateHasChanged();
+            });
         }
         catch (InvalidOperationException) when (_disposed)
         {
         }
+    }
+
+    private async Task LoadIfScopeChangedAsync()
+    {
+        if (RequiredScope != _loadedScope)
+            await RefreshAsync();
     }
 
     private async Task OnRangeChangedAsync(string? range)
@@ -133,7 +163,17 @@ public partial class Index : IAsyncDisposable
 
     private async Task LoadAsync(string range)
     {
+        var scope = RequiredScope;
+        _loadedScope = scope;
+
         await CancelCurrentLoadAsync();
+
+        // Without a widget to show there is nothing to load, and the user may not be allowed to load it anyway.
+        if (scope == DataScope.None)
+        {
+            _loading = false;
+            return;
+        }
 
         var cancellationTokenSource = new CancellationTokenSource();
         _loadCancellationTokenSource = cancellationTokenSource;
@@ -142,7 +182,9 @@ public partial class Index : IAsyncDisposable
 
         try
         {
-            var result = await DashboardService.LoadAsync(range, cancellationToken: cancellationTokenSource.Token);
+            var result = scope == DataScope.Everything
+                ? await DashboardService.LoadAsync(range, cancellationToken: cancellationTokenSource.Token)
+                : DashboardLoadResult.FromOverview(await DashboardService.LoadOverviewAsync(range, cancellationToken: cancellationTokenSource.Token));
             _status = result.Status;
 
             if (result.Snapshot != null)
@@ -188,10 +230,14 @@ public partial class Index : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         _disposed = true;
-
-        if (_subscribedToFeatureInitialized)
-            FeatureService.Initialized -= OnFeatureServiceInitialized;
-
+        FeatureService.Initialized -= OnFeatureServiceInitialized;
         await CancelCurrentLoadAsync();
+    }
+
+    private enum DataScope
+    {
+        None,
+        Overview,
+        Everything
     }
 }

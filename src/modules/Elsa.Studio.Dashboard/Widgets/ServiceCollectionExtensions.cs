@@ -1,3 +1,4 @@
+using Elsa.Studio.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,7 +13,8 @@ public static class ServiceCollectionExtensions
         int order,
         string? title = null,
         string? requiredBackendCapability = null,
-        string? payloadKind = null)
+        string? payloadKind = null,
+        IEnumerable<Permission>? requiredPermissions = null)
         where TComponent : IComponent
     {
         return services.AddScoped(_ => new DashboardWidgetDescriptor(
@@ -22,6 +24,9 @@ public static class ServiceCollectionExtensions
             typeof(TComponent),
             title,
             requiredBackendCapability,
-            payloadKind));
+            payloadKind)
+        {
+            RequiredPermissions = requiredPermissions?.ToList() ?? []
+        });
     }
 }

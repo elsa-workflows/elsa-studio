@@ -1,5 +1,6 @@
 using Elsa.Api.Client.Resources.Features.Models;
 using Elsa.Studio.Attributes;
+using Elsa.Studio.Authorization;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Dashboard.Widgets;
@@ -10,6 +11,8 @@ using Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.UI.Dashboard;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.UI.Dashboard;
 using Elsa.Studio.Services;
+using Elsa.Studio.Testing;
+using Elsa.Studio.Workflows;
 using Elsa.Studio.Workflows.Dashboard.Extensions;
 using Elsa.Studio.Workflows.Dashboard.Widgets;
 using Microsoft.AspNetCore.Components;
@@ -25,7 +28,7 @@ public class DashboardWidgetRegistrationTests
     {
         var services = new ServiceCollection();
 
-        services.AddDashboardWidget<TestWidget>("test", DashboardWidgetZones.PrimaryPanels, 20, "Test", "Capability", "Payload");
+        services.AddDashboardWidget<TestWidget>("test", DashboardWidgetZones.PrimaryPanels, 20, "Test", "Capability", "Payload", [new("acme/things", PermissionVerbs.View)]);
         var descriptor = services.BuildServiceProvider().GetRequiredService<DashboardWidgetDescriptor>();
 
         Assert.Equal("test", descriptor.Id);
@@ -34,7 +37,34 @@ public class DashboardWidgetRegistrationTests
         Assert.Equal(typeof(TestWidget), descriptor.ComponentType);
         Assert.Equal("Capability", descriptor.RequiredBackendCapability);
         Assert.Equal("Payload", descriptor.PayloadKind);
+        Assert.Equal([new Permission("acme/things", PermissionVerbs.View)], descriptor.RequiredPermissions);
     }
+
+    [Fact]
+    public void AWidgetDeclaringNoPermission_IsPermittedToEveryone()
+    {
+        var descriptor = new DashboardWidgetDescriptor("test", DashboardWidgetZones.Metrics, 10, typeof(TestWidget));
+
+        Assert.Empty(descriptor.RequiredPermissions);
+        Assert.True(descriptor.IsPermitted(StubPermissionService.Grants("unrelated:view")));
+    }
+
+    [Theory]
+    [InlineData("dashboard:view", true)]
+    [InlineData("acme/things:view", true)]
+    [InlineData("acme/*:view", true)]
+    [InlineData("secrets:view", false)]
+    [InlineData(null, true)]
+    public void AWidget_IsPermittedToUsersHoldingAnyOfItsPermissions(string? grant, bool permitted)
+    {
+        var descriptor = new DashboardWidgetDescriptor("test", DashboardWidgetZones.Metrics, 10, typeof(TestWidget)) { RequiredPermissions = DashboardPermissions.ForData("acme/things") };
+
+        Assert.Equal(permitted, descriptor.IsPermitted(grant == null ? UserPermissions.Unknown : StubPermissionService.Grants(grant)));
+    }
+
+    [Fact]
+    public void TheDashboardsWorkflowInstancesPermission_IsTheWorkflowModules() =>
+        Assert.Equal(WorkflowPermissions.Instances, DashboardPermissions.WorkflowInstances);
 
     [Fact]
     public void Descriptors_OrderDeterministicallyByOrderThenId()
@@ -114,6 +144,17 @@ public class DashboardWidgetRegistrationTests
         AssertDescriptor<ConsoleLogsDashboardWidget>(descriptors, "diagnostics.console-logs", DashboardWidgetZones.DiagnosticsStatus, 200, "Diagnostics.ConsoleLogs");
         AssertDescriptor<OpenTelemetryDashboardWidget>(descriptors, "diagnostics.open-telemetry", DashboardWidgetZones.DiagnosticsStatus, 300, "OpenTelemetry.StorageDiagnostics");
         Assert.Equal(8, descriptors.Count);
+
+        // Each widget is visible with the view permission of the data it shows, or with dashboard:view where the dashboard
+        // API serves that data.
+        AssertPermissions(descriptors, "dashboard.workflow.metrics", "dashboard:view", "workflows/instances:view");
+        AssertPermissions(descriptors, "dashboard.needs-attention", "dashboard:view", "workflows/instances:view");
+        AssertPermissions(descriptors, "dashboard.workflow.trend", "dashboard:view", "workflows/instances:view");
+        AssertPermissions(descriptors, "dashboard.workflow.recent-activity", "dashboard:view", "workflows/instances:view");
+        AssertPermissions(descriptors, "dashboard.workflow.hotspots", "dashboard:view", "workflows/instances:view");
+        AssertPermissions(descriptors, "diagnostics.structured-logs", "dashboard:view", "diagnostics/structured-logs:view");
+        AssertPermissions(descriptors, "diagnostics.console-logs", "dashboard:view", "diagnostics/console-logs:view");
+        AssertPermissions(descriptors, "diagnostics.open-telemetry", "diagnostics/opentelemetry:view");
     }
 
     [Fact]
@@ -181,6 +222,9 @@ public class DashboardWidgetRegistrationTests
         Assert.Equal(typeof(TComponent), descriptor.ComponentType);
         Assert.Equal(payloadKind, descriptor.PayloadKind);
     }
+
+    private static void AssertPermissions(IReadOnlyCollection<DashboardWidgetDescriptor> descriptors, string id, params string[] permissions) =>
+        Assert.Equal(permissions, Assert.Single(descriptors, x => x.Id == id).RequiredPermissions.Select(x => x.ToString()));
 
     private static void AssertRemoteFeatureName<TFeature>(string expectedName)
     {

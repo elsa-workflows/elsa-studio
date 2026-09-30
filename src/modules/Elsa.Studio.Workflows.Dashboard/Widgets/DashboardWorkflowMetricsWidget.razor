@@ -1,7 +1,7 @@
 @using Elsa.Studio.Authorization
 @using Elsa.Studio.Dashboard.Widgets
 
-@if (Context.Snapshot != null)
+@if (Context.Snapshot != null && !Context.Snapshot.Overview.WorkflowInstances.Capability.IsUnauthorized)
 {
     var metrics = Context.Snapshot.Overview.WorkflowInstances;
     var healthMetrics = new[]

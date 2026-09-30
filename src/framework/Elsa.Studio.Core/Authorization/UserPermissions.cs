@@ -36,6 +36,9 @@ public sealed class UserPermissions
     /// <summary>Whether the user holds grants satisfying every one of <paramref name="required"/>.</summary>
     public bool HasAll(IEnumerable<Permission> required) => required.All(Has);
 
+    /// <summary>Whether the user holds a grant satisfying at least one of <paramref name="required"/>.</summary>
+    public bool HasAny(IEnumerable<Permission> required) => required.Any(Has);
+
     /// <summary>The permissions in <paramref name="required"/> the user does not hold.</summary>
     public IReadOnlyCollection<Permission> GetMissing(IEnumerable<Permission> required) => required.Where(x => !Has(x)).ToArray();
 }
