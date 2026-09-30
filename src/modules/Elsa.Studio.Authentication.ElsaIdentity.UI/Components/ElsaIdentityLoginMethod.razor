@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Components.Web
 @using Variant = MudBlazor.Variant
 @implements Elsa.Studio.Authentication.Abstractions.Contracts.ILoginMethodComponent
 @inject Contracts.IJwtAccessor JwtAccessor
@@ -45,7 +46,7 @@
     private string _password = string.Empty;
     private readonly BusyState _busy = new();
 
-    private Task OnKeyDownAsync(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e) => e.Key == "Enter" ? SignInAsync() : Task.CompletedTask;
+    private Task OnKeyDownAsync(KeyboardEventArgs e) => e.Key == "Enter" ? SignInAsync() : Task.CompletedTask;
 
     private Task SignInAsync() => _busy.RunAsync(async () =>
     {

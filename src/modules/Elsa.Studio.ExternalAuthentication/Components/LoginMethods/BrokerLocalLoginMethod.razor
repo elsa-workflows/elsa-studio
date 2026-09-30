@@ -82,7 +82,7 @@
         _antiforgeryToken = provider?.GetToken();
     }
 
-    private Task OnKeyDownAsync(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e) => e.Key == "Enter" ? SignInAsync() : Task.CompletedTask;
+    private Task OnKeyDownAsync(KeyboardEventArgs e) => e.Key == "Enter" ? SignInAsync() : Task.CompletedTask;
 
     // A completed BeginLocalAsync has redirected to continue the sign-in; failures throw.
     private Task SignInAsync() => _busy.RunAsync(async () =>
