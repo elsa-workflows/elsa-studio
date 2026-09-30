@@ -91,7 +91,7 @@ public sealed class AuthorizationFailureExtensionsTests
     [Fact]
     public void TheGuidance_IsLocalized_ButOtherMessagesAreLeftAlone()
     {
-        var localizer = new DefaultLocalizer(new Translations(new() { [ForbiddenMessage] = "Je hebt hier geen toegang toe." }));
+        var localizer = new DefaultLocalizer(new StubTranslations(new() { [ForbiddenMessage] = "Je hebt hier geen toegang toe." }));
         var serverError = ApiExceptions.Create(HttpStatusCode.InternalServerError);
 
         Assert.Equal("Je hebt hier geen toegang toe.", ApiExceptions.Create(HttpStatusCode.Forbidden).ToUserMessage(localizer));
@@ -105,5 +105,29 @@ public sealed class AuthorizationFailureExtensionsTests
     public void AStatusCode_HasGuidanceOnlyWhenItIsAnAuthorizationFailure(HttpStatusCode statusCode, string? expected)
     {
         Assert.Equal(expected, statusCode.GetAuthorizationFailureMessage());
+    }
+
+    [Fact]
+    public void AnException_HasGuidanceOnlyWhenItReportsAnAuthorizationFailure()
+    {
+        Assert.Equal(ForbiddenMessage, ApiExceptions.Create(HttpStatusCode.Forbidden).GetAuthorizationFailureMessage());
+        Assert.Null(ApiExceptions.Create(HttpStatusCode.InternalServerError).GetAuthorizationFailureMessage());
+        Assert.Null(new InvalidOperationException("boom").GetAuthorizationFailureMessage());
+    }
+
+    [Fact]
+    public void OnlyA401_MeansTheSessionHasEnded()
+    {
+        Assert.True(ApiExceptions.Create(HttpStatusCode.Unauthorized).IsUnauthorizedResponse());
+        Assert.False(ApiExceptions.Create(HttpStatusCode.Forbidden).IsUnauthorizedResponse());
+        Assert.False(new InvalidOperationException("boom").IsUnauthorizedResponse());
+    }
+
+    [Fact]
+    public void ABodylessResponse_PrefersTheGuidance_ThenTheReasonPhrase_ThenTheFallback()
+    {
+        Assert.Equal(ForbiddenMessage, HttpStatusCode.Forbidden.GetEmptyBodyFailureText("Forbidden", "fallback"));
+        Assert.Equal("Not Found", HttpStatusCode.NotFound.GetEmptyBodyFailureText("Not Found", "fallback"));
+        Assert.Equal("fallback", HttpStatusCode.NotFound.GetEmptyBodyFailureText(null, "fallback"));
     }
 }

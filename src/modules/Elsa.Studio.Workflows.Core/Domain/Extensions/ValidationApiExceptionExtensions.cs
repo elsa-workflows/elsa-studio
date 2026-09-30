@@ -38,7 +38,7 @@ public static class ValidationApiExceptionExtensions
         if (!string.IsNullOrWhiteSpace(e.Content))
             return new ValidationErrors(new List<ValidationError> { new(e.Content) }, e.StatusCode);
 
-        return new ValidationErrors(new List<ValidationError> { new(e.StatusCode.GetAuthorizationFailureMessage() ?? e.ReasonPhrase ?? e.Message) }, e.StatusCode);
+        return new ValidationErrors(new List<ValidationError> { new(e.StatusCode.GetEmptyBodyFailureText(e.ReasonPhrase, e.Message)) }, e.StatusCode);
     }
 
     /// <summary>

@@ -81,6 +81,16 @@ public class ConnectionManagementUiStateTests
         Assert.Equal(unreachable.Message, ConnectionManagementError.Describe(unreachable));
     }
 
+    [Fact]
+    public void PresentError_ExplainsARefusedOperationInsteadOfTheCallersFallback()
+    {
+        var forbidden = ApiExceptions.Create(HttpStatusCode.Forbidden);
+        var unreachable = new HttpRequestException("No such host is known.");
+
+        Assert.Equal(AuthorizationFailureExtensions.ForbiddenMessage, ConnectionOperationActions.PresentError(forbidden, ConnectionOperationActions.TestFailedMessage));
+        Assert.Equal(ConnectionOperationActions.TestFailedMessage, ConnectionOperationActions.PresentError(unreachable, ConnectionOperationActions.TestFailedMessage));
+    }
+
     private static ConnectionSummary CreateDatabaseConnection(string id, bool archived) => new()
     {
         Id = id,

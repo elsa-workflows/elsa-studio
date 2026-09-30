@@ -76,7 +76,7 @@ public class RemoteBpmnInterchangeService(IBackendApiClientProvider backendApiCl
 
         var validationErrors = ValidationApiExceptionExtensions.GetValidationErrorsFromContent(body);
         var message = validationErrors?.Errors.FirstOrDefault()?.ErrorMessage
-            ?? (string.IsNullOrWhiteSpace(body) ? response.StatusCode.GetAuthorizationFailureMessage() ?? response.ReasonPhrase ?? "The export could not be completed." : body);
+            ?? (string.IsNullOrWhiteSpace(body) ? response.StatusCode.GetEmptyBodyFailureText(response.ReasonPhrase, "The export could not be completed.") : body);
 
         if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
             return new(new BpmnExportFailure(ClassifyExportRefusal(validationErrors?.Code), message));
@@ -141,7 +141,7 @@ public class RemoteBpmnInterchangeService(IBackendApiClientProvider backendApiCl
         var errors = ValidationApiExceptionExtensions.GetValidationErrorsFromContent(body);
         var message = errors != null
             ? string.Join(" ", errors.Errors.Select(error => error.ErrorMessage))
-            : string.IsNullOrWhiteSpace(body) ? response.StatusCode.GetAuthorizationFailureMessage() ?? response.ReasonPhrase ?? $"The server responded with status {(int)response.StatusCode}." : body;
+            : string.IsNullOrWhiteSpace(body) ? response.StatusCode.GetEmptyBodyFailureText(response.ReasonPhrase, $"The server responded with status {(int)response.StatusCode}.") : body;
 
         var reason = errors?.Code switch
         {

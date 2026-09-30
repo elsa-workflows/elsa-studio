@@ -24,15 +24,32 @@ public static class AuthorizationFailureExtensions
         _ => null
     };
 
+    /// <summary>
+    /// Describes a response that came back without a body of its own: guidance for a 401 or 403, otherwise the reason
+    /// phrase, otherwise <paramref name="fallback"/>.
+    /// </summary>
+    public static string GetEmptyBodyFailureText(this HttpStatusCode statusCode, string? reasonPhrase, string fallback) =>
+        statusCode.GetAuthorizationFailureMessage() ?? reasonPhrase ?? fallback;
+
     /// <summary>Whether the exception reports a 401 or 403 response from the backend.</summary>
     public static bool IsAuthorizationFailure(this Exception exception) => FindAuthorizationFailureMessage(exception) != null;
+
+    /// <summary>Whether the exception reports a 401 response: the backend no longer accepts the user's sign-in.</summary>
+    public static bool IsUnauthorizedResponse(this Exception exception) => FindAuthorizationFailureMessage(exception) == UnauthorizedMessage;
+
+    /// <summary>
+    /// Returns the guidance for an exception that reports a 401 or 403 response, or <c>null</c> for any other exception,
+    /// so a caller with its own fixed text can write <c>e.GetAuthorizationFailureMessage() ?? "fixed text"</c>.
+    /// </summary>
+    public static string? GetAuthorizationFailureMessage(this Exception exception, ILocalizer? localizer = null) =>
+        FindAuthorizationFailureMessage(exception) is { } message ? localizer?[message].Value ?? message : null;
 
     /// <summary>
     /// Returns the text to show the user for the exception: guidance for a 401 or 403 response, the exception's own
     /// message for anything else.
     /// </summary>
     public static string ToUserMessage(this Exception exception, ILocalizer? localizer = null) =>
-        FindAuthorizationFailureMessage(exception) is { } message ? localizer?[message].Value ?? message : exception.Message;
+        exception.GetAuthorizationFailureMessage(localizer) ?? exception.Message;
 
     // The first exception in the chain that carries a response status decides: a 403 wrapped by another exception is
     // still recognized, and a response with any other status is never reinterpreted because of what it wraps.

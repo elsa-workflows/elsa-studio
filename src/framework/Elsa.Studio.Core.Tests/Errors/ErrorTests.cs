@@ -16,7 +16,7 @@ public sealed class ErrorTests : BunitContext, IAsyncLifetime
     public ErrorTests()
     {
         Services.AddMudServices();
-        Services.AddSingleton<ILocalizer>(new DefaultLocalizer(new Translations([])));
+        Services.AddSingleton<ILocalizer>(new DefaultLocalizer(new StubTranslations([])));
     }
 
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -25,19 +25,23 @@ public sealed class ErrorTests : BunitContext, IAsyncLifetime
     [Fact]
     public void AForbiddenResponse_ShowsThePermissionGuidanceInsteadOfTheRawException()
     {
-        var text = RenderError(ApiExceptions.Create(HttpStatusCode.Forbidden));
+        var alert = RenderAlert(ApiExceptions.Create(HttpStatusCode.Forbidden));
 
-        Assert.Equal(AuthorizationFailureExtensions.ForbiddenMessage, text);
+        Assert.Equal(AuthorizationFailureExtensions.ForbiddenMessage, alert.Find(".mud-alert-message").TextContent.Trim());
+        Assert.Contains("mud-alert-outlined-warning", alert.Find(".mud-alert").ClassName);
+        // The lock glyph's outline path (Icons.Material.Outlined.Lock); the markup normalizes the rest of the SVG string.
+        Assert.Contains("M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6", alert.Find(".mud-alert-icon").InnerHtml);
     }
 
     [Fact]
     public void AnyOtherFailure_StillShowsItsTypeAndMessage()
     {
-        var text = RenderError(ApiExceptions.Create(HttpStatusCode.InternalServerError));
+        var alert = RenderAlert(ApiExceptions.Create(HttpStatusCode.InternalServerError));
 
-        Assert.Equal("ApiException: Response status code does not indicate success: 500 (Internal Server Error).", text);
+        Assert.Equal("ApiException: Response status code does not indicate success: 500 (Internal Server Error).", alert.Find(".mud-alert-message").TextContent.Trim());
+        Assert.Contains("mud-alert-filled-error", alert.Find(".mud-alert").ClassName);
     }
 
-    private string RenderError(Exception exception) =>
-        Render<Error>(parameters => parameters.Add(x => x.Context, exception)).Find(".mud-alert-message").TextContent.Trim();
+    private IRenderedComponent<Error> RenderAlert(Exception exception) =>
+        Render<Error>(parameters => parameters.Add(x => x.Context, exception));
 }
