@@ -25,7 +25,6 @@ using Elsa.Studio.Workflows.UI.Contexts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
 using MudBlazor;
 using MudBlazor.Services;
 using Xunit;
@@ -80,9 +79,7 @@ public sealed class WorkflowEditorLifecycleTests : BunitContext, IAsyncLifetime
         definition.IsPublished = isPublished;
         var cut = RenderEditor(definition, () => Task.CompletedTask, StubPermissionService.Grants(grants));
 
-        cut.Find(".mud-menu button").Click();
-
-        var items = _popovers.FindAll(".mud-menu-item").Select(x => x.TextContent.Trim()).ToList();
+        var items = _popovers.OpenMenu(cut.Find(".mud-menu button")).Select(x => x.TextContent.Trim()).ToList();
         Assert.Contains("Save As", items);
         Assert.Equal(canUnpublish, items.Contains("Unpublish"));
     }
@@ -467,12 +464,6 @@ public sealed class WorkflowEditorLifecycleTests : BunitContext, IAsyncLifetime
         public int MessageCount { get; private set; }
         public void ShowSnackbarTextMessage(string message, Severity severity = Severity.Normal, Action<SnackbarOptions>? snackbarOptions = null) => MessageCount++;
         public void ShowSnackbarTextMessage(IEnumerable<string> messages, Severity severity = Severity.Normal, Action<SnackbarOptions>? snackbarOptions = null) => MessageCount++;
-    }
-
-    private sealed class TestLocalizer : ILocalizer
-    {
-        public LocalizedString this[string? key] => new(key ?? string.Empty, key ?? string.Empty);
-        public LocalizedString this[string? key, params object[] arguments] => new(key ?? string.Empty, string.Format(key ?? string.Empty, arguments));
     }
 
     private sealed class TestActivityPropertiesPanel : ActivityPropertiesPanel
