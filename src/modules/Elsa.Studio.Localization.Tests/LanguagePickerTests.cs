@@ -12,8 +12,13 @@ namespace Elsa.Studio.Localization.Tests;
 
 public sealed class LanguagePickerTests : BunitContext, IAsyncLifetime
 {
+    private readonly CultureInfo _originalUICulture = CultureInfo.CurrentUICulture;
+
     public LanguagePickerTests()
     {
+        // The picker labels its button with the current UI culture, and MudMenu renders no button for the empty
+        // name of the invariant culture a CI runner defaults to.
+        CultureInfo.CurrentUICulture = new("en-US");
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
         Services.AddSingleton<ICultureService, StubCultureService>();
@@ -22,7 +27,12 @@ public sealed class LanguagePickerTests : BunitContext, IAsyncLifetime
     }
 
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
-    async Task IAsyncLifetime.DisposeAsync() => await base.DisposeAsync();
+
+    async Task IAsyncLifetime.DisposeAsync()
+    {
+        CultureInfo.CurrentUICulture = _originalUICulture;
+        await base.DisposeAsync();
+    }
 
     [Fact]
     public void LanguagePicker_OpensBelowItsButton() => MenuPopoverAssert.OpensBelowItsButton<LanguagePicker>(this);
