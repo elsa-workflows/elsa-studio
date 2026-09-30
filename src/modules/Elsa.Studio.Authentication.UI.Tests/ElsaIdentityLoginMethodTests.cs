@@ -6,6 +6,7 @@ using Elsa.Studio.Authentication.ElsaIdentity.Models;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 
@@ -101,6 +102,17 @@ public sealed class ElsaIdentityLoginMethodTests : BunitContext, IAsyncLifetime
 
         _cut.WaitForAssertion(() => Assert.True(_cut.Find(SignInButton).HasAttribute("disabled")));
         Assert.Equal(1, _validator.Calls);
+    }
+
+    [Fact]
+    public void PressingEnterToConfirmAnImeComposition_DoesNotStartSignIn()
+    {
+        FillCredentials();
+
+        _cut.FindAll("input")[PasswordField].KeyDown(new KeyboardEventArgs { Key = "Enter", IsComposing = true });
+
+        AssertIdle();
+        Assert.Equal(0, _validator.Calls);
     }
 
     [Fact]

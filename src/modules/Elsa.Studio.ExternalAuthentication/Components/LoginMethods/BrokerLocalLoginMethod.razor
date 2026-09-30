@@ -1,3 +1,4 @@
+@using Elsa.Studio.Extensions
 @implements Elsa.Studio.Authentication.Abstractions.Contracts.ILoginMethodComponent
 @inject Elsa.Studio.ExternalAuthentication.Services.IExternalAuthenticationLoginCoordinator LoginCoordinator
 @inject IServiceProvider Services
@@ -82,7 +83,7 @@
         _antiforgeryToken = provider?.GetToken();
     }
 
-    private Task OnKeyDownAsync(KeyboardEventArgs e) => e.Key == "Enter" ? SignInAsync() : Task.CompletedTask;
+    private Task OnKeyDownAsync(KeyboardEventArgs e) => e.IsSubmitKey() ? SignInAsync() : Task.CompletedTask;
 
     // A completed BeginLocalAsync has redirected to continue the sign-in; failures throw.
     private Task SignInAsync() => _busy.RunAsync(async () =>
