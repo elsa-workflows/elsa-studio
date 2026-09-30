@@ -97,6 +97,18 @@ public sealed class AccessDeniedPagesTests : BunitContext
         Assert.Empty(cut.FindComponents<AccessDenied>());
     }
 
+    [Fact]
+    public void ConnectionEditor_WhenANewConnectionMovesToItsExistingRoute_RechecksTheViewPermission()
+    {
+        _identity.AddClaim(new("permissions", ExternalAuthenticationPermissions.Create));
+        var cut = RenderConnectionEditor(null);
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("button")));
+
+        cut.Render(parameters => parameters.Add(x => x.ConnectionId, ExistingConnection));
+
+        cut.WaitForAssertion(() => Assert.Contains(ViewConnections, cut.FindComponent<AccessDenied>().Markup));
+    }
+
     private IRenderedComponent<ConnectionEditPage> RenderConnectionEditor(string? connectionId) =>
         Render<ConnectionEditPage>(parameters => parameters.Add(x => x.ConnectionId, connectionId));
 

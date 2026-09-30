@@ -19,9 +19,9 @@
 {
     <MudProgressLinear Indeterminate="true" aria-label="Loading identity provider connection" />
 }
-else if (_missingPermissions is not null)
+else if (MissingPermissions is not null)
 {
-    <AccessDenied MissingPermissions="_missingPermissions" />
+    <AccessDenied MissingPermissions="MissingPermissions" />
 }
 else
 {
@@ -385,7 +385,7 @@ else
     private ConnectionValidationResult? _validation;
     private bool _loading = true;
     private bool _permissionsChecked;
-    private Permission[]? _missingPermissions;
+    private bool _canView;
     private bool _canCreate;
     private bool _canUpdate;
     private bool _canArchive;
@@ -441,6 +441,9 @@ else
                             ? Color.Info
                             : Color.Default;
     private bool IsNew => string.IsNullOrWhiteSpace(ConnectionId);
+
+    // Evaluated per render: saving a new connection moves this same instance to the existing-connection route, which needs view.
+    private Permission[]? MissingPermissions => IsNew ? _canCreate ? null : _createPermission : _canView ? null : _viewPermission;
     private bool CanSaveConnection => _connection?.IsConfigurationOwned != true && (IsNew ? _canCreate : _canUpdate);
     private bool UsesActivationActions =>
         !IsNew &&
@@ -575,7 +578,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var canView = await Permissions.HasAsync(ExternalAuthenticationPermissions.Read);
+        _canView = await Permissions.HasAsync(ExternalAuthenticationPermissions.Read);
         _canCreate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Create);
         _canUpdate = await Permissions.HasAsync(ExternalAuthenticationPermissions.Update);
         _canArchive = await Permissions.HasAsync(ExternalAuthenticationPermissions.Archive);
@@ -583,9 +586,8 @@ else
         _canConfigureUnsafeSettings = await Permissions.HasAsync(ExternalAuthenticationPermissions.UnsafeProviderTrust);
         _canManagePolicies = await Permissions.HasAsync(ExternalAuthenticationPermissions.ManagePolicies);
         _canReadRoles = await Permissions.HasAsync(ExternalAuthenticationPermissions.RolesRead);
-        _missingPermissions = IsNew ? _canCreate ? null : _createPermission : canView ? null : _viewPermission;
         _permissionsChecked = true;
-        if (_missingPermissions is not null)
+        if (MissingPermissions is not null)
         {
             _loading = false;
             return;
