@@ -3,6 +3,7 @@ using Elsa.Studio.Authentication.ElsaIdentity.Contracts;
 using Elsa.Studio.Authentication.ElsaIdentity.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.Models;
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ namespace Elsa.Studio.Authentication.ElsaIdentity.Services;
 /// </summary>
 public class ElsaIdentitySignOutService(
     IJwtAccessor jwtAccessor,
+    IJwtParser jwtParser,
     ITokenProvider tokenProvider,
     IRemoteBackendAccessor remoteBackendAccessor,
     IHttpClientFactory httpClientFactory,
@@ -55,31 +57,55 @@ public class ElsaIdentitySignOutService(
     {
         try
         {
-            // An unreachable backend must not keep the user signed in.
+            // Neither an unreachable backend nor a token store that does not answer may keep the user signed in, so
+            // the whole attempt is bounded, not only the calls that observe the cancellation token.
             using var timeout = new CancellationTokenSource(RevokeTimeout, timeProvider);
-            var cancellationToken = timeout.Token;
-
-            // The endpoint requires a valid access token, so an expired one is refreshed first. Neither this nor the
-            // request below runs inside the session gate, because a refresh takes the gate to store its response.
-            var accessToken = await tokenProvider.GetAccessTokenAsync(cancellationToken);
-            var refreshToken = await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken);
-
-            if (string.IsNullOrWhiteSpace(accessToken) || string.IsNullOrWhiteSpace(refreshToken))
-                return;
-
-            using var request = new HttpRequestMessage(HttpMethod.Post, remoteBackendAccessor.RemoteBackend.Url + "/identity/logout");
-            request.Headers.Authorization = new("Bearer", accessToken);
-            request.Content = JsonContent.Create(new LogoutRequest(refreshToken), ElsaIdentityLogoutJsonContext.Default.LogoutRequest);
-
-            // IMPORTANT: Use an anonymous HttpClient (no AuthenticatingApiHttpMessageHandler) to avoid recursion.
-            using var response = await httpClientFactory.CreateClient(ElsaIdentityRefreshTokenService.AnonymousClientName).SendAsync(request, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-                logger.LogWarning("The backend did not revoke the session on sign-out (status {StatusCode}); signing out locally.", response.StatusCode);
+            await RevokeSessionAsync(timeout.Token).WaitAsync(timeout.Token);
         }
         catch (Exception exception)
         {
             logger.LogWarning(exception, "Revoking the session on sign-out failed; signing out locally.");
+        }
+    }
+
+    // Neither the refresh nor the request runs inside the session gate, because a refresh takes the gate to store its response.
+    private async Task RevokeSessionAsync(CancellationToken cancellationToken)
+    {
+        var accessToken = await jwtAccessor.ReadTokenAsync(TokenNames.AccessToken);
+        var refreshToken = await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken);
+
+        // The endpoint requires a valid access token. One that has not expired is sent as it is: the token provider
+        // would refresh it early, and a rejected refresh clears the tokens before the session is revoked.
+        if (string.IsNullOrWhiteSpace(accessToken) || IsExpired(accessToken))
+        {
+            accessToken = await tokenProvider.GetAccessTokenAsync(cancellationToken);
+            refreshToken = await jwtAccessor.ReadTokenAsync(TokenNames.RefreshToken);
+        }
+
+        if (string.IsNullOrWhiteSpace(accessToken) || string.IsNullOrWhiteSpace(refreshToken))
+            return;
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, remoteBackendAccessor.RemoteBackend.Url + "/identity/logout");
+        request.Headers.Authorization = new("Bearer", accessToken);
+        request.Content = JsonContent.Create(new LogoutRequest(refreshToken), ElsaIdentityLogoutJsonContext.Default.LogoutRequest);
+
+        // IMPORTANT: Use an anonymous HttpClient (no AuthenticatingApiHttpMessageHandler) to avoid recursion.
+        using var response = await httpClientFactory.CreateClient(ElsaIdentityRefreshTokenService.AnonymousClientName).SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+            logger.LogWarning("The backend did not revoke the session on sign-out (status {StatusCode}); signing out locally.", response.StatusCode);
+    }
+
+    private bool IsExpired(string accessToken)
+    {
+        try
+        {
+            return jwtParser.Parse(accessToken).IsExpired();
+        }
+        catch
+        {
+            // A token that cannot be read is left for the backend to judge.
+            return false;
         }
     }
 }

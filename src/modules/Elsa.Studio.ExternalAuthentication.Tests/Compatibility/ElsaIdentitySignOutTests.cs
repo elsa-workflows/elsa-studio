@@ -50,7 +50,7 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
     }
 
     [Fact]
-    public void SignOut_ClearsTheSessionAndReturnsToTheLoginPage()
+    public async Task SignOut_ClearsTheSessionAndReturnsToTheLoginPage()
     {
         SignIn();
         _tokens.Tokens[TokenNames.IdToken] = "stale-id-token";
@@ -59,10 +59,7 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
             async state => stateChanges.Add(await state);
         var menu = RenderAppBarMenu();
 
-        menu.Find(".mud-menu button").Click();
-        PopoverProvider!.WaitForElements(".mud-menu-item")
-            .Single(item => item.TextContent.Trim() == "Sign out")
-            .Click();
+        await ClickSignOutAsync(menu);
 
         var history = Services.GetRequiredService<BunitNavigationManager>().History;
         menu.WaitForAssertion(() =>
@@ -142,6 +139,37 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
     }
 
     [Fact]
+    public async Task SignOut_WhenTheTokenStoreDoesNotAnswerInTime_StillEndsTheSession()
+    {
+        SignIn();
+        _time.TimersExpireImmediately = true;
+        _tokens.StallReads = true;
+
+        await SignOutAsync();
+
+        Assert.Empty(_backend.Requests);
+        Assert.Single(_warnings.Messages);
+        AssertSignedOutLocally();
+    }
+
+    // The token provider refreshes a token that is about to expire, and a rejected refresh clears the stored tokens.
+    // Signing out must not lose a still-valid access token that way, or the backend session would stay active.
+    [Fact]
+    public async Task SignOut_WhenTheAccessTokenIsAboutToExpire_RevokesWithItInsteadOfRefreshing()
+    {
+        SignIn();
+        var accessToken = _tokens.Tokens[TokenNames.AccessToken] = CreateJwt(UserName, TimeSpan.FromSeconds(90));
+        _backend.OnRefresh = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized));
+
+        await SignOutAsync();
+
+        var logout = Assert.Single(_backend.Requests);
+        Assert.Equal(LogoutEndpoint, logout.Endpoint);
+        Assert.Equal($"Bearer {accessToken}", logout.Authorization);
+        AssertSignedOutLocally();
+    }
+
+    [Fact]
     public async Task SignOut_WhenNoRefreshTokenIsStored_StillEndsTheSessionWithoutRevoking()
     {
         SignIn();
@@ -184,9 +212,9 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
         };
         var menu = RenderAppBarMenu();
 
-        ClickSignOut(menu);
+        await ClickSignOutAsync(menu);
         await revoking.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        ClickSignOut(menu);
+        await ClickSignOutAsync(menu);
         revoked.SetResult(new HttpResponseMessage(HttpStatusCode.NoContent));
 
         menu.WaitForAssertion(() => Assert.NotEmpty(Services.GetRequiredService<BunitNavigationManager>().History));
@@ -353,12 +381,15 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
     }
 
     /// <summary>Opens the menu and clicks its sign-out item, which closes the menu again.</summary>
-    private void ClickSignOut(IRenderedComponent<ElsaIdentityUserMenu> menu)
+    private async Task ClickSignOutAsync(IRenderedComponent<ElsaIdentityUserMenu> menu)
     {
-        menu.Find(".mud-menu button").Click();
-        PopoverProvider!.WaitForElements(".mud-menu-item")
+        // Each element is found and clicked on the renderer's own context, so no render can replace it in between: the
+        // menu re-renders when it closes and when signing out turns busy.
+        await menu.InvokeAsync(() => menu.Find(".mud-menu button").Click());
+        PopoverProvider!.WaitForElements(".mud-menu-item");
+        await PopoverProvider.InvokeAsync(() => PopoverProvider.FindAll(".mud-menu-item")
             .Single(item => item.TextContent.Trim() == "Sign out")
-            .Click();
+            .Click());
     }
 
     private Task SignOutAsync() => Services.GetRequiredService<ISignOutService>().SignOutAsync();
@@ -480,7 +511,11 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
 
         public PausedWrite PauseNextWrite() => _pausedWrite = new();
 
-        public ValueTask<string?> ReadTokenAsync(string name) => ValueTask.FromResult(Tokens.GetValueOrDefault(name));
+        /// <summary>Makes reads never complete, like browser storage that does not answer.</summary>
+        public bool StallReads { get; set; }
+
+        public ValueTask<string?> ReadTokenAsync(string name) =>
+            StallReads ? new(new TaskCompletionSource<string?>().Task) : ValueTask.FromResult(Tokens.GetValueOrDefault(name));
 
         public async ValueTask WriteTokenAsync(string name, string token)
         {
