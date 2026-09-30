@@ -42,21 +42,21 @@ public class DashboardService(IBackendApiClientProvider backendApiClientProvider
 
             // The instance endpoints may refuse a caller the overview accepts (such as one whose permissions are unknown to the
             // host, or a backend that serves the overview more widely than them): the overview stays, the refused parts are absent.
-            var needsAttentionTask = WhenRefusedAsync<DashboardNeedsAttentionResponse, DashboardNeedsAttentionResponse>(api.GetNeedsAttentionAsync(range, 8, includeSystem, cancellationToken), new DashboardNeedsAttentionResponse { Capability = DashboardCapabilityStatus.Unauthorized });
-            var trendsTask = WhenRefusedAsync<DashboardTrendResponse, DashboardTrendResponse?>(api.GetWorkflowTrendsAsync(new DashboardTrendRequest
+            var needsAttentionTask = WhenRefusedAsync(api.GetNeedsAttentionAsync(range, 8, includeSystem, cancellationToken));
+            var trendsTask = WhenRefusedAsync(api.GetWorkflowTrendsAsync(new DashboardTrendRequest
             {
                 Range = range,
                 Granularity = DashboardRangeMapper.GetDefaultGranularity(range),
                 IncludeSystem = includeSystem
-            }, cancellationToken), null);
-            var recentActivityTask = WhenRefusedAsync<DashboardRecentActivityResponse, DashboardRecentActivityResponse?>(api.GetRecentActivityAsync(range, 20, includeSystem, cancellationToken), null);
+            }, cancellationToken));
+            var recentActivityTask = WhenRefusedAsync(api.GetRecentActivityAsync(range, 20, includeSystem, cancellationToken));
             var hotspotsTask = TryGetHotspotsAsync(api, range, includeSystem, cancellationToken);
 
             await Task.WhenAll(overviewTask, needsAttentionTask, trendsTask, recentActivityTask, hotspotsTask);
 
             return DashboardLoadResult.Loaded(new DashboardSnapshot(
                 await overviewTask,
-                await needsAttentionTask,
+                await needsAttentionTask ?? new DashboardNeedsAttentionResponse { Capability = DashboardCapabilityStatus.Unauthorized },
                 await trendsTask,
                 await recentActivityTask,
                 await hotspotsTask));
@@ -79,7 +79,7 @@ public class DashboardService(IBackendApiClientProvider backendApiClientProvider
         }
     }
 
-    private static async Task<TResult> WhenRefusedAsync<T, TResult>(Task<T> request, TResult refused) where T : TResult
+    private static async Task<T?> WhenRefusedAsync<T>(Task<T> request)
     {
         try
         {
@@ -87,7 +87,7 @@ public class DashboardService(IBackendApiClientProvider backendApiClientProvider
         }
         catch (ApiException e) when (e.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
         {
-            return refused;
+            return default;
         }
     }
 

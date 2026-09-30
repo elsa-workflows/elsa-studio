@@ -38,6 +38,7 @@ namespace Elsa.Studio.Dashboard.Tests;
 public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
 {
     private const string OverviewEndpoint = "overview";
+    private const string WelcomeWithShortcuts = "No dashboard widgets are available to your role. These are the pages you can open:";
     private static readonly string[] EveryEndpoint = ["needs-attention", OverviewEndpoint, "recent-activity", "workflow-hotspots", "workflow-trends"];
     private static readonly Type[] WorkflowInstanceWidgets = [typeof(DashboardWorkflowMetricsWidget), typeof(DashboardNeedsAttentionWidget), typeof(DashboardTrendWidget), typeof(DashboardRecentActivityWidget), typeof(DashboardWorkflowHotspotsWidget)];
     private static readonly Type[] DiagnosticsWidgets = [typeof(StructuredLogsDashboardWidget), typeof(ConsoleLogsDashboardWidget)];
@@ -141,6 +142,7 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
 
         // Secrets is listed first but belongs to a later group; the dashboard itself is not a shortcut.
         cut.WaitForAssertion(() => Assert.Equal(["workflows/definitions", "security/secrets"], cut.FindAll("[data-testid='dashboard-welcome'] a").Select(x => x.GetAttribute("href"))));
+        Assert.Contains(WelcomeWithShortcuts, cut.Find("[data-testid='dashboard-welcome']").TextContent);
         Assert.Empty(_api.Calls);
         Assert.Empty(cut.FindAll("[data-testid='access-denied']"));
         Assert.Equal("http://localhost/", Services.GetRequiredService<NavigationManager>().Uri);
@@ -210,6 +212,25 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task ADashboardViewer_OnAHostWithOnlyDiagnosticsWidgets_RequestsOnlyTheOverview()
+    {
+        var cut = await RenderDashboardAsync(StubPermissionService.Grants("dashboard:view"), includeWorkflows: false);
+
+        cut.WaitForAssertion(() => Assert.Equal(Names(DiagnosticsWidgets), ShownWidgets(cut)));
+        Assert.Equal([OverviewEndpoint], _api.Calls);
+    }
+
+    [Fact]
+    public async Task ADashboardViewer_DoesNotSeeTheOpenTelemetryWidget_WhoseDataComesFromTheOpenTelemetryApi()
+    {
+        await new Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.Feature(_registry).InitializeAsync();
+
+        var cut = await RenderDashboardAsync("dashboard:view");
+
+        cut.WaitForAssertion(() => Assert.Equal(Names([.. WorkflowInstanceWidgets, .. DiagnosticsWidgets]), ShownWidgets(cut)));
+    }
+
+    [Fact]
     public async Task AnOpenTelemetryOnlyUser_SeesOnlyTheOpenTelemetryWidget_AndCallsNoInstanceEndpoint()
     {
         await new Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.Feature(_registry).InitializeAsync();
@@ -234,6 +255,7 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(["security/secrets"], cut.FindAll("[data-testid='dashboard-welcome'] a").Select(x => x.GetAttribute("href")));
+            Assert.Contains(WelcomeWithShortcuts, cut.Find("[data-testid='dashboard-welcome']").TextContent);
             Assert.Equal(!runtimeWithheld, cut.FindComponents<DashboardRuntimeChip>().Count == 1);
             Assert.Equal(!runtimeWithheld, cut.FindAll(".dashboard-header").Count == 1);
         });
@@ -305,7 +327,7 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         _time.FireTimers();
 
         cut.WaitForAssertion(() => Assert.Single(cut.FindAll("[data-testid='dashboard-welcome']")));
-        Assert.True(_time.LastDueTime <= TimeSpan.FromSeconds(10));
+        Assert.Equal(TimeSpan.FromSeconds(3), _time.LastDueTime);
         Assert.Empty(_api.Calls);
 
         // A decorating feature service that never reports itself initialized, but does raise the event once it is.
@@ -319,6 +341,77 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         });
     }
 
+    [Fact]
+    public async Task WhenTheDashboardIsDisposed_ItDisposesItsTimer_AndStopsListeningForTheFeatures()
+    {
+        var page = RenderDashboard(StubPermissionService.Grants("workflows/instances:view")).FindComponent<DashboardPage>().Instance;
+        Assert.Equal(1, _features.SubscriberCount);
+        Assert.Equal(1, _time.LiveTimers);
+
+        await page.DisposeAsync();
+
+        Assert.Equal(0, _features.SubscriberCount);
+        Assert.Equal(0, _time.LiveTimers);
+    }
+
+    // The callbacks may already be in flight when the page goes away: the timer callback, or the feature service's event
+    // raised from a copy of its subscribers. Neither may load on, render to, or throw from a disposed page.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AfterTheDashboardIsDisposed_TheTimerAndTheInitializedEvent_LoadNothingAndThrowNothing(bool viaTimer)
+    {
+        var cut = RenderDashboard(StubPermissionService.Grants("workflows/instances:view"));
+        var page = cut.FindComponent<DashboardPage>().Instance;
+        await new Elsa.Studio.Workflows.Dashboard.Feature(_registry).InitializeAsync();
+        await page.DisposeAsync();
+
+        if (viaTimer)
+            _time.FireEveryTimer();
+        else
+            _features.RaiseToEveryoneEverSubscribed();
+
+        await cut.InvokeAsync(() => { });
+        Assert.Empty(_api.Calls);
+    }
+
+    // The load a callback started may still be running when the page is disposed: it ends without rendering to the page.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task WhenTheDashboardIsDisposedWhileALoadStartedByACallbackIsInFlight_TheLoadEndsQuietly(bool viaTimer)
+    {
+        var cut = RenderDashboard(StubPermissionService.Grants("workflows/instances:view"));
+        var page = cut.FindComponent<DashboardPage>().Instance;
+        await new Elsa.Studio.Workflows.Dashboard.Feature(_registry).InitializeAsync();
+        var gate = _api.HoldOverview();
+
+        if (viaTimer)
+            _time.FireTimers();
+        else
+            _features.RaiseToEveryoneEverSubscribed();
+
+        Assert.NotEmpty(_api.Calls);
+        var unobserved = new List<Exception>();
+        void Observe(object? sender, UnobservedTaskExceptionEventArgs e) => unobserved.Add(e.Exception);
+        TaskScheduler.UnobservedTaskException += Observe;
+
+        try
+        {
+            await page.DisposeAsync();
+            gate.SetResult();
+            await cut.InvokeAsync(() => { });
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+        finally
+        {
+            TaskScheduler.UnobservedTaskException -= Observe;
+        }
+
+        Assert.Empty(unobserved);
+    }
+
     public Task InitializeAsync() => Task.CompletedTask;
 
     public new async Task DisposeAsync() => await base.DisposeAsync();
@@ -326,9 +419,9 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
     private Task<IRenderedComponent<PermissionPageGuard>> RenderDashboardAsync(params string[] grants) =>
         RenderDashboardAsync(StubPermissionService.Grants(grants));
 
-    private async Task<IRenderedComponent<PermissionPageGuard>> RenderDashboardAsync(UserPermissions permissions)
+    private async Task<IRenderedComponent<PermissionPageGuard>> RenderDashboardAsync(UserPermissions permissions, bool includeWorkflows = true)
     {
-        await InitializeFeaturesAsync();
+        await InitializeFeaturesAsync(includeWorkflows);
         return RenderDashboard(permissions);
     }
 
@@ -351,14 +444,16 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
 
     // As the shell does once the user has signed in: the dashboard companions register their widgets, then the feature
     // service reports it is done.
-    private async Task InitializeFeaturesAsync()
+    private async Task InitializeFeaturesAsync(bool includeWorkflows = true)
     {
-        IFeature[] companions =
+        IEnumerable<IFeature> companions =
         [
-            new Elsa.Studio.Workflows.Dashboard.Feature(_registry),
             new Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Feature(_registry),
             new Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.Feature(_registry)
         ];
+
+        if (includeWorkflows)
+            companions = companions.Prepend(new Elsa.Studio.Workflows.Dashboard.Feature(_registry));
 
         foreach (var companion in companions)
             await companion.InitializeAsync();
@@ -390,6 +485,10 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         public DashboardOverview Overview { get; set; } = new();
         public DashboardNeedsAttentionResponse NeedsAttention { get; set; } = new();
         public HashSet<string> Refused { get; } = [];
+        private TaskCompletionSource? _overviewGate;
+
+        // Holds the overview until the returned source is completed, and ignores cancellation meanwhile.
+        public TaskCompletionSource HoldOverview() => _overviewGate = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public Task<DashboardOverview> GetOverviewAsync(string? range = null, bool includeSystem = false, CancellationToken cancellationToken = default) => Record(OverviewEndpoint, Overview);
         public Task<DashboardTrendResponse> GetWorkflowTrendsAsync(DashboardTrendRequest request, CancellationToken cancellationToken = default) => Record("workflow-trends", new DashboardTrendResponse());
@@ -400,6 +499,9 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         private async Task<T> Record<T>(string endpoint, T response)
         {
             Calls.Add(endpoint);
+
+            if (endpoint == OverviewEndpoint && _overviewGate != null)
+                await _overviewGate.Task;
 
             if (!Refused.Contains(endpoint))
                 return response;
@@ -416,6 +518,8 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
 
         public TimeSpan LastDueTime { get; private set; }
 
+        public int LiveTimers => _timers.Count(x => !x.Disposed);
+
         public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
         {
             LastDueTime = dueTime;
@@ -427,6 +531,13 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         public void FireTimers()
         {
             foreach (var timer in _timers.Where(x => !x.Disposed).ToList())
+                timer.Fire();
+        }
+
+        // As a timer whose callback was already running when it was disposed.
+        public void FireEveryTimer()
+        {
+            foreach (var timer in _timers.ToList())
                 timer.Fire();
         }
 

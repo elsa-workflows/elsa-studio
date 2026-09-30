@@ -30,7 +30,8 @@ public sealed class DashboardStatusTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<IDashboardService>(new StubDashboardService(_loads));
         Services.AddSingleton<IDashboardWidgetRegistry, DashboardWidgetRegistry>();
         Services.AddSingleton<IFeatureService, StubFeatureService>();
-        Services.AddSingleton<IEnumerable<DashboardWidgetDescriptor>>([new("test", DashboardWidgetZones.Metrics, 0, typeof(TestWidget))]);
+        Services.AddSingleton(TimeProvider.System);
+        Services.AddSingleton<IEnumerable<DashboardWidgetDescriptor>>([new("test", DashboardWidgetZones.Metrics, 0, typeof(TestWidget)) { RequiredPermissions = DashboardPermissions.ForData(DashboardPermissions.WorkflowInstances) }]);
         Render<MudPopoverProvider>();
     }
 

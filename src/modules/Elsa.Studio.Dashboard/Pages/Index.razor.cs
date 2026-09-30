@@ -4,7 +4,6 @@ using Elsa.Studio.Dashboard.Models;
 using Elsa.Studio.Dashboard.Services;
 using Elsa.Studio.Dashboard.Widgets;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 
 namespace Elsa.Studio.Dashboard.Pages;
@@ -35,7 +34,7 @@ public partial class Index : IAsyncDisposable
     [Inject] private IEnumerable<DashboardWidgetDescriptor> Widgets { get; set; } = [];
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private IFeatureService FeatureService { get; set; } = null!;
-    [Inject] private IServiceProvider Services { get; set; } = null!;
+    [Inject] private TimeProvider TimeProvider { get; set; } = null!;
 
     /// <summary>The user's permissions, cascaded by the shell's page guard.</summary>
     [CascadingParameter] private UserPermissions Permissions { get; set; } = UserPermissions.Unknown;
@@ -50,7 +49,8 @@ public partial class Index : IAsyncDisposable
         RefreshAsync,
         NavigationManager);
 
-    private string BackendLabel
+    // Core withholds the backend name from callers who may not read it: then there is no label to show.
+    private string? BackendLabel
     {
         get
         {
@@ -58,8 +58,8 @@ public partial class Index : IAsyncDisposable
                 return "Selected backend";
 
             var overview = _snapshot.Overview;
-            var backendName = string.IsNullOrWhiteSpace(overview.BackendName) ? "Backend" : overview.BackendName;
-            return string.IsNullOrWhiteSpace(overview.EnvironmentName) ? backendName : $"{backendName} / {overview.EnvironmentName}";
+            var names = new[] { overview.BackendName, overview.EnvironmentName }.Where(x => !string.IsNullOrWhiteSpace(x));
+            return string.Join(" / ", names) is { Length: > 0 } label ? label : null;
         }
     }
 
@@ -109,13 +109,24 @@ public partial class Index : IAsyncDisposable
             .Where(x => x.IsPermitted(Permissions))
             .ToList();
 
+    // A widget needs the instance endpoints when it declares the workflow instances view permission (see the README).
+    private static bool NeedsInstanceData(DashboardWidgetDescriptor widget) =>
+        widget.RequiredPermissions.Contains(new(DashboardPermissions.WorkflowInstances, PermissionVerbs.View));
+
     // The data the permitted widgets need, limited to what the dashboard API serves this user: the workflow instance data
-    // behind trends, activity, findings and hotspots only to users who may read it. Without a widget there is nothing to
-    // load, except the overview for a user who may read the runtime status shown above the welcome.
-    private DataScope RequiredScope =>
-        _permittedWidgets.Count == 0 ? (WidgetsSettled && Permissions.HasAny(RuntimeDataPermissions) ? DataScope.Overview : DataScope.None)
-        : Permissions.HasAny(InstanceDataPermissions) ? DataScope.Everything
-        : DataScope.Overview;
+    // behind trends, activity, findings and hotspots only to a user who may read it and only when a widget needs it.
+    // Without a widget there is nothing to load, except the overview for a user who may read the runtime status shown
+    // above the welcome.
+    private DataScope RequiredScope
+    {
+        get
+        {
+            if (_permittedWidgets.Count == 0)
+                return WidgetsSettled && Permissions.HasAny(RuntimeDataPermissions) ? DataScope.Overview : DataScope.None;
+
+            return _permittedWidgets.Any(NeedsInstanceData) && Permissions.HasAny(InstanceDataPermissions) ? DataScope.Everything : DataScope.Overview;
+        }
+    }
 
     private IReadOnlyCollection<DashboardWidgetDescriptor> GetWidgets(string zone) =>
         _permittedWidgets
@@ -130,8 +141,7 @@ public partial class Index : IAsyncDisposable
         FeatureService.Initialized += OnFeatureServiceInitialized;
 
         if (!FeatureService.IsInitialized)
-            _initializationTimer = (Services.GetService<TimeProvider>() ?? TimeProvider.System)
-                .CreateTimer(_ => _ = RefreshWidgetsAsync(), null, FeatureInitializationTimeout, Timeout.InfiniteTimeSpan);
+            _initializationTimer = TimeProvider.CreateTimer(_ => _ = RefreshWidgetsAsync(), null, FeatureInitializationTimeout, Timeout.InfiniteTimeSpan);
     }
 
     // Loads on the first render, and again when a change in the user's permissions changes the data the page needs.
@@ -153,16 +163,22 @@ public partial class Index : IAsyncDisposable
         {
             await InvokeAsync(async () =>
             {
+                // Disposed while the callback was queued: a load started now would outlive the page.
+                if (_disposed)
+                    return;
+
                 _widgetsSettled = true;
                 _initializationTimer?.Dispose();
                 RefreshPermittedWidgets();
                 var loading = LoadIfScopeChangedAsync();
                 StateHasChanged();
                 await loading;
-                StateHasChanged();
+
+                if (!_disposed)
+                    StateHasChanged();
             });
         }
-        catch (InvalidOperationException) when (_disposed)
+        catch (Exception e) when (_disposed && e is InvalidOperationException or ObjectDisposedException or TaskCanceledException)
         {
         }
     }

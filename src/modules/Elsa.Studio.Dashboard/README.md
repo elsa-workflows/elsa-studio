@@ -66,7 +66,7 @@ Every signed-in user can open the dashboard: the page (`/`) and its menu item re
 - A widget is shown to users holding **any** of its `RequiredPermissions`. A widget that declares none is shown to every user.
 - Declare the view permission of the data the widget shows. When that data comes from the dashboard API, use `DashboardPermissions.ForData(resource)`: the API serves each section to `dashboard:view` as well as to the view permission of its data, so the widget should be visible with either. When the widget loads its data from another API, declare only that API's permission.
 - When the user's permissions are unknown (their sign-in carries no Elsa permissions), every widget is shown, as everywhere else in Studio.
-- The dashboard requests only the data its visible widgets need, from endpoints the user may call: nothing when no widget is visible (the overview alone for a user who may read the runtime status), the overview for any widget, and the workflow instance endpoints (trends, recent activity, needs attention, hotspots) only for users holding `dashboard:view` or `workflows/instances:view`.
+- The dashboard requests only the data its visible widgets need, from endpoints the user may call: nothing when no widget is visible (the overview alone for a user who may read the runtime status), the overview for any widget, and the workflow instance endpoints (trends, recent activity, needs attention, hotspots) only when a visible widget needs them and the user holds `dashboard:view` or `workflows/instances:view`. A widget signals that it needs the instance endpoints by declaring `workflows/instances:view` among its `RequiredPermissions` (as `DashboardPermissions.ForData(DashboardPermissions.WorkflowInstances)` does); a widget that does not gets the overview only, so a host with only diagnostics or third-party widgets never calls them.
 - The backend marks an overview section the user may not read with `Capability` `Unauthorized` and sends no data for it. A widget should leave such a section out (check `Capability.IsUnauthorized` and render nothing) rather than report it: the user is not meant to see it.
 - A user who may see no widget gets a welcome panel with shortcuts to the pages they can open, in navigation order. When there is none, the dashboard shows the "No pages are available for your role" notice instead.
 
@@ -78,6 +78,8 @@ The built-in widgets declare:
 | Structured logs | `dashboard:view` or `diagnostics/structured-logs:view` |
 | Console logs | `dashboard:view` or `diagnostics/console-logs:view` |
 | OpenTelemetry | `diagnostics/opentelemetry:view` (its figures come from the OpenTelemetry API) |
+
+The OpenTelemetry widget is deliberately not opened by `dashboard:view`: its figures come from the OpenTelemetry API, which `dashboard:view` never granted, so a role holding only `dashboard:view` does not see it (it would show no figures).
 
 The runtime status chip in the dashboard header shows with `dashboard:view` or `workflows/runtime:view`. A user who holds only `workflows/runtime:view` has no widget, yet still sees the header with the runtime status above the welcome shortcuts.
 

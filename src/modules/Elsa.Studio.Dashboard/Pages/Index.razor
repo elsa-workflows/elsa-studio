@@ -11,7 +11,10 @@
             <MudStack Spacing="1">
                 <MudText Typo="Typo.h4">Dashboard</MudText>
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="flex-wrap">
-                    <MudText Typo="Typo.body2" Class="dashboard-muted">@BackendLabel</MudText>
+                    @if (BackendLabel is { } backendLabel)
+                    {
+                        <MudText Typo="Typo.body2" Class="dashboard-muted">@backendLabel</MudText>
+                    }
                     @if (ShowRuntime)
                     {
                         <DashboardRuntimeChip Runtime="@_snapshot!.Overview.Runtime" />
