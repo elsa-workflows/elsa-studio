@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Elsa.Studio.Authentication.ElsaIdentity.Contracts;
 using Elsa.Studio.Authentication.ElsaIdentity.Extensions;
+using Elsa.Studio.Authentication.ElsaIdentity.Models;
 using Elsa.Studio.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -11,6 +12,7 @@ namespace Elsa.Studio.Authentication.ElsaIdentity.Services;
 /// <summary>
 /// Signs out by revoking the sign-in session at the backend, then discarding the stored access and refresh tokens.
 /// Revoking is best effort: the local session ends even when the backend cannot be reached or refuses.
+/// The service is created by dependency injection; its constructor dependencies are all resolved from the container.
 /// </summary>
 public class ElsaIdentitySignOutService(
     IJwtAccessor jwtAccessor,
@@ -67,7 +69,7 @@ public class ElsaIdentitySignOutService(
 
             using var request = new HttpRequestMessage(HttpMethod.Post, remoteBackendAccessor.RemoteBackend.Url + "/identity/logout");
             request.Headers.Authorization = new("Bearer", accessToken);
-            request.Content = JsonContent.Create(new { refreshToken });
+            request.Content = JsonContent.Create(new LogoutRequest(refreshToken), ElsaIdentityLogoutJsonContext.Default.LogoutRequest);
 
             // IMPORTANT: Use an anonymous HttpClient (no AuthenticatingApiHttpMessageHandler) to avoid recursion.
             using var response = await httpClientFactory.CreateClient(ElsaIdentityRefreshTokenService.AnonymousClientName).SendAsync(request, cancellationToken);

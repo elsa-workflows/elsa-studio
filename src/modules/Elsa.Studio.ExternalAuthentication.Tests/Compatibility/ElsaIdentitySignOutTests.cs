@@ -142,7 +142,60 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
     }
 
     [Fact]
-    public async Task SignOutWithAnExpiredAccessToken_RefreshesFirstAndRevokesWithTheNewTokens()
+    public async Task SignOut_WhenNoRefreshTokenIsStored_StillEndsTheSessionWithoutRevoking()
+    {
+        SignIn();
+        _tokens.Tokens.Remove(TokenNames.RefreshToken);
+
+        await SignOutAsync();
+
+        Assert.Empty(_backend.Requests);
+        Assert.Empty(_warnings.Messages);
+        AssertSignedOutLocally();
+    }
+
+    [Fact]
+    public async Task SignOut_WhenTheRefreshDoesNotAnswerInTime_StillEndsTheSessionWithoutRevoking()
+    {
+        SignInWithExpiredAccessToken();
+        _time.TimersExpireImmediately = true;
+        _backend.OnRefresh = async (_, cancellationToken) =>
+        {
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return new HttpResponseMessage();
+        };
+
+        await SignOutAsync();
+
+        Assert.DoesNotContain(_backend.Requests, request => request.Endpoint == LogoutEndpoint);
+        AssertSignedOutLocally();
+    }
+
+    [Fact]
+    public async Task SignOut_WhenClickedAgainWhileRevoking_SignsOutOnlyOnce()
+    {
+        SignIn();
+        var revoking = new TaskCompletionSource();
+        var revoked = new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _backend.OnLogout = (_, _) =>
+        {
+            revoking.TrySetResult();
+            return revoked.Task;
+        };
+        var menu = RenderAppBarMenu();
+
+        ClickSignOut(menu);
+        await revoking.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        ClickSignOut(menu);
+        revoked.SetResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+
+        menu.WaitForAssertion(() => Assert.NotEmpty(Services.GetRequiredService<BunitNavigationManager>().History));
+        Assert.Single(_backend.Requests);
+        AssertSignedOutLocally();
+    }
+
+    [Fact]
+    public async Task SignOut_WhenTheAccessTokenIsExpired_RefreshesFirstAndRevokesWithTheNewTokens()
     {
         SignInWithExpiredAccessToken();
         _backend.OnRefresh = (_, _) => Task.FromResult(RefreshedTokens());
@@ -160,7 +213,7 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
     [Theory]
     [InlineData(HttpStatusCode.Unauthorized)]
     [InlineData(HttpStatusCode.ServiceUnavailable)]
-    public async Task SignOutWhenTheRefreshFails_StillEndsTheSessionWithoutRevoking(HttpStatusCode status)
+    public async Task SignOut_WhenTheRefreshFails_StillEndsTheSessionWithoutRevoking(HttpStatusCode status)
     {
         SignInWithExpiredAccessToken();
         _backend.OnRefresh = (_, _) => Task.FromResult(new HttpResponseMessage(status));
@@ -172,7 +225,7 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
     }
 
     [Fact]
-    public async Task SignOutWhenTheRefreshCannotReachTheBackend_StillEndsTheSessionWithoutRevoking()
+    public async Task SignOut_WhenTheRefreshCannotReachTheBackend_StillEndsTheSessionWithoutRevoking()
     {
         SignInWithExpiredAccessToken();
         _backend.OnRefresh = (_, _) => throw new HttpRequestException("Connection refused");
@@ -184,7 +237,7 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
     }
 
     [Fact]
-    public async Task SignOutWhileAnotherRequestRefreshes_WaitsForItAndRevokesWithTheNewTokens()
+    public async Task SignOut_WhileAnotherRequestRefreshes_WaitsForItAndRevokesWithTheNewTokens()
     {
         SignInWithExpiredAccessToken();
         var refreshing = new TaskCompletionSource();
@@ -247,7 +300,7 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
     }
 
     [Fact]
-    public async Task SignOutWhileARefreshStoresItsTokens_StillEndsTheSession()
+    public async Task SignOut_WhileARefreshStoresItsTokens_StillEndsTheSession()
     {
         SignIn();
         var refreshResponse = new PausedHandler();
@@ -297,6 +350,15 @@ public sealed class ElsaIdentitySignOutTests : AppBarUserMenuTests<ElsaIdentityU
     {
         SignIn();
         _tokens.Tokens[TokenNames.AccessToken] = CreateJwt(UserName, TimeSpan.FromMinutes(-5));
+    }
+
+    /// <summary>Opens the menu and clicks its sign-out item, which closes the menu again.</summary>
+    private void ClickSignOut(IRenderedComponent<ElsaIdentityUserMenu> menu)
+    {
+        menu.Find(".mud-menu button").Click();
+        PopoverProvider!.WaitForElements(".mud-menu-item")
+            .Single(item => item.TextContent.Trim() == "Sign out")
+            .Click();
     }
 
     private Task SignOutAsync() => Services.GetRequiredService<ISignOutService>().SignOutAsync();
