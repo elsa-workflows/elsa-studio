@@ -218,6 +218,25 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheLandingPage_DoesNotRedirect_WhenTheUserIsGrantedItWhileTheMenuLoads()
+    {
+        var menuLoaded = new TaskCompletionSource();
+        _menuHold = menuLoaded.Task;
+        var permissions = new StubPermissionService("secrets:view");
+        var authentication = new NotifyingAuthenticationStateProvider();
+        Services.AddSingleton<AuthenticationStateProvider>(authentication);
+        var cut = RenderGuard<DashboardPage>(permissions, "/");
+
+        permissions.Permissions = StubPermissionService.Grants("secrets:view", "dashboard:view");
+        authentication.Notify();
+        cut.WaitForAssertion(() => Assert.Contains(PageContent, cut.Markup));
+        menuLoaded.SetResult();
+        await cut.InvokeAsync(() => { });
+
+        Assert.Equal("http://localhost/", Navigation.Uri);
+    }
+
+    [Fact]
     public void TheLandingPage_ExplainsThatNoPagesAreAvailable_WhenTheMenuRecoversAfterAFailure()
     {
         var permissions = new StubPermissionService("secrets:view");
@@ -252,6 +271,18 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
 
         cut.WaitForAssertion(() => Assert.Equal("http://localhost/studio/security/secrets", navigation.Uri));
         Assert.Empty(cut.FindAll("[data-testid='access-denied']"));
+    }
+
+    [Fact]
+    public void TheLandingPage_StaysInsideTheApp_WhenTheFirstMenuHrefStartsWithASlash()
+    {
+        var navigation = new SubPathNavigationManager();
+        Services.AddSingleton<NavigationManager>(navigation);
+        UseMenu(new MenuItem { Text = "Rooted", Href = "/security/rooted", GroupName = "administration", Order = -1 });
+
+        var cut = RenderGuard<DashboardPage>(new StubPermissionService("secrets:view"), "http://localhost/studio/");
+
+        cut.WaitForAssertion(() => Assert.Equal("http://localhost/studio/security/rooted", navigation.Uri));
     }
 
     [Fact]

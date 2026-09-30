@@ -25,7 +25,8 @@ public static class MenuServiceExtensions
     }
 
     /// <summary>
-    /// Finds the first page the navigation leads to: the first leaf in display order that has an app-relative href.
+    /// Finds the first page the navigation leads to: the first leaf in display order that has an app-relative href,
+    /// returned relative to the app's base address so that it stays inside an app hosted under a sub-path.
     /// </summary>
     public static string? FindFirstHref(this IEnumerable<MenuNavigationGroup> navigation) => navigation
         .SelectMany(entry => entry.Items)
@@ -34,7 +35,7 @@ public static class MenuServiceExtensions
 
     private static string? FindFirstHref(MenuItem item) => item.SubMenuItems.Count > 0
         ? item.SubMenuItems.Select(FindFirstHref).FirstOrDefault(href => href != null)
-        : IsNavigable(item.Href) ? item.Href : null;
+        : IsNavigable(item.Href) ? item.Href.TrimStart('/') : null;
 
     // Only app-relative targets with a path: not blank, not external or absolute, and not resolving to the app root
     // itself (such as "/", "#" or "?x"), which is the page the user is being sent away from.

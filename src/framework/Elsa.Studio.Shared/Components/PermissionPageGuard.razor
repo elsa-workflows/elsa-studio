@@ -114,9 +114,10 @@ else
         StateHasChanged();
     }
 
-    // A resolution is stale once a newer one has started or the routed page changed (both advance the counter), or once
-    // the URL is no longer the landing page.
-    private bool IsStale(int resolution) => resolution != _landingResolution || !IsLandingPage;
+    // A resolution is stale once a newer one has started or the routed page changed (both advance the counter), once the
+    // URL is no longer the landing page, or once the user has been granted the landing page after all.
+    private bool IsStale(int resolution) =>
+        resolution != _landingResolution || !IsLandingPage || TrackedPermissions?.HasAll(_requiredPermissions) != false;
 
     private bool IsLandingPage => NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0].Trim('/').Length == 0;
 }
