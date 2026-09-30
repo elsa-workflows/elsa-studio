@@ -1,3 +1,5 @@
+using System.Net;
+using System.Security.Claims;
 using Bunit;
 using Elsa.Studio.Authorization;
 using Elsa.Studio.Components;
@@ -15,10 +17,15 @@ using Elsa.Studio.Models;
 using Elsa.Studio.Services;
 using Elsa.Studio.Testing;
 using Elsa.Studio.Workflows.Dashboard.Widgets;
+using Elsa.Studio.Diagnostics.OpenTelemetry.Contracts;
+using Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.UI.Dashboard;
+using Elsa.Studio.Diagnostics.OpenTelemetry.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
+using Refit;
 using Xunit;
 using DashboardPage = Elsa.Studio.Dashboard.Pages.Index;
 
@@ -39,6 +46,8 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
     private readonly StubFeatureService _features = new();
     private readonly DashboardWidgetRegistry _registry = new();
     private readonly StubPermissionService _permissions = new(UserPermissions.Unknown);
+    private readonly ManualTimeProvider _time = new();
+    private readonly TestAuthenticationStateProvider _authentication = new();
 
     public DashboardPagePermissionTests()
     {
@@ -50,6 +59,9 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         Services.AddSingleton<IEnumerable<DashboardWidgetDescriptor>>([]);
         Services.AddSingleton<IFeatureService>(_features);
         Services.AddSingleton<IPermissionService>(_permissions);
+        Services.AddSingleton<TimeProvider>(_time);
+        Services.AddSingleton<AuthenticationStateProvider>(_authentication);
+        Services.AddSingleton<IOpenTelemetryService>(new StubOpenTelemetryService());
         Services.AddSingleton<IMenuService>(new DefaultMenuService([new DashboardMenu(new TestLocalizer()), new NavigationMenu()], [new DefaultMenuGroupProvider()], _permissions));
         Render<MudPopoverProvider>();
     }
@@ -125,7 +137,7 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
     [Fact]
     public async Task WithoutAWidgetToShow_TheWelcomePanelLinksToThePagesTheUserCanOpen_InNavigationOrder()
     {
-        var cut = await RenderDashboardAsync("secrets:view", "workflows/definitions:view", "workflows/runtime:view");
+        var cut = await RenderDashboardAsync("secrets:view", "workflows/definitions:view");
 
         // Secrets is listed first but belongs to a later group; the dashboard itself is not a shortcut.
         cut.WaitForAssertion(() => Assert.Equal(["workflows/definitions", "security/secrets"], cut.FindAll("[data-testid='dashboard-welcome'] a").Select(x => x.GetAttribute("href"))));
@@ -197,6 +209,116 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() => Assert.Equal(Names(typeof(AcmeWidget)), ShownWidgets(cut)));
     }
 
+    [Fact]
+    public async Task AnOpenTelemetryOnlyUser_SeesOnlyTheOpenTelemetryWidget_AndCallsNoInstanceEndpoint()
+    {
+        await new Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.Feature(_registry).InitializeAsync();
+
+        var cut = await RenderDashboardAsync("diagnostics/opentelemetry:view");
+
+        cut.WaitForAssertion(() => Assert.Equal(Names(typeof(OpenTelemetryDashboardWidget)), ShownWidgets(cut)));
+        Assert.Empty(cut.FindAll("[data-testid='dashboard-welcome']"));
+        Assert.Equal([OverviewEndpoint], _api.Calls);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ARuntimeOnlyUser_SeesTheRuntimeStatusAboveTheWelcomeShortcuts(bool runtimeWithheld)
+    {
+        if (runtimeWithheld)
+            _api.Overview = new() { Runtime = new() { Capability = DashboardCapabilityStatus.Unauthorized } };
+
+        var cut = await RenderDashboardAsync("workflows/runtime:view", "secrets:view");
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(["security/secrets"], cut.FindAll("[data-testid='dashboard-welcome'] a").Select(x => x.GetAttribute("href")));
+            Assert.Equal(!runtimeWithheld, cut.FindComponents<DashboardRuntimeChip>().Count == 1);
+            Assert.Equal(!runtimeWithheld, cut.FindAll(".dashboard-header").Count == 1);
+        });
+        Assert.Empty(ShownWidgets(cut));
+        Assert.Equal([OverviewEndpoint], _api.Calls);
+    }
+
+    [Fact]
+    public async Task WhenTheBackendRefusesAnInstanceEndpointToAUserWithUnknownPermissions_TheOverviewStays()
+    {
+        _api.Refused.UnionWith(["needs-attention", "workflow-trends", "recent-activity", "workflow-hotspots"]);
+
+        var cut = await RenderDashboardAsync(UserPermissions.Unknown);
+
+        // Only what the overview carries is shown; the refused parts are absent, and the page does not report "No access".
+        cut.WaitForAssertion(() => Assert.Equal(Names(typeof(DashboardWorkflowMetricsWidget), typeof(StructuredLogsDashboardWidget), typeof(ConsoleLogsDashboardWidget)), ShownWidgets(cut)));
+        Assert.Single(cut.FindComponents<DashboardRuntimeChip>());
+        Assert.DoesNotContain("No access", cut.Markup);
+        Assert.DoesNotContain("Needs attention", cut.Markup);
+    }
+
+    [Fact]
+    public async Task WhenTheBackendRefusesTheOverview_TheDashboardReportsNoAccess()
+    {
+        _api.Refused.Add(OverviewEndpoint);
+
+        var cut = await RenderDashboardAsync(UserPermissions.Unknown);
+
+        cut.WaitForAssertion(() => Assert.Contains("No access", cut.Markup));
+        Assert.Empty(ShownWidgets(cut));
+    }
+
+    [Fact]
+    public async Task AChangeInPermissions_ThatWidensTheScope_LoadsTheInstanceData()
+    {
+        var cut = await RenderDashboardAsync("diagnostics/console-logs:view");
+        cut.WaitForAssertion(() => Assert.Equal(Names(typeof(ConsoleLogsDashboardWidget)), ShownWidgets(cut)));
+        Assert.Equal([OverviewEndpoint], _api.Calls);
+
+        ChangePermissions("diagnostics/console-logs:view", "workflows/instances:view");
+
+        cut.WaitForAssertion(() => Assert.Equal(Names([.. WorkflowInstanceWidgets, typeof(ConsoleLogsDashboardWidget)]), ShownWidgets(cut)));
+        Assert.Equal(["needs-attention", "recent-activity", "workflow-hotspots", "workflow-trends"], _api.Calls.Except([OverviewEndpoint]).Order());
+    }
+
+    [Fact]
+    public async Task AChangeInPermissions_ThatRemovesEveryWidget_ShowsTheWelcome()
+    {
+        var cut = await RenderDashboardAsync("workflows/instances:view", "secrets:view");
+        cut.WaitForAssertion(() => Assert.Equal(Names(WorkflowInstanceWidgets), ShownWidgets(cut)));
+        var callsBefore = _api.Calls.Count;
+
+        ChangePermissions("secrets:view");
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Empty(ShownWidgets(cut));
+            Assert.Equal(["security/secrets"], cut.FindAll("[data-testid='dashboard-welcome'] a").Select(x => x.GetAttribute("href")));
+        });
+        Assert.Equal(callsBefore, _api.Calls.Count);
+    }
+
+    [Fact]
+    public void WhenTheFeaturesNeverInitialize_TheDashboardStopsWaiting_AndStillTakesLateWidgets()
+    {
+        var cut = RenderDashboard(StubPermissionService.Grants("secrets:view"));
+        Assert.Contains("Loading dashboard", cut.Find(".mud-chip").TextContent);
+
+        _time.FireTimers();
+
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("[data-testid='dashboard-welcome']")));
+        Assert.True(_time.LastDueTime <= TimeSpan.FromSeconds(10));
+        Assert.Empty(_api.Calls);
+
+        // A decorating feature service that never reports itself initialized, but does raise the event once it is.
+        _registry.Add(new("acme.status", DashboardWidgetZones.SecondaryPanels, 10, typeof(AcmeWidget)));
+        _features.CompleteInitialization();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(Names(typeof(AcmeWidget)), ShownWidgets(cut));
+            Assert.Empty(cut.FindAll("[data-testid='dashboard-welcome']"));
+        });
+    }
+
     public Task InitializeAsync() => Task.CompletedTask;
 
     public new async Task DisposeAsync() => await base.DisposeAsync();
@@ -208,6 +330,13 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
     {
         await InitializeFeaturesAsync();
         return RenderDashboard(permissions);
+    }
+
+    // As when the user's token is refreshed with different grants.
+    private void ChangePermissions(params string[] grants)
+    {
+        _permissions.Permissions = StubPermissionService.Grants(grants);
+        _authentication.NotifyChanged();
     }
 
     // Rendered the way the shell renders a page: inside the guard that enforces its declared permissions.
@@ -260,6 +389,7 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         public List<string> Calls { get; } = [];
         public DashboardOverview Overview { get; set; } = new();
         public DashboardNeedsAttentionResponse NeedsAttention { get; set; } = new();
+        public HashSet<string> Refused { get; } = [];
 
         public Task<DashboardOverview> GetOverviewAsync(string? range = null, bool includeSystem = false, CancellationToken cancellationToken = default) => Record(OverviewEndpoint, Overview);
         public Task<DashboardTrendResponse> GetWorkflowTrendsAsync(DashboardTrendRequest request, CancellationToken cancellationToken = default) => Record("workflow-trends", new DashboardTrendResponse());
@@ -267,11 +397,69 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         public Task<DashboardRecentActivityResponse> GetRecentActivityAsync(string? range = null, int take = 20, bool includeSystem = false, CancellationToken cancellationToken = default) => Record("recent-activity", new DashboardRecentActivityResponse());
         public Task<DashboardWorkflowHotspotsResponse> GetWorkflowHotspotsAsync(DashboardWorkflowHotspotsRequest request, CancellationToken cancellationToken = default) => Record("workflow-hotspots", new DashboardWorkflowHotspotsResponse());
 
-        private Task<T> Record<T>(string endpoint, T response)
+        private async Task<T> Record<T>(string endpoint, T response)
         {
             Calls.Add(endpoint);
-            return Task.FromResult(response);
+
+            if (!Refused.Contains(endpoint))
+                return response;
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, "https://elsa.example.test/dashboard");
+            using var refusal = new HttpResponseMessage(HttpStatusCode.Forbidden);
+            throw await ApiException.Create(request, HttpMethod.Get, refusal, new RefitSettings());
         }
+    }
+
+    private sealed class ManualTimeProvider : TimeProvider
+    {
+        private readonly List<ManualTimer> _timers = [];
+
+        public TimeSpan LastDueTime { get; private set; }
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            LastDueTime = dueTime;
+            var timer = new ManualTimer(() => callback(state));
+            _timers.Add(timer);
+            return timer;
+        }
+
+        public void FireTimers()
+        {
+            foreach (var timer in _timers.Where(x => !x.Disposed).ToList())
+                timer.Fire();
+        }
+
+        private sealed class ManualTimer(Action callback) : ITimer
+        {
+            public bool Disposed { get; private set; }
+            public void Fire() => callback();
+            public bool Change(TimeSpan dueTime, TimeSpan period) => true;
+            public void Dispose() => Disposed = true;
+            public ValueTask DisposeAsync()
+            {
+                Dispose();
+                return ValueTask.CompletedTask;
+            }
+        }
+    }
+
+    private sealed class TestAuthenticationStateProvider : AuthenticationStateProvider
+    {
+        public override Task<AuthenticationState> GetAuthenticationStateAsync() => Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+
+        public void NotifyChanged() => NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+    }
+
+    private sealed class StubOpenTelemetryService : IOpenTelemetryService
+    {
+        public Task<OpenTelemetryStorageDiagnostics> GetStorageDiagnosticsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new OpenTelemetryStorageDiagnostics(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+        public Task<OpenTelemetryResourceResult> GetResourcesAsync(OpenTelemetryResourceFilter filter, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<OpenTelemetryTraceResult> GetTracesAsync(OpenTelemetryTraceFilter filter, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<OpenTelemetryTraceDetail?> GetTraceAsync(string traceId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<OpenTelemetryMetricResult> GetMetricsAsync(OpenTelemetryMetricFilter filter, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<OpenTelemetryLogResult> GetLogsAsync(OpenTelemetryLogFilter filter, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<CollectorConfiguration?> GetCollectorConfigurationAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     private sealed class StubBackend(IDashboardApi api) : IBackendApiClientProvider
@@ -279,20 +467,6 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         public Uri Url { get; } = new("https://elsa.example.test/");
 
         public ValueTask<T> GetApiAsync<T>(CancellationToken cancellationToken = default) where T : class => ValueTask.FromResult((T)api);
-    }
-
-    private sealed class StubFeatureService : IFeatureService
-    {
-        public event Action? Initialized;
-        public bool IsInitialized { get; private set; }
-        public IEnumerable<IFeature> GetFeatures() => [];
-        public Task InitializeFeaturesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-
-        public void CompleteInitialization()
-        {
-            IsInitialized = true;
-            Initialized?.Invoke();
-        }
     }
 
     // Navigation shaped like the built-in modules': Secrets is listed first but belongs to a later group.

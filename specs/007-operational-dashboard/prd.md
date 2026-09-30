@@ -175,7 +175,7 @@ Widget `Id` values must be globally unique across all providers and should use a
 
 - `Available`: render the widget component.
 - `Unavailable`: render consistent host unavailable chrome with the descriptor title and optional provider-supplied reason.
-- `Unauthorized`: render consistent host unauthorized chrome without leaking unavailable data details. The host must ignore `UnavailableReason` for unauthorized widgets even if a provider supplies one.
+- `Unauthorized`: leave the widget or section out entirely, without unauthorized chrome and without leaking unavailable data details: the user is not meant to see it. The host must ignore `UnavailableReason` for unauthorized widgets even if a provider supplies one.
 
 `DashboardWidgetRefreshMode` should define host behavior:
 
@@ -410,7 +410,7 @@ Behavior:
 
 - If a diagnostics module is absent, its provider is not registered and the widget is not contributed.
 - If the module is installed but its backend feature is unavailable, the provider may omit the widget or return it with `DashboardWidgetAvailability.Unavailable`.
-- If unauthorized, the provider may omit the widget or return it with `DashboardWidgetAvailability.Unauthorized` so the host can show `No access`.
+- If unauthorized, the provider may omit the widget or return it with `DashboardWidgetAvailability.Unauthorized` so the host leaves it out rather than showing `No access`.
 - Do not display raw log lines.
 
 ### Workflow Hotspots Widget
@@ -698,5 +698,5 @@ Phase 3:
 - Should Studio include a limited fallback mode using existing workflow APIs before the backend dashboard API lands?
 - Should dashboard data auto-refresh by default, or stay manual for predictable backend load?
 - Should the dashboard expose an `include system workflows` toggle in the first version?
-- Should runtime status be visible to every dashboard reader or only users with workflow instance read permission?
+- Resolved: runtime status is visible to users holding `dashboard:view` or `workflows/runtime:view`, including a user with no visible widget, who sees it above the welcome shortcuts.
 - Should a future version add user preferences for hiding unavailable widgets that providers elect to return?

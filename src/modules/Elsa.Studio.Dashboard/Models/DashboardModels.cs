@@ -180,8 +180,8 @@ public record DashboardHotspot
 public record DashboardSnapshot(
     DashboardOverview Overview,
     DashboardNeedsAttentionResponse NeedsAttention,
-    DashboardTrendResponse Trend,
-    DashboardRecentActivityResponse RecentActivity,
+    DashboardTrendResponse? Trend,
+    DashboardRecentActivityResponse? RecentActivity,
     DashboardWorkflowHotspotsResponse? Hotspots);
 
 public record DashboardLoadResult(DashboardLoadStatus Status, DashboardSnapshot? Snapshot = null, string? Message = null)

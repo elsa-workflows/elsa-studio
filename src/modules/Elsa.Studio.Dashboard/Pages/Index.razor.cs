@@ -4,12 +4,22 @@ using Elsa.Studio.Dashboard.Models;
 using Elsa.Studio.Dashboard.Services;
 using Elsa.Studio.Dashboard.Widgets;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 
 namespace Elsa.Studio.Dashboard.Pages;
 
 public partial class Index : IAsyncDisposable
 {
+    // How long to wait for the features to report they are initialized before settling for the widgets there are: a host
+    // that never initializes them (such as one without authorization) would otherwise leave the page loading forever.
+    private static readonly TimeSpan FeatureInitializationTimeout = TimeSpan.FromSeconds(3);
+    private static readonly IReadOnlyCollection<Permission> InstanceDataPermissions = DashboardPermissions.ForData(DashboardPermissions.WorkflowInstances);
+    private static readonly IReadOnlyCollection<Permission> RuntimeDataPermissions = DashboardPermissions.ForData(DashboardPermissions.WorkflowRuntime);
+
+    private ITimer? _initializationTimer;
+    private IReadOnlyCollection<DashboardWidgetDescriptor> _permittedWidgets = [];
+    private bool _widgetsSettled;
     private CancellationTokenSource? _loadCancellationTokenSource;
     private DataScope? _loadedScope;
     private DashboardSnapshot? _snapshot;
@@ -25,6 +35,7 @@ public partial class Index : IAsyncDisposable
     [Inject] private IEnumerable<DashboardWidgetDescriptor> Widgets { get; set; } = [];
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private IFeatureService FeatureService { get; set; } = null!;
+    [Inject] private IServiceProvider Services { get; set; } = null!;
 
     /// <summary>The user's permissions, cascaded by the shell's page guard.</summary>
     [CascadingParameter] private UserPermissions Permissions { get; set; } = UserPermissions.Unknown;
@@ -56,15 +67,18 @@ public partial class Index : IAsyncDisposable
 
     private bool IsLoadingFirstSnapshot => _snapshot == null && (_loading || AwaitingWidgets);
 
-    // Until the features are initialized, the widgets they contribute may still be on their way.
-    private bool AwaitingWidgets => PermittedWidgets.Count == 0 && !FeatureService.IsInitialized;
+    // Until the features are initialized (or we gave up waiting), the widgets they contribute may still be on their way.
+    private bool WidgetsSettled => _widgetsSettled || FeatureService.IsInitialized;
 
-    private bool ShowWelcome => PermittedWidgets.Count == 0 && FeatureService.IsInitialized;
+    private bool AwaitingWidgets => _permittedWidgets.Count == 0 && !WidgetsSettled;
+
+    // Without a widget to show, the user is welcomed with shortcuts (under the runtime status, where they may read it).
+    private bool ShowWelcome => _permittedWidgets.Count == 0 && WidgetsSettled;
 
     private bool ShowRuntime =>
         _snapshot is { } snapshot
         && !snapshot.Overview.Runtime.Capability.IsUnauthorized
-        && Permissions.HasAny(DashboardPermissions.ForData(DashboardPermissions.WorkflowRuntime));
+        && Permissions.HasAny(RuntimeDataPermissions);
 
     private string StatusLabel => _status switch
     {
@@ -87,39 +101,50 @@ public partial class Index : IAsyncDisposable
         _ => Severity.Error
     };
 
-    private IReadOnlyCollection<DashboardWidgetDescriptor> PermittedWidgets =>
-        Widgets
+    // Worked out when the permissions or the registered widgets change, not on every access.
+    private void RefreshPermittedWidgets() =>
+        _permittedWidgets = Widgets
             .Concat(WidgetRegistry.List())
             .DistinctBy(x => x.Id)
             .Where(x => x.IsPermitted(Permissions))
             .ToList();
 
-    // The data the permitted widgets need, limited to what the dashboard API serves this user: nothing without a widget,
-    // and the workflow instance data behind trends, activity, findings and hotspots only to users who may read it.
+    // The data the permitted widgets need, limited to what the dashboard API serves this user: the workflow instance data
+    // behind trends, activity, findings and hotspots only to users who may read it. Without a widget there is nothing to
+    // load, except the overview for a user who may read the runtime status shown above the welcome.
     private DataScope RequiredScope =>
-        PermittedWidgets.Count == 0 ? DataScope.None
-        : Permissions.HasAny(DashboardPermissions.ForData(DashboardPermissions.WorkflowInstances)) ? DataScope.Everything
+        _permittedWidgets.Count == 0 ? (WidgetsSettled && Permissions.HasAny(RuntimeDataPermissions) ? DataScope.Overview : DataScope.None)
+        : Permissions.HasAny(InstanceDataPermissions) ? DataScope.Everything
         : DataScope.Overview;
 
     private IReadOnlyCollection<DashboardWidgetDescriptor> GetWidgets(string zone) =>
-        PermittedWidgets
+        _permittedWidgets
             .Where(x => x.Zone == zone && x.IsVisible(WidgetContext))
             .OrderBy(x => x.Order)
             .ThenBy(x => x.Id, StringComparer.Ordinal)
             .ToList();
 
     // Subscribed before the first render, so widgets registered while it is on its way are not missed.
-    protected override void OnInitialized() => FeatureService.Initialized += OnFeatureServiceInitialized;
-
-    // Loads on the first render, and again when a change in the user's permissions changes the data the page needs.
-    protected override Task OnParametersSetAsync() => LoadIfScopeChangedAsync();
-
-    private void OnFeatureServiceInitialized()
+    protected override void OnInitialized()
     {
-        _ = RefreshWidgetsAfterFeatureInitializationAsync();
+        FeatureService.Initialized += OnFeatureServiceInitialized;
+
+        if (!FeatureService.IsInitialized)
+            _initializationTimer = (Services.GetService<TimeProvider>() ?? TimeProvider.System)
+                .CreateTimer(_ => _ = RefreshWidgetsAsync(), null, FeatureInitializationTimeout, Timeout.InfiniteTimeSpan);
     }
 
-    private async Task RefreshWidgetsAfterFeatureInitializationAsync()
+    // Loads on the first render, and again when a change in the user's permissions changes the data the page needs.
+    protected override Task OnParametersSetAsync()
+    {
+        RefreshPermittedWidgets();
+        return LoadIfScopeChangedAsync();
+    }
+
+    private void OnFeatureServiceInitialized() => _ = RefreshWidgetsAsync();
+
+    // Widgets registered later than the wait still appear: the Initialized handler stays subscribed.
+    private async Task RefreshWidgetsAsync()
     {
         if (_disposed)
             return;
@@ -128,6 +153,9 @@ public partial class Index : IAsyncDisposable
         {
             await InvokeAsync(async () =>
             {
+                _widgetsSettled = true;
+                _initializationTimer?.Dispose();
+                RefreshPermittedWidgets();
                 var loading = LoadIfScopeChangedAsync();
                 StateHasChanged();
                 await loading;
@@ -230,6 +258,7 @@ public partial class Index : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         _disposed = true;
+        _initializationTimer?.Dispose();
         FeatureService.Initialized -= OnFeatureServiceInitialized;
         await CancelCurrentLoadAsync();
     }

@@ -18,7 +18,7 @@ public static class DashboardPermissions
     /// </summary>
     public const string WorkflowInstances = "workflows/instances";
 
-    /// <summary>The workflow runtime, which also reads the dashboard's runtime status.</summary>
+    /// <summary>The workflow runtime, which also reads the dashboard's runtime status. Mirrors <c>WorkflowPermissions.Runtime</c>.</summary>
     public const string WorkflowRuntime = "workflows/runtime";
 
     /// <summary>The permissions that read dashboard data guarded by <paramref name="resource"/>: <c>dashboard:view</c>, or viewing the data itself.</summary>

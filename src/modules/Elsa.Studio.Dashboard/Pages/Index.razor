@@ -5,12 +5,7 @@
 <PageTitle>@Localizer["Dashboard"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False" Class="dashboard-shell" Style="@DashboardStyles.Shell">
-    @if (ShowWelcome)
-    {
-        @* Recreated when the permissions change, so the shortcuts follow the pages the user can open. *@
-        <DashboardWelcome @key="Permissions" />
-    }
-    else
+    @if (!ShowWelcome || ShowRuntime)
     {
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="dashboard-header" Spacing="3" Style="@DashboardStyles.Header">
             <MudStack Spacing="1">
@@ -30,18 +25,29 @@
             </MudStack>
 
             <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Spacing="1" Class="flex-wrap">
-                <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
-                    @foreach (var option in DashboardRangeMapper.Options)
-                    {
-                        <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
-                    }
-                </MudToggleGroup>
+                @if (!ShowWelcome)
+                {
+                    <MudToggleGroup T="string" Value="@_selectedRange" ValueChanged="OnRangeChangedAsync" Color="Color.Primary" SelectionMode="SelectionMode.SingleSelection" Size="Size.Small">
+                        @foreach (var option in DashboardRangeMapper.Options)
+                        {
+                            <MudToggleItem T="string" Value="@option.Value">@option.Label</MudToggleItem>
+                        }
+                    </MudToggleGroup>
+                }
                 <MudTooltip Text="Refresh dashboard" Delay="400">
                     <MudIconButton Icon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" Disabled="@_loading" OnClick="RefreshAsync" aria-label="Refresh dashboard" />
                 </MudTooltip>
             </MudStack>
         </MudStack>
+    }
 
+    @if (ShowWelcome)
+    {
+        @* Recreated when the permissions change, so the shortcuts follow the pages the user can open. *@
+        <DashboardWelcome @key="Permissions" />
+    }
+    else
+    {
         @if (!string.IsNullOrWhiteSpace(_message))
         {
             <MudAlert Severity="@AlertSeverity" Dense="true" Class="mb-4">@_message</MudAlert>

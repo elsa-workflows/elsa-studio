@@ -26,19 +26,20 @@ public static class MenuServiceExtensions
 
     /// <summary>
     /// Lists the pages the navigation leads to, in display order: every leaf that has an app-relative href. The app root
-    /// itself (the landing page) is not among them.
+    /// itself (the landing page) is not among them. Hrefs are relative to the app's base address, so that they stay inside
+    /// an app hosted under a sub-path.
     /// </summary>
-    public static IEnumerable<MenuItem> GetPages(this IEnumerable<MenuNavigationGroup> navigation) => navigation
+    public static IEnumerable<MenuPage> GetPages(this IEnumerable<MenuNavigationGroup> navigation) => navigation
         .SelectMany(entry => entry.Items)
         .SelectMany(GetLeaves)
-        .Where(item => IsNavigable(item.Href));
+        .Where(item => IsNavigable(item.Href))
+        .Select(item => new MenuPage(item.Href.TrimStart('/'), item.Text, item.Icon));
 
     /// <summary>
-    /// Finds the first page the navigation leads to (see <see cref="GetPages"/>), returned relative to the app's base
-    /// address so that it stays inside an app hosted under a sub-path.
+    /// Finds the href of the first page the navigation leads to (see <see cref="GetPages"/>).
     /// </summary>
     public static string? FindFirstHref(this IEnumerable<MenuNavigationGroup> navigation) =>
-        navigation.GetPages().FirstOrDefault()?.Href.TrimStart('/');
+        navigation.GetPages().FirstOrDefault()?.Href;
 
     private static IEnumerable<MenuItem> GetLeaves(MenuItem item) =>
         item.SubMenuItems.Count > 0 ? item.SubMenuItems.SelectMany(GetLeaves) : [item];

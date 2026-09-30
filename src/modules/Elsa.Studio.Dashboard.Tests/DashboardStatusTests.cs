@@ -98,11 +98,4 @@ public sealed class DashboardStatusTests : BunitContext, IAsyncLifetime
     }
 
     private sealed class TestWidget : ComponentBase;
-
-    private sealed class StubFeatureService : IFeatureService
-    {
-        public event Action? Initialized { add { } remove { } }
-        public IEnumerable<IFeature> GetFeatures() => [];
-        public Task InitializeFeaturesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-    }
 }

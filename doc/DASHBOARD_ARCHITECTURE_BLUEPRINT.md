@@ -287,7 +287,9 @@ Every signed-in user can open the dashboard: the page and its menu item declare 
 - widgets declare the permissions of their data in `RequiredPermissions` and are hidden from users holding none of them;
 - the page requests only the data its visible widgets need, from endpoints the user may call;
 - a section the backend returns with `Capability` `Unauthorized` is left out rather than reported, and the runtime chip is shown only to users who may read the runtime status;
-- a user with no visible widget gets a welcome panel with shortcuts to the pages they can open, or the "No pages are available for your role" notice.
+- a user with no visible widget gets a welcome panel with shortcuts to the pages they can open, or the "No pages are available for your role" notice; a user who may read the runtime status (`dashboard:view` or `workflows/runtime:view`) sees it above the shortcuts;
+- the page waits for the features to report they are initialized before welcoming a user, but no longer than a few seconds, so a host that never initializes them settles on the welcome; widgets registered later still appear;
+- when the overview loads but an instance endpoint refuses the user (unknown permissions, or an older backend), the overview stays and the widgets that need the refused part show nothing.
 
 When the user's permissions are unknown, every widget shows and every endpoint is requested, as before; refusals from the backend are then mapped by `DashboardService`.
 
