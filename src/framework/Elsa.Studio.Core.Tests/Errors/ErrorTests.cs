@@ -1,6 +1,7 @@
 using System.Net;
 using Bunit;
 using Elsa.Studio.Components;
+using Elsa.Studio.Contracts;
 using Elsa.Studio.Extensions;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Testing;
@@ -17,6 +18,7 @@ public sealed class ErrorTests : BunitContext, IAsyncLifetime
     {
         Services.AddMudServices();
         Services.AddSingleton<ILocalizer>(new DefaultLocalizer(new StubTranslations([])));
+        Services.AddSingleton<IUnauthorizedComponentProvider>(new MarkerUnauthorizedProvider());
     }
 
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -32,6 +34,21 @@ public sealed class ErrorTests : BunitContext, IAsyncLifetime
         // The lock glyph's outline path (Icons.Material.Outlined.Lock); the markup normalizes the rest of the SVG string.
         Assert.Contains("M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6", alert.Find(".mud-alert-icon").InnerHtml);
     }
+
+    [Fact]
+    public void AnUnauthorizedResponse_OffersToSignInAndHandsOverOnlyWhenAsked()
+    {
+        var cut = RenderAlert(ApiExceptions.Create(HttpStatusCode.Unauthorized));
+        Assert.Empty(cut.FindAll(MarkerUnauthorizedProvider.Selector));
+
+        cut.Find("button").Click();
+
+        cut.Find(MarkerUnauthorizedProvider.Selector);
+    }
+
+    [Fact]
+    public void AForbiddenResponse_DoesNotOfferToSignIn() =>
+        Assert.Empty(RenderAlert(ApiExceptions.Create(HttpStatusCode.Forbidden)).FindAll("button"));
 
     [Fact]
     public void AnyOtherFailure_StillShowsItsTypeAndMessage()

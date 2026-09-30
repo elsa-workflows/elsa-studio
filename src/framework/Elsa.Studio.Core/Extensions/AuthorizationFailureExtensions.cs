@@ -34,6 +34,9 @@ public static class AuthorizationFailureExtensions
     /// <summary>Whether the exception reports a 401 or 403 response from the backend.</summary>
     public static bool IsAuthorizationFailure(this Exception exception) => FindAuthorizationFailureMessage(exception) != null;
 
+    /// <summary>Whether the exception reports a 401 response: the backend no longer accepts the user's sign-in.</summary>
+    public static bool IsUnauthorizedResponse(this Exception exception) => FindResponseStatus(exception) == HttpStatusCode.Unauthorized;
+
     /// <summary>
     /// Returns the guidance for an exception that reports a 401 or 403 response, or <c>null</c> for any other exception,
     /// so a caller with its own fixed text can write <c>e.GetAuthorizationFailureMessage() ?? "fixed text"</c>.
@@ -48,9 +51,11 @@ public static class AuthorizationFailureExtensions
     public static string ToUserMessage(this Exception exception, ILocalizer? localizer = null) =>
         exception.GetAuthorizationFailureMessage(localizer) ?? exception.Message;
 
+    private static string? FindAuthorizationFailureMessage(Exception exception) => FindResponseStatus(exception)?.GetAuthorizationFailureMessage();
+
     // The first exception in the chain that carries a response status decides: a 403 wrapped by another exception is
     // still recognized, and a response with any other status is never reinterpreted because of what it wraps.
-    private static string? FindAuthorizationFailureMessage(Exception exception)
+    private static HttpStatusCode? FindResponseStatus(Exception exception)
     {
         for (var current = exception; current != null; current = current.InnerException)
         {
@@ -62,7 +67,7 @@ public static class AuthorizationFailureExtensions
             };
 
             if (statusCode != null)
-                return statusCode.Value.GetAuthorizationFailureMessage();
+                return statusCode;
         }
 
         return null;

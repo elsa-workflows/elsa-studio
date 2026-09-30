@@ -46,8 +46,8 @@ public sealed class MainLayoutErrorBoundaryTests : BunitContext, IAsyncLifetime
     {
         var cut = RenderLayoutWith(failure);
 
-        Assert.Equal(AuthorizationFailureExtensions.UnauthorizedMessage, cut.Find("#error-display").TextContent.Trim());
-        Assert.Empty(cut.FindAll("#sign-in-redirect"));
+        Assert.Equal(AuthorizationFailureExtensions.UnauthorizedMessage, cut.Find("#error-display .mud-alert-message").TextContent.Trim());
+        Assert.Empty(cut.FindAll(MarkerUnauthorizedProvider.Selector));
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public sealed class MainLayoutErrorBoundaryTests : BunitContext, IAsyncLifetime
     {
         var cut = RenderLayoutWith(new UnauthorizedAccessException());
 
-        cut.Find("#sign-in-redirect");
+        cut.Find(MarkerUnauthorizedProvider.Selector);
         Assert.Empty(cut.FindAll("#error-display"));
     }
 
@@ -102,11 +102,6 @@ public sealed class MainLayoutErrorBoundaryTests : BunitContext, IAsyncLifetime
         public event Action? Initialized { add { } remove { } }
         public IEnumerable<IFeature> GetFeatures() => [];
         public Task InitializeFeaturesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-    }
-
-    private sealed class MarkerUnauthorizedProvider : IUnauthorizedComponentProvider
-    {
-        public RenderFragment GetUnauthorizedComponent() => builder => builder.AddMarkupContent(0, "<div id=\"sign-in-redirect\"></div>");
     }
 
     private sealed class MarkerErrorProvider : IErrorComponentProvider
