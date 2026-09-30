@@ -46,16 +46,21 @@ public sealed class DashboardStatusTests : BunitContext, IAsyncLifetime
         Assert.DoesNotContain("mud-chip-color-error", cut.Find(".mud-chip").ClassName);
     }
 
-    [Fact]
-    public void WhenTheLoadFails_ShowsUnavailable()
+    [Theory]
+    [InlineData(false, "Dashboard unavailable")]
+    [InlineData(true, "Refresh failed")]
+    public void WhenTheLoadFails_ShowsAnErrorStatus(bool throws, string expectedStatus)
     {
         var cut = Render<DashboardPage>();
 
-        _load.SetResult(DashboardLoadResult.Unavailable("Dashboard data is not available from this backend."));
+        if (throws)
+            _load.SetException(new InvalidOperationException("The backend is unreachable."));
+        else
+            _load.SetResult(DashboardLoadResult.Unavailable("Dashboard data is not available from this backend."));
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Dashboard unavailable", cut.Find(".mud-chip").TextContent);
+            Assert.Contains(expectedStatus, cut.Find(".mud-chip").TextContent);
             Assert.Contains("mud-chip-color-error", cut.Find(".mud-chip").ClassName);
         });
     }

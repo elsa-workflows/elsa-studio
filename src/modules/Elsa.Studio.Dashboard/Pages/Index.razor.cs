@@ -62,6 +62,10 @@ public partial class Index : IAsyncDisposable
         _ => "Dashboard unavailable"
     };
 
+    private Color StatusColor => IsLoadingFirstSnapshot ? Color.Default : Color.Error;
+
+    private string StatusIcon => IsLoadingFirstSnapshot ? Icons.Material.Outlined.HourglassEmpty : Icons.Material.Outlined.CloudOff;
+
     private Severity AlertSeverity => _status switch
     {
         DashboardLoadStatus.Unauthorized => Severity.Warning,
