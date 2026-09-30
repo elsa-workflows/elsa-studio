@@ -1,5 +1,9 @@
 @using Elsa.Studio.Authorization
+@using Elsa.Studio.Contracts
+@using Elsa.Studio.Models
 @inherits PermissionTrackingComponentBase
+@inject IMenuService MenuService
+@inject NavigationManager NavigationManager
 
 @if (TrackedPermissions == null)
 {
@@ -7,8 +11,17 @@
 }
 else if (TrackedPermissions.GetMissing(_requiredPermissions) is { Count: > 0 } missingPermissions)
 {
-    <PageTitle>Access denied</PageTitle>
-    <AccessDenied MissingPermissions="missingPermissions" />
+    @* Signing in lands on the Dashboard, so a user who cannot view it is sent to the first page they can open (see OnAfterRenderAsync). *@
+    if (!IsLandingPage)
+    {
+        <PageTitle>Access denied</PageTitle>
+        <AccessDenied MissingPermissions="missingPermissions" />
+    }
+    else if (_hasNoAccessiblePage)
+    {
+        <PageTitle>No pages available</PageTitle>
+        <NoAccessiblePages />
+    }
 }
 else
 {
@@ -22,6 +35,8 @@ else
 @code {
     private Type? _pageType;
     private IReadOnlyCollection<Permission> _requiredPermissions = [];
+    private UserPermissions? _landingResolvedFor;
+    private bool _hasNoAccessiblePage;
 
     /// <summary>The current route, cascaded by the shell's router.</summary>
     [CascadingParameter] public RouteData? RouteData { get; set; }
@@ -44,6 +59,45 @@ else
             return;
 
         _pageType = pageType;
+        _landingResolvedFor = null;
         _requiredPermissions = pageType != null ? RequirePermissionAttribute.GetRequiredPermissions(pageType) : [];
     }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Resolved once per set of permissions and route, so the redirect cannot loop and a permission change is picked up.
+        if (TrackedPermissions == null || ReferenceEquals(TrackedPermissions, _landingResolvedFor) || !IsLandingPage || TrackedPermissions.HasAll(_requiredPermissions))
+            return;
+
+        _landingResolvedFor = TrackedPermissions;
+
+        if (await FindFirstAccessibleHrefAsync() is { } href)
+        {
+            _hasNoAccessiblePage = false;
+            NavigationManager.NavigateTo(href, replace: true);
+            return;
+        }
+
+        _hasNoAccessiblePage = true;
+        StateHasChanged();
+    }
+
+    private bool IsLandingPage => NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0].Trim('/').Length == 0;
+
+    // The menu is already filtered by permission; take the first item in the order the navigation shows it: by group, then by item.
+    private async Task<string?> FindFirstAccessibleHrefAsync()
+    {
+        var groups = await MenuService.GetMenuItemGroupsAsync();
+        var items = (await MenuService.GetMenuItemsAsync()).ToList();
+
+        return groups
+            .SelectMany(group => items.Where(item => item.GroupName == group.Name))
+            .Select(FindFirstHref)
+            .FirstOrDefault(href => href != null);
+    }
+
+    private static string? FindFirstHref(MenuItem item) => item.SubMenuItems.Count > 0
+        ? item.SubMenuItems.Select(FindFirstHref).FirstOrDefault(href => href != null)
+        : item.Href.Trim('/').Length > 0 ? item.Href : null;
 }
