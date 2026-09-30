@@ -17,7 +17,7 @@
                 }
                 else
                 {
-                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" Icon="@Icons.Material.Outlined.CloudOff">@StatusLabel</MudChip>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@(IsLoadingFirstSnapshot ? Color.Default : Color.Error)" Icon="@(IsLoadingFirstSnapshot ? Icons.Material.Outlined.HourglassEmpty : Icons.Material.Outlined.CloudOff)">@StatusLabel</MudChip>
                 }
                 <MudText Typo="Typo.caption" Class="dashboard-muted">@LastRefreshedLabel</MudText>
             </MudStack>
