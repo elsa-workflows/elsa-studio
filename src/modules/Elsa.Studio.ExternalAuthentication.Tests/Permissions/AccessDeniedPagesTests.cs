@@ -23,6 +23,7 @@ namespace Elsa.Studio.ExternalAuthentication.Tests.Permissions;
 public sealed class AccessDeniedPagesTests : BunitContext
 {
     private const string ViewConnections = "external-authentication/connections:view";
+    private const string ExistingConnection = "connection-1";
 
     private readonly StubPermissionService _shellPermissions = new();
     private readonly ClaimsIdentity _identity = new("test");
@@ -41,7 +42,6 @@ public sealed class AccessDeniedPagesTests : BunitContext
 
     [Theory]
     [InlineData(typeof(ConnectionsPage), ViewConnections)]
-    [InlineData(typeof(ConnectionEditPage), ViewConnections)]
     [InlineData(typeof(IdentityLinksPage), ExternalAuthenticationPermissions.ManageLinks)]
     [InlineData(typeof(SessionsPage), ExternalAuthenticationPermissions.SessionsRead)]
     public void Page_DeclaresThePermissionItNeeds(Type page, string permission)
@@ -53,7 +53,6 @@ public sealed class AccessDeniedPagesTests : BunitContext
 
     [Theory]
     [InlineData(typeof(ConnectionsPage))]
-    [InlineData(typeof(ConnectionEditPage))]
     [InlineData(typeof(IdentityLinksPage))]
     [InlineData(typeof(SessionsPage))]
     public void ShellGuard_WhenThePermissionIsMissing_RendersOnlyTheSharedAccessDenied(Type page)
@@ -69,26 +68,37 @@ public sealed class AccessDeniedPagesTests : BunitContext
     }
 
     [Fact]
-    public void NewConnection_WhenTheCreatePermissionIsMissing_RendersOnlyTheSharedAccessDenied()
+    public void ConnectionEditor_DeclaresNoPagePermission_SoCreateOnlyUsersCanOpenNewConnections() =>
+        Assert.Empty(RequirePermissionAttribute.GetRequiredPermissions(typeof(ConnectionEditPage)));
+
+    [Theory]
+    [InlineData(null, ViewConnections, ExternalAuthenticationPermissions.Create)]
+    [InlineData(ExistingConnection, ExternalAuthenticationPermissions.Create, ViewConnections)]
+    public void ConnectionEditor_WithoutItsRoutesPermission_RendersOnlyTheSharedAccessDenied(string? connectionId, string granted, string missing)
     {
-        _identity.AddClaim(new("permissions", ViewConnections));
+        _identity.AddClaim(new("permissions", granted));
 
-        var cut = Render<ConnectionEditPage>();
+        var cut = RenderConnectionEditor(connectionId);
 
-        cut.WaitForAssertion(() => Assert.Contains("external-authentication/connections:create", cut.FindComponent<AccessDenied>().Markup));
+        cut.WaitForAssertion(() => Assert.Contains(missing, cut.FindComponent<AccessDenied>().Markup));
         Assert.Empty(cut.FindAll("input, button, table"));
     }
 
-    [Fact]
-    public void NewConnection_WhenTheCreatePermissionIsHeld_DoesNotRenderAccessDenied()
+    [Theory]
+    [InlineData(null, ExternalAuthenticationPermissions.Create)]
+    [InlineData(ExistingConnection, ViewConnections)]
+    public void ConnectionEditor_WithItsRoutesPermission_DoesNotRenderAccessDenied(string? connectionId, string granted)
     {
-        _identity.AddClaim(new("permissions", ExternalAuthenticationPermissions.Create));
+        _identity.AddClaim(new("permissions", granted));
 
-        var cut = Render<ConnectionEditPage>();
+        var cut = RenderConnectionEditor(connectionId);
 
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("button")));
         Assert.Empty(cut.FindComponents<AccessDenied>());
     }
+
+    private IRenderedComponent<ConnectionEditPage> RenderConnectionEditor(string? connectionId) =>
+        Render<ConnectionEditPage>(parameters => parameters.Add(x => x.ConnectionId, connectionId));
 
     private sealed class NoClipboard : IClipboard
     {
