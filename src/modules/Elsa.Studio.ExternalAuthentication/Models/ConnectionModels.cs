@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Elsa.Studio.Authorization;
 
 namespace Elsa.Studio.ExternalAuthentication.Models;
 
@@ -24,6 +25,9 @@ public static class ExternalAuthenticationPermissions
     public const string SessionsRevoke = "external-authentication/sessions:revoke";
     public const string UnsafeProviderTrust = "external-authentication/provider-trust:override";
     public const string RolesRead = "identity/roles:view";
+
+    /// <summary>Names a permission for the shared access-denied page.</summary>
+    public static IReadOnlyCollection<Permission> Missing(string permission) => Permission.TryParse(permission, out var parsed) ? [parsed] : [];
 }
 
 public sealed class ConnectionScope
