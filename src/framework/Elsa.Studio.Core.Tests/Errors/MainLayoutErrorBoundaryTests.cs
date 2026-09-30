@@ -16,8 +16,8 @@ using IBrandingProvider = Elsa.Studio.Branding.IBrandingProvider;
 namespace Elsa.Studio.Core.Tests.Errors;
 
 /// <summary>
-/// A page failure the shell cannot recover from is shown by the error boundary. When the failure is the backend
-/// refusing the user's sign-in, the boundary hands over to the sign-in component instead of only saying so.
+/// A page failure the shell cannot recover from is shown by the error boundary. Only an <see cref="UnauthorizedAccessException"/>
+/// hands over to the sign-in component; a 401 response is explained like any other authorization failure.
 /// </summary>
 public sealed class MainLayoutErrorBoundaryTests : BunitContext, IAsyncLifetime
 {
@@ -38,37 +38,48 @@ public sealed class MainLayoutErrorBoundaryTests : BunitContext, IAsyncLifetime
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
     async Task IAsyncLifetime.DisposeAsync() => await base.DisposeAsync();
 
+    // Neither auth handler reacts to a 401 response, so redirecting to sign-in from here would loop for a user whose
+    // token the backend keeps rejecting. The boundary shows the guidance and leaves signing out to the user.
     [Theory]
-    [MemberData(nameof(SignInFailures))]
-    public void ALostSignIn_HandsOverToTheSignInComponent(Exception failure)
+    [MemberData(nameof(RejectedSignIns))]
+    public void ARejectedSignIn_ShowsTheGuidanceInsteadOfRedirecting(Exception failure)
     {
         var cut = RenderLayoutWith(failure);
 
-        Assert.NotNull(cut.Find("#sign-in-redirect"));
+        Assert.Equal(AuthorizationFailureExtensions.UnauthorizedMessage, cut.Find("#error-display").TextContent.Trim());
+        Assert.Empty(cut.FindAll("#sign-in-redirect"));
+    }
+
+    [Fact]
+    public void AnUnauthorizedAccessException_HandsOverToTheSignInComponent()
+    {
+        var cut = RenderLayoutWith(new UnauthorizedAccessException());
+
+        cut.Find("#sign-in-redirect");
         Assert.Empty(cut.FindAll("#error-display"));
     }
 
     [Theory]
     [MemberData(nameof(OtherFailures))]
-    public void AnyOtherFailure_IsDisplayedInsteadOfRedirecting(Exception failure)
+    public void AnyOtherFailure_IsDisplayedInsteadOfRedirecting(Exception failure, string expectedText)
     {
         var cut = RenderLayoutWith(failure);
 
-        Assert.NotNull(cut.Find("#error-display"));
+        Assert.Contains(expectedText, cut.Find("#error-display").TextContent);
         Assert.Empty(cut.FindAll("#sign-in-redirect"));
     }
 
-    public static TheoryData<Exception> SignInFailures() => new()
+    public static TheoryData<Exception> RejectedSignIns => new()
     {
-        new UnauthorizedAccessException(),
-        ApiExceptions.Create(HttpStatusCode.Unauthorized)
+        ApiExceptions.Create(HttpStatusCode.Unauthorized),
+        new HttpRequestException("Response status code does not indicate success: 401 (Unauthorized).", null, HttpStatusCode.Unauthorized)
     };
 
-    public static TheoryData<Exception> OtherFailures() => new()
+    public static TheoryData<Exception, string> OtherFailures => new()
     {
-        ApiExceptions.Create(HttpStatusCode.Forbidden),
-        ApiExceptions.Create(HttpStatusCode.InternalServerError),
-        new InvalidOperationException("boom")
+        { ApiExceptions.Create(HttpStatusCode.Forbidden), AuthorizationFailureExtensions.ForbiddenMessage },
+        { ApiExceptions.Create(HttpStatusCode.InternalServerError), "500" },
+        { new InvalidOperationException("boom"), "boom" }
     };
 
     private IRenderedComponent<MainLayout> RenderLayoutWith(Exception failure) =>
@@ -100,6 +111,14 @@ public sealed class MainLayoutErrorBoundaryTests : BunitContext, IAsyncLifetime
 
     private sealed class MarkerErrorProvider : IErrorComponentProvider
     {
-        public RenderFragment GetErrorComponent(Exception context) => builder => builder.AddMarkupContent(0, "<div id=\"error-display\"></div>");
+        public RenderFragment GetErrorComponent(Exception context) => builder =>
+        {
+            builder.OpenElement(0, "div");
+            builder.AddAttribute(1, "id", "error-display");
+            builder.OpenComponent<Error>(2);
+            builder.AddAttribute(3, nameof(Error.Context), context);
+            builder.CloseComponent();
+            builder.CloseElement();
+        };
     }
 }

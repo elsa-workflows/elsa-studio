@@ -1,5 +1,4 @@
 ﻿@inherits LayoutComponentBase
-@using Elsa.Studio.Extensions
 
 <MudThemeProvider IsDarkMode="@IsDarkMode" Theme="CurrentTheme"/>
 <MudPopoverProvider/>
@@ -41,7 +40,7 @@
                 </PermissionPageGuard>
             </ChildContent>
             <ErrorContent>
-                @if (context is UnauthorizedAccessException || context.IsUnauthorizedResponse())
+                @if (context is UnauthorizedAccessException)
                 {
                     @UnauthorizedComponent
                 }

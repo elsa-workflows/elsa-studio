@@ -24,8 +24,15 @@
             else if (_loadError != null)
             {
                 <div class="state-machine-activity-picker__state state-machine-activity-picker__state--error" role="alert" data-picker-state="error">
-                    <strong>@(_loadError.GetAuthorizationFailureMessage(Localizer) ?? Localizer["Activities could not be loaded"])</strong>
-                    <span>@Localizer["Close this dialog and try again."]</span>
+                    @if (_loadError.GetAuthorizationFailureMessage(Localizer) is { } authorizationMessage)
+                    {
+                        <strong>@authorizationMessage</strong>
+                    }
+                    else
+                    {
+                        <strong>@Localizer["Activities could not be loaded"]</strong>
+                        <span>@Localizer["Close this dialog and try again."]</span>
+                    }
                 </div>
             }
             else

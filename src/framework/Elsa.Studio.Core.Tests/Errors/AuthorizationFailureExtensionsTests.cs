@@ -9,6 +9,7 @@ namespace Elsa.Studio.Core.Tests.Errors;
 public sealed class AuthorizationFailureExtensionsTests
 {
     private const string ForbiddenMessage = AuthorizationFailureExtensions.ForbiddenMessage;
+    private const string UnauthorizedMessage = AuthorizationFailureExtensions.UnauthorizedMessage;
 
     // Core's permission checks answer 403 with an empty body. A module whose endpoints explain a refusal reads that
     // explanation with its own mapper; the shared formatter never echoes a body it does not know the shape of.
@@ -29,7 +30,7 @@ public sealed class AuthorizationFailureExtensionsTests
     {
         var exception = ApiExceptions.Create(HttpStatusCode.Unauthorized);
 
-        Assert.Equal(AuthorizationFailureExtensions.UnauthorizedMessage, exception.ToUserMessage());
+        Assert.Equal(UnauthorizedMessage, exception.ToUserMessage());
         Assert.True(exception.IsAuthorizationFailure());
     }
 
@@ -100,7 +101,7 @@ public sealed class AuthorizationFailureExtensionsTests
 
     [Theory]
     [InlineData(HttpStatusCode.Forbidden, ForbiddenMessage)]
-    [InlineData(HttpStatusCode.Unauthorized, AuthorizationFailureExtensions.UnauthorizedMessage)]
+    [InlineData(HttpStatusCode.Unauthorized, UnauthorizedMessage)]
     [InlineData(HttpStatusCode.NotFound, null)]
     public void AStatusCode_HasGuidanceOnlyWhenItIsAnAuthorizationFailure(HttpStatusCode statusCode, string? expected)
     {
@@ -113,14 +114,6 @@ public sealed class AuthorizationFailureExtensionsTests
         Assert.Equal(ForbiddenMessage, ApiExceptions.Create(HttpStatusCode.Forbidden).GetAuthorizationFailureMessage());
         Assert.Null(ApiExceptions.Create(HttpStatusCode.InternalServerError).GetAuthorizationFailureMessage());
         Assert.Null(new InvalidOperationException("boom").GetAuthorizationFailureMessage());
-    }
-
-    [Fact]
-    public void OnlyA401_MeansTheSessionHasEnded()
-    {
-        Assert.True(ApiExceptions.Create(HttpStatusCode.Unauthorized).IsUnauthorizedResponse());
-        Assert.False(ApiExceptions.Create(HttpStatusCode.Forbidden).IsUnauthorizedResponse());
-        Assert.False(new InvalidOperationException("boom").IsUnauthorizedResponse());
     }
 
     [Fact]

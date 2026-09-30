@@ -417,6 +417,7 @@ public static class ConnectionManagementError
     /// Describes a failed request for display. A 401 or 403 keeps the server's explanation when it sends one and gets the
     /// shared permission guidance otherwise; any other failure keeps its own message.
     /// </summary>
+    // Re-checks the status rather than using IsAuthorizationFailure: the server's explanation is in ApiException.Content.
     public static string Describe(Exception exception) =>
         exception is ApiException apiException && apiException.StatusCode.GetAuthorizationFailureMessage() != null
             ? Parse(apiException.StatusCode, apiException.Content, apiException.Message).DisplayMessage

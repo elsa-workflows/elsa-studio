@@ -1,5 +1,7 @@
 using Bunit;
 using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
+using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Alterations.Catalog;
 using Elsa.Studio.Alterations.Components;
 using Elsa.Studio.Alterations.Models;
@@ -9,9 +11,11 @@ using Elsa.Studio.Extensions;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Testing;
 using Elsa.Studio.Workflows.Domain.Contracts;
+using Elsa.Studio.Workflows.Domain.Models;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
+using Refit;
 using Xunit;
 using LabelsPage = Elsa.Studio.Labels.UI.Pages.Labels;
 
@@ -107,15 +111,15 @@ public sealed class RefusedWriteTests : BunitContext, IAsyncLifetime
         public Task<IEnumerable<ResolvedVariable>> GetVariablesAsync(string instanceId, CancellationToken cancellationToken = default) =>
             Task.FromResult<IEnumerable<ResolvedVariable>>([]);
 
-        public Task<Elsa.Api.Client.Shared.Models.PagedListResponse<WorkflowInstanceSummary>> ListAsync(Elsa.Api.Client.Resources.WorkflowInstances.Requests.ListWorkflowInstancesRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<PagedListResponse<WorkflowInstanceSummary>> ListAsync(ListWorkflowInstancesRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task DeleteAsync(string instanceId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task BulkDeleteAsync(IEnumerable<string> instanceIds, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task CancelAsync(string instanceId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task BulkCancelAsync(Elsa.Api.Client.Resources.WorkflowInstances.Requests.BulkCancelWorkflowInstancesRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task BulkCancelAsync(BulkCancelWorkflowInstancesRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<WorkflowInstance?> GetAsync(string id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Elsa.Api.Client.Shared.Models.PagedListResponse<WorkflowExecutionLogRecord>> GetJournalAsync(string instanceId, Elsa.Api.Client.Resources.WorkflowInstances.Requests.JournalFilter? filter = default, int? skip = default, int? take = default, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Elsa.Studio.Workflows.Domain.Models.FileDownload> ExportAsync(string id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Elsa.Studio.Workflows.Domain.Models.FileDownload> BulkExportAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<int> BulkImportAsync(IEnumerable<Refit.StreamPart> streamParts, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<PagedListResponse<WorkflowExecutionLogRecord>> GetJournalAsync(string instanceId, JournalFilter? filter = default, int? skip = default, int? take = default, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<FileDownload> ExportAsync(string id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<FileDownload> BulkExportAsync(IEnumerable<string> ids, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<int> BulkImportAsync(IEnumerable<StreamPart> streamParts, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 }
