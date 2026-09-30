@@ -25,7 +25,7 @@ public sealed class AccessDeniedPagesTests : BunitContext
     private const string ViewConnections = "external-authentication/connections:view";
 
     private readonly StubPermissionService _shellPermissions = new();
-    private ClaimsIdentity _identity = new("test");
+    private readonly ClaimsIdentity _identity = new("test");
 
     public AccessDeniedPagesTests()
     {
@@ -33,7 +33,7 @@ public sealed class AccessDeniedPagesTests : BunitContext
         Services.AddMudServices();
         Services.AddSingleton<IBackendApiClientProvider, UnreachableBackend>();
         Services.AddSingleton<IClipboard, NoClipboard>();
-        Services.AddSingleton<AuthenticationStateProvider>(new UserProvider(() => _identity));
+        Services.AddSingleton<AuthenticationStateProvider>(new StaticAuthenticationStateProvider(new(_identity)));
         Services.AddSingleton<IPermissionService>(_shellPermissions);
         Services.AddScoped<IExternalAuthenticationPermissionService, ExternalAuthenticationPermissionService>();
         Services.AddSingleton<ICustomConnectionEditorRegistry, CustomConnectionEditorRegistry>();
@@ -46,7 +46,9 @@ public sealed class AccessDeniedPagesTests : BunitContext
     [InlineData(typeof(SessionsPage), ExternalAuthenticationPermissions.SessionsRead)]
     public void Page_DeclaresThePermissionItNeeds(Type page, string permission)
     {
-        Assert.Contains(Permission.TryParse(permission, out var expected) ? expected : default, RequirePermissionAttribute.GetRequiredPermissions(page));
+        var expected = Permission.TryParse(permission, out var parsed) ? parsed : throw new FormatException(permission);
+
+        Assert.Contains(expected, RequirePermissionAttribute.GetRequiredPermissions(page));
     }
 
     [Theory]
@@ -86,11 +88,6 @@ public sealed class AccessDeniedPagesTests : BunitContext
 
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("button")));
         Assert.Empty(cut.FindComponents<AccessDenied>());
-    }
-
-    private sealed class UserProvider(Func<ClaimsIdentity> identity) : AuthenticationStateProvider
-    {
-        public override Task<AuthenticationState> GetAuthenticationStateAsync() => Task.FromResult(new AuthenticationState(new(identity())));
     }
 
     private sealed class NoClipboard : IClipboard

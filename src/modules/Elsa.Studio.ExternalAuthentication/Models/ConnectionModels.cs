@@ -8,13 +8,13 @@ namespace Elsa.Studio.ExternalAuthentication.Models;
 /// </summary>
 public static class ExternalAuthenticationPermissions
 {
-    /// <summary>The resource guarding connections; pages declare it with <c>[RequirePermission]</c>.</summary>
+    /// <summary>External identity provider connections: <c>view</c> lists and reads them, <c>create</c> adds them.</summary>
     public const string Connections = "external-authentication/connections";
 
-    /// <summary>The resource guarding identity links; pages declare it with <c>[RequirePermission]</c>.</summary>
+    /// <summary>External identity links between Elsa users and identity providers.</summary>
     public const string IdentityLinks = "external-authentication/identity-links";
 
-    /// <summary>The resource guarding sessions; pages declare it with <c>[RequirePermission]</c>.</summary>
+    /// <summary>External authentication sessions.</summary>
     public const string Sessions = "external-authentication/sessions";
 
     public const string Read = $"{Connections}:view";
