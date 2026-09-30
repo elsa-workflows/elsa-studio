@@ -301,6 +301,24 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         Assert.Equal(["needs-attention", "recent-activity", "workflow-hotspots", "workflow-trends"], _api.Calls.Except([OverviewEndpoint]).Order());
     }
 
+    // Both grants need only the overview, but the backend withholds the other log section from each, so the data loaded
+    // for the first grant cannot serve the second.
+    [Fact]
+    public async Task AChangeInPermissions_ThatKeepsTheScope_ReloadsTheOverview()
+    {
+        var cut = await RenderDashboardAsync("diagnostics/structured-logs:view");
+        cut.WaitForAssertion(() => Assert.Equal(Names(typeof(StructuredLogsDashboardWidget)), ShownWidgets(cut)));
+        Assert.Equal([OverviewEndpoint], _api.Calls);
+
+        ChangePermissions("diagnostics/console-logs:view");
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(Names(typeof(ConsoleLogsDashboardWidget)), ShownWidgets(cut));
+            Assert.Equal([OverviewEndpoint, OverviewEndpoint], _api.Calls);
+        });
+    }
+
     [Fact]
     public async Task AChangeInPermissions_ThatRemovesEveryWidget_ShowsTheWelcome()
     {

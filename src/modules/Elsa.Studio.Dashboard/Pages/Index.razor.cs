@@ -21,6 +21,7 @@ public partial class Index : IAsyncDisposable
     private bool _widgetsSettled;
     private CancellationTokenSource? _loadCancellationTokenSource;
     private DataScope? _loadedScope;
+    private UserPermissions? _loadedFor;
     private DashboardSnapshot? _snapshot;
     private DashboardLoadStatus _status = DashboardLoadStatus.Unavailable;
     private string _selectedRange = DashboardRangeKeys.TwentyFourHours;
@@ -183,9 +184,13 @@ public partial class Index : IAsyncDisposable
         }
     }
 
+    // The backend withholds sections by permission, so data loaded for other permissions is stale even when the same
+    // endpoints are needed: swapping log permissions, for one, keeps the overview scope but changes what it returns.
     private async Task LoadIfScopeChangedAsync()
     {
-        if (RequiredScope != _loadedScope)
+        var scope = RequiredScope;
+
+        if (scope != _loadedScope || scope != DataScope.None && !ReferenceEquals(Permissions, _loadedFor))
             await RefreshAsync();
     }
 
@@ -209,6 +214,7 @@ public partial class Index : IAsyncDisposable
     {
         var scope = RequiredScope;
         _loadedScope = scope;
+        _loadedFor = Permissions;
 
         await CancelCurrentLoadAsync();
 
