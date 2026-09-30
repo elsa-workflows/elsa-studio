@@ -16,6 +16,10 @@ namespace Elsa.Studio.Core.Tests.Authorization;
 public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
 {
     private const string PageContent = "page-content";
+    private const string InstancesPath = "workflows/instances";
+
+    // While set, the landing menu does not resolve until it completes.
+    private Task? _menuHold;
 
     public PermissionPageGuardTests()
     {
@@ -170,16 +174,7 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
         var cut = RenderGuard<WorkflowInstancesPage>(new StubPermissionService("workflows/*:view", "secrets:view"));
 
         Assert.Contains(PageContent, cut.Markup);
-        Assert.Equal("http://localhost/workflows/instances", Navigation.Uri);
-    }
-
-    [Fact]
-    public void AnExplicitPageTheUserCannotOpen_ShowsAccessDeniedInsteadOfRedirecting()
-    {
-        var cut = RenderGuard<WorkflowInstancesPage>(new StubPermissionService("secrets:view"));
-
-        Assert.NotEmpty(cut.FindAll("[data-testid='access-denied']"));
-        Assert.Equal("http://localhost/workflows/instances", Navigation.Uri);
+        Assert.Equal($"http://localhost/{InstancesPath}", Navigation.Uri);
     }
 
     [Fact]
@@ -196,9 +191,53 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void TheLandingPage_SkipsMenuItemsThatResolveToTheAppRoot()
+    {
+        UseMenu(
+            new MenuItem { Text = "Hash", Href = "#", GroupName = "administration", Order = -3 },
+            new MenuItem { Text = "Query", Href = "?x", GroupName = "administration", Order = -2 },
+            new MenuItem { Text = "Hash root", Href = "#/", GroupName = "administration", Order = -1 });
+
+        var cut = RenderGuard<DashboardPage>(new StubPermissionService("secrets:view"), "/");
+
+        cut.WaitForAssertion(() => Assert.Equal("http://localhost/security/secrets", Navigation.Uri));
+    }
+
+    [Fact]
+    public async Task TheLandingPage_DoesNotRedirect_WhenTheUserNavigatesAwayWhileTheMenuLoads()
+    {
+        var menuLoaded = new TaskCompletionSource();
+        _menuHold = menuLoaded.Task;
+        var cut = RenderGuard<DashboardPage>(new StubPermissionService("secrets:view"), "/");
+
+        Navigation.NavigateTo(InstancesPath);
+        menuLoaded.SetResult();
+        await cut.InvokeAsync(() => { });
+
+        Assert.Equal($"http://localhost/{InstancesPath}", Navigation.Uri);
+    }
+
+    [Fact]
+    public void TheLandingPage_ExplainsThatNoPagesAreAvailable_WhenTheMenuRecoversAfterAFailure()
+    {
+        var permissions = new StubPermissionService("secrets:view");
+        var authentication = new NotifyingAuthenticationStateProvider();
+        Services.AddSingleton<AuthenticationStateProvider>(authentication);
+        Services.AddSingleton<IMenuService>(new UnavailableMenuService(failures: 1));
+        var cut = RenderGuard<DashboardPage>(permissions, "/");
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='access-denied']")));
+
+        permissions.Permissions = StubPermissionService.Grants("unrelated:view");
+        authentication.Notify();
+
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='no-accessible-pages']")));
+        Assert.Empty(cut.FindAll("[data-testid='access-denied']"));
+    }
+
+    [Fact]
     public void TheLandingPage_StillRedirects_WhenTheUrlCarriesAQueryString()
     {
-        var cut = RenderGuard<DashboardPage>(new StubPermissionService("secrets:view"), "/?returnUrl=%2Fdashboard");
+        var cut = RenderGuard<DashboardPage>(new StubPermissionService("secrets:view"), "/?tab=1");
 
         cut.WaitForAssertion(() => Assert.Equal("http://localhost/security/secrets", Navigation.Uri));
     }
@@ -218,16 +257,16 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
     [Fact]
     public void AnExplicitPage_IsNotRedirected_EvenWhenTheLandingPageIsDenied()
     {
-        var cut = RenderGuard<DashboardPage>(new StubPermissionService("secrets:view"), "workflows/instances");
+        var cut = RenderGuard<DashboardPage>(new StubPermissionService("secrets:view"), InstancesPath);
 
         Assert.NotEmpty(cut.FindAll("[data-testid='access-denied']"));
-        Assert.Equal("http://localhost/workflows/instances", Navigation.Uri);
+        Assert.Equal($"http://localhost/{InstancesPath}", Navigation.Uri);
     }
 
     [Fact]
     public void TheLandingPage_ShowsAccessDenied_WhenTheMenuCannotBeResolved()
     {
-        Services.AddSingleton<IMenuService>(new ThrowingMenuService());
+        Services.AddSingleton<IMenuService>(new UnavailableMenuService());
 
         var cut = RenderGuard<DashboardPage>(new StubPermissionService("secrets:view"), "/");
 
@@ -241,7 +280,7 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
     public new async Task DisposeAsync() => await base.DisposeAsync();
 
     // Starts on a page other than the landing page by default, since only the landing page redirects.
-    private IRenderedComponent<PermissionPageGuard> RenderGuard<TPage>(IPermissionService permissionService, string startPath = "workflows/instances")
+    private IRenderedComponent<PermissionPageGuard> RenderGuard<TPage>(IPermissionService permissionService, string startPath = InstancesPath)
     {
         UsePermissions(permissionService, startPath);
 
@@ -258,7 +297,7 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
 
     private void UseMenu(params MenuItem[] extraItems)
     {
-        var menu = new LandingMenu(extraItems);
+        var menu = new LandingMenu(extraItems, () => _menuHold);
         Services.AddSingleton<IMenuService>(sp => new DefaultMenuService([menu], [menu], sp.GetService<IPermissionService>()));
     }
 
@@ -271,11 +310,15 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
 
     private static RouteData Route<TPage>() => new(typeof(TPage), new Dictionary<string, object?>());
 
-    private sealed class ThrowingMenuService : IMenuService
+    // Fails the first `failures` times the menu is requested, then has nothing to show.
+    private sealed class UnavailableMenuService(int failures = int.MaxValue) : IMenuService
     {
-        public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default) => throw new InvalidOperationException("menu unavailable");
+        private int _calls;
 
-        public ValueTask<IEnumerable<MenuItemGroup>> GetMenuItemGroupsAsync(CancellationToken cancellationToken = default) => throw new InvalidOperationException("menu unavailable");
+        public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default) => new(Enumerable.Empty<MenuItem>());
+
+        public ValueTask<IEnumerable<MenuItemGroup>> GetMenuItemGroupsAsync(CancellationToken cancellationToken = default) =>
+            _calls++ < failures ? throw new InvalidOperationException("menu unavailable") : new(Enumerable.Empty<MenuItemGroup>());
     }
 
     // An application hosted under /studio/, which bUnit's fake navigation manager (always rooted at /) cannot model.
@@ -292,14 +335,20 @@ public sealed class PermissionPageGuardTests : BunitContext, IAsyncLifetime
     private sealed class DashboardPage : ComponentBase;
 
     // Navigation shaped like the built-in modules': Secrets is listed first but belongs to a later group.
-    private sealed class LandingMenu(MenuItem[] extraItems) : IMenuProvider, IMenuGroupProvider
+    private sealed class LandingMenu(MenuItem[] extraItems, Func<Task?> hold) : IMenuProvider, IMenuGroupProvider
     {
-        public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default) => new(new[]
+        public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
         {
-            Item("Secrets", "security/secrets", "administration", 0, new Permission("secrets", PermissionVerbs.View)),
-            Item("Workflows", "", "general", 10, subMenuItems: [Item("Definitions", "workflows/definitions", "general", 0, new Permission("workflows/definitions", PermissionVerbs.View))]),
-            Item("Dashboard", "", "general", 0, new Permission("dashboard", PermissionVerbs.View))
-        }.Concat(extraItems));
+            if (hold() is { } pending)
+                await pending;
+
+            return new[]
+            {
+                Item("Secrets", "security/secrets", "administration", 0, new Permission("secrets", PermissionVerbs.View)),
+                Item("Workflows", "", "general", 10, subMenuItems: [Item("Definitions", "workflows/definitions", "general", 0, new Permission("workflows/definitions", PermissionVerbs.View))]),
+                Item("Dashboard", "", "general", 0, new Permission("dashboard", PermissionVerbs.View))
+            }.Concat(extraItems);
+        }
 
         public ValueTask<IEnumerable<MenuItemGroup>> GetMenuGroupsAsync(CancellationToken cancellationToken = default) => new(new[]
         {

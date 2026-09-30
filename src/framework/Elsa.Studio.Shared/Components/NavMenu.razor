@@ -1,6 +1,6 @@
 ﻿@using Elsa.Studio.Contracts
 @using Elsa.Studio.Models
-@using Elsa.Studio.Services
+@using Elsa.Studio.Extensions
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.DependencyInjection
 @implements IDisposable
@@ -21,7 +21,7 @@
 
 @code
 {
-    private IReadOnlyList<(MenuItemGroup Group, IReadOnlyList<MenuItem> Items)> _navigation = [];
+    private IReadOnlyList<MenuNavigationGroup> _navigation = [];
 
     private AuthenticationStateProvider? _authenticationStateProvider;
     private int _load;

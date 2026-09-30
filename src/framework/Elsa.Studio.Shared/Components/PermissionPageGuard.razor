@@ -1,6 +1,6 @@
 @using Elsa.Studio.Authorization
 @using Elsa.Studio.Contracts
-@using Elsa.Studio.Services
+@using Elsa.Studio.Extensions
 @using Microsoft.Extensions.Logging
 @inherits PermissionTrackingComponentBase
 @inject IMenuService MenuService
@@ -40,6 +40,7 @@ else
     private UserPermissions? _landingResolvedFor;
     private bool _hasNoAccessiblePage;
     private bool _menuUnavailable;
+    private int _landingResolution;
 
     /// <summary>The current route, cascaded by the shell's router.</summary>
     [CascadingParameter] public RouteData? RouteData { get; set; }
@@ -63,6 +64,7 @@ else
 
         _pageType = pageType;
         _landingResolvedFor = null;
+        _landingResolution++;
         _hasNoAccessiblePage = false;
         _menuUnavailable = false;
         _requiredPermissions = pageType != null ? RequirePermissionAttribute.GetRequiredPermissions(pageType) : [];
@@ -76,7 +78,10 @@ else
             return;
 
         _landingResolvedFor = TrackedPermissions;
+        _hasNoAccessiblePage = false;
+        _menuUnavailable = false;
 
+        var resolution = ++_landingResolution;
         string? href;
 
         try
@@ -85,12 +90,19 @@ else
         }
         catch (Exception exception)
         {
+            if (IsStale(resolution))
+                return;
+
             // Without a menu there is nowhere to send the user: show the routed page's access-denied, as before.
             Logger.LogWarning(exception, "Could not resolve the navigation menu to find the first accessible page.");
             _menuUnavailable = true;
             StateHasChanged();
             return;
         }
+
+        // The user may have navigated away, or the permissions been resolved again, while the menu loaded.
+        if (IsStale(resolution))
+            return;
 
         if (href != null)
         {
@@ -101,6 +113,10 @@ else
         _hasNoAccessiblePage = true;
         StateHasChanged();
     }
+
+    // A resolution is stale once a newer one has started or the routed page changed (both advance the counter), or once
+    // the URL is no longer the landing page.
+    private bool IsStale(int resolution) => resolution != _landingResolution || !IsLandingPage;
 
     private bool IsLandingPage => NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0].Trim('/').Length == 0;
 }
