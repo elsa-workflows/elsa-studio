@@ -1,9 +1,11 @@
 @using Elsa.Studio.Authorization
 @using Elsa.Studio.Contracts
-@using Elsa.Studio.Models
+@using Elsa.Studio.Services
+@using Microsoft.Extensions.Logging
 @inherits PermissionTrackingComponentBase
 @inject IMenuService MenuService
 @inject NavigationManager NavigationManager
+@inject ILogger<PermissionPageGuard> Logger
 
 @if (TrackedPermissions == null)
 {
@@ -12,7 +14,7 @@
 else if (TrackedPermissions.GetMissing(_requiredPermissions) is { Count: > 0 } missingPermissions)
 {
     @* Signing in lands on the Dashboard, so a user who cannot view it is sent to the first page they can open (see OnAfterRenderAsync). *@
-    if (!IsLandingPage)
+    if (!IsLandingPage || _menuUnavailable)
     {
         <PageTitle>Access denied</PageTitle>
         <AccessDenied MissingPermissions="missingPermissions" />
@@ -37,6 +39,7 @@ else
     private IReadOnlyCollection<Permission> _requiredPermissions = [];
     private UserPermissions? _landingResolvedFor;
     private bool _hasNoAccessiblePage;
+    private bool _menuUnavailable;
 
     /// <summary>The current route, cascaded by the shell's router.</summary>
     [CascadingParameter] public RouteData? RouteData { get; set; }
@@ -60,6 +63,8 @@ else
 
         _pageType = pageType;
         _landingResolvedFor = null;
+        _hasNoAccessiblePage = false;
+        _menuUnavailable = false;
         _requiredPermissions = pageType != null ? RequirePermissionAttribute.GetRequiredPermissions(pageType) : [];
     }
 
@@ -72,9 +77,23 @@ else
 
         _landingResolvedFor = TrackedPermissions;
 
-        if (await FindFirstAccessibleHrefAsync() is { } href)
+        string? href;
+
+        try
         {
-            _hasNoAccessiblePage = false;
+            href = (await MenuService.GetNavigationAsync()).FindFirstHref();
+        }
+        catch (Exception exception)
+        {
+            // Without a menu there is nowhere to send the user: show the routed page's access-denied, as before.
+            Logger.LogWarning(exception, "Could not resolve the navigation menu to find the first accessible page.");
+            _menuUnavailable = true;
+            StateHasChanged();
+            return;
+        }
+
+        if (href != null)
+        {
             NavigationManager.NavigateTo(href, replace: true);
             return;
         }
@@ -84,20 +103,4 @@ else
     }
 
     private bool IsLandingPage => NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0].Trim('/').Length == 0;
-
-    // The menu is already filtered by permission; take the first item in the order the navigation shows it: by group, then by item.
-    private async Task<string?> FindFirstAccessibleHrefAsync()
-    {
-        var groups = await MenuService.GetMenuItemGroupsAsync();
-        var items = (await MenuService.GetMenuItemsAsync()).ToList();
-
-        return groups
-            .SelectMany(group => items.Where(item => item.GroupName == group.Name))
-            .Select(FindFirstHref)
-            .FirstOrDefault(href => href != null);
-    }
-
-    private static string? FindFirstHref(MenuItem item) => item.SubMenuItems.Count > 0
-        ? item.SubMenuItems.Select(FindFirstHref).FirstOrDefault(href => href != null)
-        : item.Href.Trim('/').Length > 0 ? item.Href : null;
 }
