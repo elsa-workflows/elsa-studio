@@ -319,6 +319,20 @@ public sealed class DashboardPagePermissionTests : BunitContext, IAsyncLifetime
         });
     }
 
+    // A renewed token resolves new permissions with the same grants; that is no reason to reload.
+    [Fact]
+    public async Task ARenewalWithTheSameGrants_DoesNotReload()
+    {
+        var cut = await RenderDashboardAsync("workflows/instances:view");
+        cut.WaitForAssertion(() => Assert.Equal(Names(WorkflowInstanceWidgets), ShownWidgets(cut)));
+        var callsBefore = _api.Calls.Count;
+
+        ChangePermissions("workflows/instances:view");
+        cut.WaitForAssertion(() => Assert.Equal(Names(WorkflowInstanceWidgets), ShownWidgets(cut)));
+
+        Assert.Equal(callsBefore, _api.Calls.Count);
+    }
+
     [Fact]
     public async Task AChangeInPermissions_ThatRemovesEveryWidget_ShowsTheWelcome()
     {

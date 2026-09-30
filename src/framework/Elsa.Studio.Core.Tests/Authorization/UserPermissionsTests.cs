@@ -20,4 +20,19 @@ public class UserPermissionsTests
 
         Assert.Equal(expected, permissions.HasAny(DashboardOrInstances));
     }
+
+    [Theory]
+    [InlineData(new[] { "secrets:view", "labels:view" }, new[] { "labels:view", "secrets:view" }, true)]
+    [InlineData(new[] { "secrets:view" }, new[] { "secrets:view", "labels:view" }, false)]
+    [InlineData(new[] { "secrets:view" }, new[] { "labels:view" }, false)]
+    public void IsEquivalentTo_ComparesTheGrantsRegardlessOfOrder(string[] grants, string[] otherGrants, bool expected) =>
+        Assert.Equal(expected, StubPermissionService.Grants(grants).IsEquivalentTo(StubPermissionService.Grants(otherGrants)));
+
+    [Fact]
+    public void IsEquivalentTo_TellsUnknownApartFromKnownWithoutGrants()
+    {
+        Assert.True(UserPermissions.Unknown.IsEquivalentTo(UserPermissions.Unknown));
+        Assert.False(UserPermissions.Unknown.IsEquivalentTo(StubPermissionService.Grants()));
+        Assert.False(StubPermissionService.Grants().IsEquivalentTo(null));
+    }
 }

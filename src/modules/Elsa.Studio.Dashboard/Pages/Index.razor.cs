@@ -190,7 +190,7 @@ public partial class Index : IAsyncDisposable
     {
         var scope = RequiredScope;
 
-        if (scope != _loadedScope || scope != DataScope.None && !ReferenceEquals(Permissions, _loadedFor))
+        if (scope != _loadedScope || scope != DataScope.None && !Permissions.IsEquivalentTo(_loadedFor))
             await RefreshAsync();
     }
 
