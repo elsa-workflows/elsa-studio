@@ -1,5 +1,18 @@
-﻿<Well>
-    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
-        @Context.GetType().Name: @Context.Message
-    </MudAlert>
+﻿@using Elsa.Studio.Extensions
+@using Elsa.Studio.Localization
+@inject ILocalizer Localizer
+
+<Well>
+    @if (Context.IsAuthorizationFailure())
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.Lock">
+            @Context.ToUserMessage(Localizer)
+        </MudAlert>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+            @Context.GetType().Name: @Context.Message
+        </MudAlert>
+    }
 </Well>
