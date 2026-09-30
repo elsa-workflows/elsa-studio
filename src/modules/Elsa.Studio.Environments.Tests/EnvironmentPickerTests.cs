@@ -1,7 +1,6 @@
 using Bunit;
 using Elsa.Studio.Environments.Components;
 using Elsa.Studio.Environments.Contracts;
-using Elsa.Studio.Environments.Models;
 using Elsa.Studio.Environments.Services;
 using Elsa.Studio.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +19,7 @@ public sealed class EnvironmentPickerTests : BunitContext, IAsyncLifetime
         Services.AddMudServices();
         Services.AddSingleton<IEnvironmentService>(_environments);
         // Few enough environments that MudBlazor's flip logic would not move a menu that opens over its button.
-        _environments.SetEnvironments([Environment("Staging"), Environment("Production")], "Staging");
+        _environments.SetEnvironments([new() { Name = "Staging" }, new() { Name = "Production" }], "Staging");
     }
 
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -28,6 +27,4 @@ public sealed class EnvironmentPickerTests : BunitContext, IAsyncLifetime
 
     [Fact]
     public void EnvironmentPicker_OpensBelowItsButton() => MenuPopoverAssert.OpensBelowItsButton<EnvironmentPicker>(this);
-
-    private static ServerEnvironment Environment(string name) => new() { Name = name };
 }
