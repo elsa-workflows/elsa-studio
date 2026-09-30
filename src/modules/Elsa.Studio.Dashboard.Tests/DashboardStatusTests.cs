@@ -18,14 +18,14 @@ namespace Elsa.Studio.Dashboard.Tests;
 /// </summary>
 public sealed class DashboardStatusTests : BunitContext, IAsyncLifetime
 {
-    private readonly TaskCompletionSource<DashboardLoadResult> _load = new();
+    private readonly List<TaskCompletionSource<DashboardLoadResult>> _loads = [];
 
     public DashboardStatusTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
         Services.AddSingleton<ILocalizer, TestLocalizer>();
-        Services.AddSingleton<IDashboardService>(new StubDashboardService(_load.Task));
+        Services.AddSingleton<IDashboardService>(new StubDashboardService(_loads));
         Services.AddSingleton<IDashboardWidgetRegistry, DashboardWidgetRegistry>();
         Services.AddSingleton<IFeatureService, StubFeatureService>();
         Services.AddSingleton<IEnumerable<DashboardWidgetDescriptor>>([]);
@@ -54,9 +54,9 @@ public sealed class DashboardStatusTests : BunitContext, IAsyncLifetime
         var cut = Render<DashboardPage>();
 
         if (throws)
-            _load.SetException(new InvalidOperationException("The backend is unreachable."));
+            _loads[0].SetException(new InvalidOperationException("The backend is unreachable."));
         else
-            _load.SetResult(DashboardLoadResult.Unavailable("Dashboard data is not available from this backend."));
+            _loads[0].SetResult(DashboardLoadResult.Unavailable("Dashboard data is not available from this backend."));
 
         cut.WaitForAssertion(() =>
         {
@@ -65,9 +65,33 @@ public sealed class DashboardStatusTests : BunitContext, IAsyncLifetime
         });
     }
 
-    private sealed class StubDashboardService(Task<DashboardLoadResult> load) : IDashboardService
+    [Fact]
+    public void WhileARetryAfterAFailureLoads_ShowsTheLoadingStateAgain()
     {
-        public Task<DashboardLoadResult> LoadAsync(string range, bool includeSystem = false, CancellationToken cancellationToken = default) => load;
+        var cut = Render<DashboardPage>();
+        _loads[0].SetResult(DashboardLoadResult.Unavailable("Dashboard data is not available from this backend."));
+        cut.WaitForAssertion(() => Assert.Contains("Dashboard unavailable", cut.Find(".mud-chip").TextContent));
+
+        cut.Find("button[aria-label='Refresh dashboard']").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(2, _loads.Count);
+            Assert.Contains("Loading dashboard", cut.Find(".mud-chip").TextContent);
+            Assert.DoesNotContain("mud-chip-color-error", cut.Find(".mud-chip").ClassName);
+        });
+    }
+
+    /// <summary>Hands out a separately controlled pending load for every request.</summary>
+    private sealed class StubDashboardService(List<TaskCompletionSource<DashboardLoadResult>> loads) : IDashboardService
+    {
+        public Task<DashboardLoadResult> LoadAsync(string range, bool includeSystem = false, CancellationToken cancellationToken = default)
+        {
+            var load = new TaskCompletionSource<DashboardLoadResult>();
+            loads.Add(load);
+            return load.Task;
+        }
+
         public Task<DashboardLoadResult<DashboardOverview>> LoadOverviewAsync(string range, bool includeSystem = false, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
