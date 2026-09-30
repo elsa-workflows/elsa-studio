@@ -1,4 +1,5 @@
 @page "/security/external-authentication/sessions"
+@attribute [RequirePermission(ExternalAuthenticationPermissions.Sessions, PermissionVerbs.View)]
 @using Elsa.Studio.ExternalAuthentication.Components.Sessions
 @using Elsa.Studio.ExternalAuthentication.Services
 @inject Elsa.Studio.Contracts.IBackendApiClientProvider ApiClientProvider
@@ -8,116 +9,109 @@
 
 <PageTitle>External authentication sessions</PageTitle>
 
-@if (!_loading && !_canRead)
-{
-    <AccessDenied MissingPermissions="ExternalAuthenticationPermissions.Missing(ExternalAuthenticationPermissions.SessionsRead)" />
-}
-else
-{
-    <MudContainer MaxWidth="MaxWidth.False">
-        <PageHeading Text="External authentication sessions" />
-        <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
-            Session administration is optional. This page shows only safe session metadata and never exposes tokens, external subjects, or claim snapshots.
-        </MudAlert>
+<MudContainer MaxWidth="MaxWidth.False">
+    <PageHeading Text="External authentication sessions" />
+    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+        Session administration is optional. This page shows only safe session metadata and never exposes tokens, external subjects, or claim snapshots.
+    </MudAlert>
 
-        @if (_loading)
-        {
-            <MudProgressLinear Indeterminate="true" aria-label="Loading external authentication sessions" />
-        }
-        else
-        {
-            <MudPaper Elevation="0" Outlined="true" Class="session-list">
-                <MudGrid Spacing="2" Class="pa-4 align-center session-list__toolbar">
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudTextField @bind-Value="_userId" Label="User ID" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudTextField @bind-Value="_connectionId" Label="Connection ID" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudSelect T="string" @bind-Value="_status" Label="Status" Clearable="true">
-                            <MudSelectItem T="string" Value="@("active")">Active</MudSelectItem>
-                            <MudSelectItem T="string" Value="@("revoked")">Revoked</MudSelectItem>
-                        </MudSelect>
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudStack Row="true" Justify="Justify.FlexEnd">
-                            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.FilterAlt" OnClick="ReloadAsync">Apply filters</MudButton>
-                        </MudStack>
-                    </MudItem>
-                </MudGrid>
-                <MudTable
-                    T="ExternalAuthenticationSessionSummary"
-                    Items="_sessions"
-                    Dense="true"
-                    Hover="true"
-                    Elevation="0"
-                    Breakpoint="Breakpoint.Md"
-                    RowStyle="cursor: pointer;"
-                    OnRowClick="OnRowClick"
-                    Class="session-list__table"
-                    aria-label="External authentication sessions">
-                    <HeaderContent>
-                        <MudTh>Session</MudTh>
-                        <MudTh>User / connection</MudTh>
-                        <MudTh>Activity</MudTh>
-                        <MudTh>Status</MudTh>
-                        <MudTh aria-label="Actions"></MudTh>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd DataLabel="Session">
-                            <span @onclick:stopPropagation="true">
-                                <MudLink
-                                    OnClick="@(_ => OpenSessionDetailsAsync(context))"
-                                    Color="Color.Inherit"
-                                    Underline="Underline.Hover"
-                                    Class="font-weight-medium"
-                                    aria-label="@($"View session {context.Id}")">
-                                    @context.Id
-                                </MudLink>
-                            </span>
-                        </MudTd>
-                        <MudTd DataLabel="User / connection">
-                            <MudText Typo="Typo.body2" Class="font-weight-medium">@context.UserId</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@context.ConnectionId</MudText>
-                        </MudTd>
-                        <MudTd DataLabel="Activity">
-                            <MudText Typo="Typo.body2">Refreshed @context.LastRefreshedAt.ToLocalTime().ToString("g")</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Started @context.StartedAt.ToLocalTime().ToString("g") · Expires @context.ExpiresAt.ToLocalTime().ToString("g")</MudText>
-                        </MudTd>
-                        <MudTd DataLabel="Status">
-                            <MudChip
-                                T="string"
-                                Size="Size.Small"
-                                Color="@ExternalAuthenticationSessionPresentation.StatusColor(context.Status)"
-                                Icon="@ExternalAuthenticationSessionPresentation.StatusIcon(context.Status)">
-                                @ExternalAuthenticationSessionPresentation.StatusLabel(context.Status)
-                            </MudChip>
-                        </MudTd>
-                        <MudTd DataLabel="Actions" Style="text-align: right;">
-                            @if (_canRevoke && !string.Equals(context.Status, "revoked", StringComparison.OrdinalIgnoreCase))
-                            {
-                                <div @onclick:stopPropagation="true">
-                                    <MudMenu
-                                        Icon="@Icons.Material.Filled.MoreVert"
-                                        Size="Size.Small"
-                                        Dense="true"
-                                        AriaLabel="@($"Actions for session {context.Id}")">
-                                        <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => ConfirmRevokeAsync(context))">Revoke</MudMenuItem>
-                                    </MudMenu>
-                                </div>
-                            }
-                        </MudTd>
-                    </RowTemplate>
-                    <NoRecordsContent><MudText>No external authentication sessions match the current filters.</MudText></NoRecordsContent>
-                </MudTable>
-                <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-3 session-list__footer" aria-label="External authentication session pages">
-                    <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
-                </MudStack>
-            </MudPaper>
-        }
-    </MudContainer>
-}
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" aria-label="Loading external authentication sessions" />
+    }
+    else
+    {
+        <MudPaper Elevation="0" Outlined="true" Class="session-list">
+            <MudGrid Spacing="2" Class="pa-4 align-center session-list__toolbar">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField @bind-Value="_userId" Label="User ID" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField @bind-Value="_connectionId" Label="Connection ID" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect T="string" @bind-Value="_status" Label="Status" Clearable="true">
+                        <MudSelectItem T="string" Value="@("active")">Active</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("revoked")">Revoked</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudStack Row="true" Justify="Justify.FlexEnd">
+                        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.FilterAlt" OnClick="ReloadAsync">Apply filters</MudButton>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+            <MudTable
+                T="ExternalAuthenticationSessionSummary"
+                Items="_sessions"
+                Dense="true"
+                Hover="true"
+                Elevation="0"
+                Breakpoint="Breakpoint.Md"
+                RowStyle="cursor: pointer;"
+                OnRowClick="OnRowClick"
+                Class="session-list__table"
+                aria-label="External authentication sessions">
+                <HeaderContent>
+                    <MudTh>Session</MudTh>
+                    <MudTh>User / connection</MudTh>
+                    <MudTh>Activity</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh aria-label="Actions"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Session">
+                        <span @onclick:stopPropagation="true">
+                            <MudLink
+                                OnClick="@(_ => OpenSessionDetailsAsync(context))"
+                                Color="Color.Inherit"
+                                Underline="Underline.Hover"
+                                Class="font-weight-medium"
+                                aria-label="@($"View session {context.Id}")">
+                                @context.Id
+                            </MudLink>
+                        </span>
+                    </MudTd>
+                    <MudTd DataLabel="User / connection">
+                        <MudText Typo="Typo.body2" Class="font-weight-medium">@context.UserId</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@context.ConnectionId</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Activity">
+                        <MudText Typo="Typo.body2">Refreshed @context.LastRefreshedAt.ToLocalTime().ToString("g")</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Started @context.StartedAt.ToLocalTime().ToString("g") · Expires @context.ExpiresAt.ToLocalTime().ToString("g")</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip
+                            T="string"
+                            Size="Size.Small"
+                            Color="@ExternalAuthenticationSessionPresentation.StatusColor(context.Status)"
+                            Icon="@ExternalAuthenticationSessionPresentation.StatusIcon(context.Status)">
+                            @ExternalAuthenticationSessionPresentation.StatusLabel(context.Status)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        @if (_canRevoke && !string.Equals(context.Status, "revoked", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <div @onclick:stopPropagation="true">
+                                <MudMenu
+                                    Icon="@Icons.Material.Filled.MoreVert"
+                                    Size="Size.Small"
+                                    Dense="true"
+                                    AriaLabel="@($"Actions for session {context.Id}")">
+                                    <MudMenuItem Icon="@Icons.Material.Outlined.Cancel" OnClick="@(() => ConfirmRevokeAsync(context))">Revoke</MudMenuItem>
+                                </MudMenu>
+                            </div>
+                        }
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent><MudText>No external authentication sessions match the current filters.</MudText></NoRecordsContent>
+            </MudTable>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-3 session-list__footer" aria-label="External authentication session pages">
+                <MudButton Variant="Variant.Outlined" Disabled="@string.IsNullOrWhiteSpace(_nextCursor)" OnClick="NextPageAsync">Next page</MudButton>
+            </MudStack>
+        </MudPaper>
+    }
+</MudContainer>
 
 @code {
     private readonly List<ExternalAuthenticationSessionSummary> _sessions = [];

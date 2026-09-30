@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Elsa.Studio.Authorization;
 
 namespace Elsa.Studio.ExternalAuthentication.Models;
 
@@ -9,7 +8,14 @@ namespace Elsa.Studio.ExternalAuthentication.Models;
 /// </summary>
 public static class ExternalAuthenticationPermissions
 {
-    private const string Connections = "external-authentication/connections";
+    /// <summary>The resource guarding connections; pages declare it with <c>[RequirePermission]</c>.</summary>
+    public const string Connections = "external-authentication/connections";
+
+    /// <summary>The resource guarding identity links; pages declare it with <c>[RequirePermission]</c>.</summary>
+    public const string IdentityLinks = "external-authentication/identity-links";
+
+    /// <summary>The resource guarding sessions; pages declare it with <c>[RequirePermission]</c>.</summary>
+    public const string Sessions = "external-authentication/sessions";
 
     public const string Read = $"{Connections}:view";
     public const string Create = $"{Connections}:create";
@@ -20,14 +26,11 @@ public static class ExternalAuthenticationPermissions
     public const string ManagePolicies = "external-authentication/policies:update";
     public const string DelegatePermissions = "external-authentication/permission-grants:delegate";
     public const string DelegatePermissionsUnrestricted = "external-authentication/permission-grants:delegate-unrestricted";
-    public const string ManageLinks = "external-authentication/identity-links:write";
-    public const string SessionsRead = "external-authentication/sessions:view";
-    public const string SessionsRevoke = "external-authentication/sessions:revoke";
+    public const string ManageLinks = $"{IdentityLinks}:write";
+    public const string SessionsRead = $"{Sessions}:view";
+    public const string SessionsRevoke = $"{Sessions}:revoke";
     public const string UnsafeProviderTrust = "external-authentication/provider-trust:override";
     public const string RolesRead = "identity/roles:view";
-
-    /// <summary>Names a permission for the shared access-denied page.</summary>
-    public static IReadOnlyCollection<Permission> Missing(string permission) => Permission.TryParse(permission, out var parsed) ? [parsed] : [];
 }
 
 public sealed class ConnectionScope

@@ -1,5 +1,6 @@
 @page "/security/external-authentication/connections/new"
 @page "/security/external-authentication/connections/{ConnectionId}"
+@attribute [RequirePermission(ExternalAuthenticationPermissions.Connections, PermissionVerbs.View)]
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Routing
 @using ApiException = Refit.ApiException
@@ -14,6 +15,13 @@
 <PageTitle>@(IsNew ? "Create identity provider connection" : "Manage identity provider connection")</PageTitle>
 <NavigationLock ConfirmExternalNavigation="@(_isDirty || _activating)" OnBeforeInternalNavigation="ConfirmNavigationAsync" />
 
+@* [RequirePermission] covers viewing; creating is only required on the new-connection route. *@
+@if (IsNew && !_loading && !_canCreate)
+{
+    <AccessDenied MissingPermissions="_createPermission" />
+}
+else
+{
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="connection-workspace">
     <MudStack Spacing="3" Class="py-4">
         <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.ArrowBack" Class="align-self-start" Disabled="@_activating" OnClick="Back">Identity provider connections</MudButton>
@@ -353,8 +361,11 @@
         }
     </MudStack>
 </MudContainer>
+}
 
 @code {
+    private static readonly Permission[] _createPermission = [new(ExternalAuthenticationPermissions.Connections, PermissionVerbs.Create)];
+
     [Parameter] public string? ConnectionId { get; set; }
 
     private ConnectionDetail? _connection;
@@ -565,6 +576,12 @@
         _canConfigureUnsafeSettings = await Permissions.HasAsync(ExternalAuthenticationPermissions.UnsafeProviderTrust);
         _canManagePolicies = await Permissions.HasAsync(ExternalAuthenticationPermissions.ManagePolicies);
         _canReadRoles = await Permissions.HasAsync(ExternalAuthenticationPermissions.RolesRead);
+        if (IsNew && !_canCreate)
+        {
+            _loading = false;
+            return;
+        }
+
         try
         {
             var api = await ApiClientProvider.GetApiAsync<IExternalAuthenticationConnectionManagementApi>();
