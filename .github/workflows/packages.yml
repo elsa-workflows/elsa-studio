@@ -227,11 +227,23 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    # 3.10.x is feedz-only: a GitHub Release must never publish this line to npmjs.
+    # TAG_NAME / VERSION is the tag with refs/tags/ stripped; a leading v is not stripped.
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' && github.event.release.tag_name != '3.10.0' && github.event.release.tag_name != 'v3.10.0' && !startsWith(github.event.release.tag_name, '3.10.') && !startsWith(github.event.release.tag_name, 'v3.10.') }}
     permissions:
       contents: read
       id-token: write # Required: lets this job request the OIDC token npmjs.com exchanges for publish rights.
     steps:
+      - name: Refuse 3.10.x public npm publish
+        # Defense in depth if the job-level if is later weakened.
+        run: |
+          tag="${{ github.event.release.tag_name }}"
+          case "$tag" in
+            3.10.0|v3.10.0|3.10.*|v3.10.*)
+              echo "Fail-closed: 3.10.x is feedz-only. Refusing to publish '$tag' to npmjs." >&2
+              exit 1
+              ;;
+          esac
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -316,11 +328,23 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    # 3.10.x is feedz-only: a GitHub Release must never publish this line to nuget.org.
+    # TAG_NAME / VERSION is the tag with refs/tags/ stripped; a leading v is not stripped.
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' && github.event.release.tag_name != '3.10.0' && github.event.release.tag_name != 'v3.10.0' && !startsWith(github.event.release.tag_name, '3.10.') && !startsWith(github.event.release.tag_name, 'v3.10.') }}
     permissions:
       contents: read
       id-token: write # Required: lets this job request the OIDC token that nuget.org exchanges for a temporary API key.
     steps:
+      - name: Refuse 3.10.x public NuGet publish
+        # Defense in depth if the job-level if is later weakened.
+        run: |
+          tag="${{ github.event.release.tag_name }}"
+          case "$tag" in
+            3.10.0|v3.10.0|3.10.*|v3.10.*)
+              echo "Fail-closed: 3.10.x is feedz-only. Refusing to publish '$tag' to nuget.org." >&2
+              exit 1
+              ;;
+          esac
       - name: Download Packages
         uses: actions/download-artifact@v4
         with:
