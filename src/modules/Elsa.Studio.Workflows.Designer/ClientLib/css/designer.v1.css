@@ -16,11 +16,23 @@
 }
 
 .elsa-flowchart-diagram-designer-v1 .elsa-activity {
-    border-left: solid 6px var(--mud-palette-info);
-    filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));
+    color: var(--mud-palette-text-primary);
+    background-color: var(--mud-palette-surface);
+    border-color: var(--mud-palette-lines-default);
+    border-left: solid 4px var(--elsa-activity-accent, var(--mud-palette-info));
     height: 100%;
 }
 
+.elsa-flowchart-diagram-designer-v1 .elsa-activity.is-starting-point {
+    background-color: var(--mud-palette-surface);
+    background-color: color-mix(
+        in srgb,
+        var(--elsa-activity-accent, var(--mud-palette-primary)) 8%,
+        var(--mud-palette-surface)
+    );
+}
+
 .elsa-flowchart-diagram-designer-v1 .elsa-activity-wrapper-badge.has-retries .mud-badge-wrapper .mud-badge {
-    background-color: #FFEB3B !important;
+    color: var(--mud-palette-warning-text) !important;
+    background-color: var(--mud-palette-warning) !important;
 }

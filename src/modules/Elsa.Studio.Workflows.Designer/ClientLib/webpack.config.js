@@ -47,6 +47,7 @@ module.exports = {
             patterns: [
                 {from: 'css/designer.v1.css', to: './'},
                 {from: 'css/designer.v2.css', to: './'},
+                {from: 'css/designer.bpmn.css', to: './'},
                 {from: 'css/designer.v2.css', to: './designer.css'}, // Default
             ],
         }),

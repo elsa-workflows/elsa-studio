@@ -1,9 +1,7 @@
-import {graphBindings} from "./graph-bindings";
+import {findGraph} from "./find-graph";
 
 export function centerContent(graphId: string) {
-    const {graph} = graphBindings[graphId];
-    
-    graph.centerContent({
+    findGraph(graphId)?.centerContent({
         padding: 20,
         useCellGeometry: true
     });

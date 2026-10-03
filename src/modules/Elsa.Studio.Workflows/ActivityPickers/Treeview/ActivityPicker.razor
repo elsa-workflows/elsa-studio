@@ -42,6 +42,7 @@
                                  Items="@_treeItemData"
                                  FilterFunc="@(x => MatchesName((ActivityTreeItem)x))"
                                  SelectionMode="SelectionMode.SingleSelection"
+                                 ExpandOnClick="true"
                                  Dense="true">
                         <ItemTemplate>
                             @{
@@ -51,7 +52,6 @@
                                              Icon="@(item.IconWithColor)"
                                              Visible="@item.Visible"
                                              Items="@item.Children"
-                                             OnDoubleClick="@(() => OnItemDoubleClick(item))"
                                              title="@(item.ActivityDescriptor?.Description is { } description ? Localizer[description] : "")"
                                              @bind-Expanded="@item.Expanded"
                                              draggable="@(item.ActivityDescriptor is not null ? "true" : "false")"

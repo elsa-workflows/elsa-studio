@@ -8,7 +8,9 @@ public sealed record PlatformSubmitResult(
     string Message,
     string? ArtifactId = null,
     string? ArtifactDigest = null,
-    DateTimeOffset? RegisteredAt = null)
+    DateTimeOffset? RegisteredAt = null,
+    Guid? ArtifactRecordId = null,
+    Guid? RevisionId = null)
 {
     /// <summary>
     /// Whether the submission succeeded.

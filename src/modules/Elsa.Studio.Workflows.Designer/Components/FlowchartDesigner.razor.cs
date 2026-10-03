@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
-using MudBlazor.Utilities;
 using ThrottleDebounce;
 
 namespace Elsa.Studio.Workflows.Designer.Components;
@@ -34,6 +33,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     private IFlowchartMapper? _flowchartMapper;
     private IActivityMapper? _activityMapper;
     private X6GraphApi _graphApi = null!;
+    private IDisposable? _themeSubscription;
     private readonly PendingActionsQueue _pendingGraphActions;
     private readonly RateLimitedFunc<Task> _rateLimitedLoadFlowchartAction;
     private IDictionary<string, ActivityStats>? _activityStats;
@@ -327,6 +327,12 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// </summary>
     public async Task CenterContentAsync() => await ScheduleGraphActionAsync(() => _graphApi.CenterContentAsync());
 
+    /// <summary>
+    /// Exports the graph as an image and lets the browser download it.
+    /// </summary>
+    /// <param name="options">The export options.</param>
+    public async Task ExportGraphAsync(ExportGraphOptions options) => await ScheduleGraphActionAsync(() => _graphApi.ExportGraphAsync(options));
+
     /// Update the Graph Layout.
     public async Task AutoLayoutAsync(
         JsonObject activity,
@@ -358,7 +364,9 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        ThemeService.IsDarkModeChanged += OnDarkModeChanged;
+        _themeSubscription = new X6DesignerThemeSubscription(
+            ThemeService,
+            theme => ScheduleGraphActionAsync(() => _graphApi.ApplyThemeAsync(theme)));
         _flowchart = Flowchart;
     }
 
@@ -391,7 +399,6 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
     private async Task<IFlowchartMapper> GetFlowchartMapperAsync() => _flowchartMapper ??= await MapperFactory.CreateFlowchartMapperAsync();
     private async Task<IActivityMapper> GetActivityMapperAsync() => _activityMapper ??= await MapperFactory.CreateActivityMapperAsync();
-    private async Task SetGridColorAsync(string color) => await ScheduleGraphActionAsync(() => _graphApi.SetGridColorAsync(color));
     private async Task ScheduleGraphActionAsync(Func<Task> action) => await _pendingGraphActions.EnqueueAsync(action);
     private async Task<T> ScheduleGraphActionAsync<T>(Func<Task<T>> action) => await _pendingGraphActions.EnqueueAsync(action);
 
@@ -452,13 +459,6 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
         }
     }
 
-    private async void OnDarkModeChanged()
-    {
-        var palette = ThemeService.CurrentPalette;
-        var gridColor = palette.BackgroundGray;
-        await SetGridColorAsync(gridColor.ToString(MudColorOutputFormats.HexA));
-    }
-
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
         if (_graphApi != null!)
@@ -469,7 +469,7 @@ public partial class FlowchartDesigner : IDisposable, IAsyncDisposable
 
     void IDisposable.Dispose()
     {
-        ThemeService.IsDarkModeChanged -= OnDarkModeChanged;
+        _themeSubscription?.Dispose();
         _componentRef?.Dispose();
     }
 }

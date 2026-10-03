@@ -3,7 +3,7 @@
 Provides the Elsa Identity login UI for Elsa Studio.
 
 ## What you get
-- A Blazor login page at `/login`
+- An Elsa Identity login-method catalog and credentials component for the shared `/login` shell
 - A default unauthorized component provider that redirects to `/login?returnUrl=...`
 - A simple app-bar login component (optional)
 
@@ -22,6 +22,9 @@ builder.Services.AddElsaIdentityCore().UseElsaIdentityAuth();
 
 // UI (this package):
 builder.Services.AddElsaIdentityUI();
+
+// Shared login shell (composition root):
+builder.Services.AddAuthenticationUI();
 ```
 
 ### 2) Switching providers (hosts)

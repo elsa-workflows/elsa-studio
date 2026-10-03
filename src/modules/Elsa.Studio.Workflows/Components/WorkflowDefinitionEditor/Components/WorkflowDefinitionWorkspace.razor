@@ -30,8 +30,9 @@
     }
 </style>
 
-<CascadingValue Value="this">
-    <RadzenSplitter Orientation="Orientation.Horizontal" Style="height:100%;">
+<CascadingValue Name="WorkflowDefinitionReloadVersion" Value="_workflowDefinitionReloadVersion">
+    <CascadingValue Value="this">
+        <RadzenSplitter Orientation="Orientation.Horizontal" Style="height:100%;">
         <RadzenSplitterPane Size="65%" Class="pane-left">
             @if (_selectedWorkflowDefinition != null)
             {
@@ -55,6 +56,7 @@
                                             @bind-AutoSave="_autoSave"
                                             WorkflowDefinition="_selectedWorkflowDefinition"
                                             WorkflowDefinitionUpdated="OnWorkflowDefinitionUpdated"
+                                            WorkflowDefinitionReloaded="OnWorkflowDefinitionReloaded"
                                             WorkflowDefinitionExecuted="WorkflowDefinitionExecuted"
                                             ActivitySelected="ActivitySelected" />
                         }
@@ -89,5 +91,6 @@
                     WorkflowDefinitionUpdated="OnWorkflowDefinitionPropsUpdated"/>
             }
         </RadzenSplitterPane>
-    </RadzenSplitter>
+        </RadzenSplitter>
+    </CascadingValue>
 </CascadingValue>

@@ -2,64 +2,65 @@
 
 ## Prerequisites
 
-- Use the Studio worktree branch `005-state-machine-designer`.
-- Use a backend build that includes elsa-core issue #5085 / PR #7457 StateMachine activity support.
-- Confirm Studio's activity registry receives a descriptor for `Elsa.StateMachine`.
+- Run Studio from the `release/3.8.0` line with a 3.8 backend that advertises `Elsa.StateMachine`.
+- Confirm the activity library is available. Transition activity selection uses the same backend activity descriptors as the rest of Studio.
 
-## Scenario 1: Inspect an Existing StateMachine
+## Create a state machine
 
-1. Start the Studio sample host.
-2. Connect it to a backend that advertises `Elsa.StateMachine`.
-3. Open a workflow definition containing a StateMachine with at least three states and two transitions.
-4. Select or drill into the StateMachine activity from the workflow editor.
-5. Verify a dedicated State Machine designer opens.
-6. Verify each state appears once and each transition route card identifies its source and target.
-7. Verify terminal states are visually identifiable.
-8. Use zoom-to-fit and center controls.
-9. Return to the root Flowchart and verify normal Flowchart selection, drag/drop, and zoom behavior still works.
+1. Open **Workflows → Definitions** and select **Create workflow**.
+2. Choose **State machine**, give the workflow a name, and select **OK**.
+3. Use **Add** to create states and transitions.
+4. Set the initial state and select a transition route to open its inspector.
 
-## Scenario 2: Edit Graph Shape
+The transition inspector reads top to bottom as the runtime executes it:
 
-1. Open a workflow with an empty or small StateMachine.
-2. Add two states named `NewOrder` and `Paid`.
-3. Set `NewOrder` as the initial state.
-4. Add a transition from `NewOrder` to `Paid`.
-5. Save and reload the workflow definition.
-6. Verify `states`, `transitions`, `initialState`, and nested slot payloads remain intact.
+1. **WHEN** — the optional Trigger activity. With no Trigger, the transition is evaluated immediately after source Entry.
+2. **ONLY IF** — the optional Boolean Condition. With no Condition, the transition is always eligible.
+3. **THEN** — the optional Action activity, run after source Exit.
+4. **TO** — the target state.
 
-## Scenario 3: Edit Transition Slots
+## Configure Trigger and Action activities
 
-1. Select a transition route card.
-2. Set the transition display name.
-3. Drag an activity from the existing activity picker onto the trigger slot, or paste a valid trigger activity JSON payload.
-4. Edit the condition JSON payload.
-5. Drag an activity from the existing activity picker onto the action slot, or paste a valid action activity JSON payload.
-6. Save and reload the workflow definition.
-7. Verify the trigger, condition, and action remain attached to the same transition.
+1. Select **Add trigger** or **Add action**.
+2. Search the activity library by display name, type, category, or description, then choose an activity.
+3. Configure the selected activity with the normal activity property editor.
+4. Use **Open** to edit the configured activity, **Replace** to choose another activity, or **Clear** to remove it.
 
-## Scenario 4: Validate Broken References
+Replacing is transactional: canceling the picker leaves the original activity unchanged. Dragging an activity from the activity library onto an empty or configured slot follows the same add/replace path. A transition slot contains one activity. For multiple Action steps, choose the promoted **Sequence** option and select **Open** to edit its children in the regular Sequence designer.
 
-1. Load a StateMachine with a transition pointing to a missing state.
-2. Verify the graph still renders partial content.
-3. Verify Studio shows a blocking validation issue for the broken reference.
-4. Fix the target state or remove the transition.
-5. Verify the validation issue clears before save.
+Unavailable or malformed activity definitions remain visible and are preserved until they are explicitly replaced or cleared. Read-only workflows keep **Open** for inspectable activities but suppress mutation controls and ignore drops.
 
-## Scenario 5: Edit State Slots
+## Configure a Condition
 
-1. Select a state node.
-2. Drag an activity from the existing activity picker onto the entry slot.
-3. Drag an activity from the existing activity picker onto the exit slot.
-4. Save and reload the workflow definition.
-5. Verify the entry and exit payloads remain attached to the same state.
+1. Select **Edit** in **ONLY IF**. The wide condition workspace opens without changing the saved definition.
+2. Choose one mode:
+   - **Always** removes the Condition slot, so the runtime treats it as true.
+   - **Never** stores an explicit false condition.
+   - **Expression** stores a Boolean expression using an available provider such as JavaScript, Python, or Liquid.
+   - **Custom JSON** is the advanced escape hatch for definitions that do not map to a known provider.
+3. Select **Apply** to commit the change, or **Cancel** to preserve the original value byte-for-byte at its owning node.
 
-## Lightweight Validation Commands
+An existing explicit true expression is not silently normalized to a missing Condition. Switching away from an unknown or lossy representation shows a replacement warning. Invalid custom JSON disables **Apply** and leaves the original source intact.
+
+## Save, reload, and inspect
+
+1. Save the workflow and reload the definition.
+2. Verify each state and transition route is present once.
+3. Reopen each transition and verify Trigger, Condition, Action, and destination summaries.
+4. Open a Sequence Action and verify its nested children remain attached to the same transition slot.
+5. Open the workflow read-only and verify activity inspection remains available while Add, Replace, Clear, Edit, Delete, and drop mutation are unavailable.
+
+## Broken and unavailable definitions
+
+- A missing state reference is a blocking validation issue. Repair the target or remove the transition before export/publish.
+- Unknown providers, unavailable activities, unknown properties, and malformed source text are preserved on a no-op save.
+- Status is communicated in text (for example **Always**, **Never**, **Unavailable**, or **Invalid**), not by color alone.
+
+## Validation commands
 
 ```bash
-dotnet build src/modules/Elsa.Studio.Workflows.Designer/Elsa.Studio.Workflows.Designer.csproj
-dotnet build src/modules/Elsa.Studio.Workflows/Elsa.Studio.Workflows.csproj
-dotnet test src/modules/Elsa.Studio.Workflows.Designer.Tests/Elsa.Studio.Workflows.Designer.Tests.csproj
-dotnet test src/modules/Elsa.Studio.Workflows.Tests/Elsa.Studio.Workflows.Tests.csproj
+dotnet test src/modules/Elsa.Studio.Workflows.Tests/Elsa.Studio.Workflows.Tests.csproj --no-restore
+dotnet test src/modules/Elsa.Studio.Workflows.Designer.Tests/Elsa.Studio.Workflows.Designer.Tests.csproj --no-restore
 ```
 
-The test command applies after the mapper test project exists.
+The Workflows suite validates the inspector, picker, condition workspace, read-only behavior, and slot ownership. The Designer suite validates mapper/session preservation and runs on .NET 8, 9, and 10.

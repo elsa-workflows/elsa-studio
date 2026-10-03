@@ -21,6 +21,9 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     private MudDynamicTabs _dynamicTabs = null!;
     private WorkflowDefinition? _workflowDefinition = null!;
     private WorkflowDefinition? _selectedWorkflowDefinition = null!;
+    private WorkflowDefinition? _lastIncomingWorkflowDefinition;
+    private WorkflowDefinition? _lastIncomingSelectedWorkflowDefinition;
+    private long _workflowDefinitionReloadVersion;
     private WorkflowEditor WorkflowEditor { get; set; } = null!;
     private CodeView CodeView { get; set; } = null!;
 
@@ -65,18 +68,31 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
     {
         _autoSave = WorkflowDefinitionOptions.Value.AutoSaveChangesByDefault;
         _autoApply = WorkflowDefinitionOptions.Value.AutoApplyCodeViewChangesByDefault;
+        _lastIncomingWorkflowDefinition = WorkflowDefinition;
+        _lastIncomingSelectedWorkflowDefinition = SelectedWorkflowDefinition;
         _workflowDefinition = WorkflowDefinition;
-        _selectedWorkflowDefinition = SelectedWorkflowDefinition;
+        _selectedWorkflowDefinition = SelectedWorkflowDefinition ?? _workflowDefinition;
     }
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        _workflowDefinition = WorkflowDefinition;
-        _selectedWorkflowDefinition = SelectedWorkflowDefinition;
+        var isNewWorkflowDefinition = !ReferenceEquals(_lastIncomingWorkflowDefinition, WorkflowDefinition);
+        var isNewSelectedWorkflowDefinition = !ReferenceEquals(_lastIncomingSelectedWorkflowDefinition, SelectedWorkflowDefinition);
+        _lastIncomingWorkflowDefinition = WorkflowDefinition;
+        _lastIncomingSelectedWorkflowDefinition = SelectedWorkflowDefinition;
 
-        if (_selectedWorkflowDefinition == null)
-            _selectedWorkflowDefinition = _workflowDefinition;
+        if (!isNewWorkflowDefinition && !isNewSelectedWorkflowDefinition)
+            return;
+
+        if (WorkflowEditor != null)
+            WorkflowEditor.InvalidateWorkflowDefinitionOperations();
+
+        if (isNewWorkflowDefinition)
+            _workflowDefinition = WorkflowDefinition;
+
+        _selectedWorkflowDefinition = SelectedWorkflowDefinition ?? _workflowDefinition;
+        _workflowDefinitionReloadVersion++;
     }
 
     /// Displays the specified workflow definition version.
@@ -85,6 +101,10 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         if (_selectedWorkflowDefinition == workflowDefinition)
             return;
 
+        if (WorkflowEditor != null)
+            WorkflowEditor.InvalidateWorkflowDefinitionOperations();
+
+        _workflowDefinitionReloadVersion++;
         _selectedWorkflowDefinition = workflowDefinition;
 
         if (workflowDefinition.IsLatest)
@@ -130,6 +150,12 @@ public partial class WorkflowDefinitionWorkspace : IWorkspace
         _workflowDefinition = WorkflowEditor.WorkflowDefinition!;
         _selectedWorkflowDefinition = _workflowDefinition;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnWorkflowDefinitionReloaded()
+    {
+        _workflowDefinitionReloadVersion++;
+        await OnWorkflowDefinitionUpdated();
     }
 
     private async Task OnApplyWorkflowDefinition(WorkflowDefinition deserialized)

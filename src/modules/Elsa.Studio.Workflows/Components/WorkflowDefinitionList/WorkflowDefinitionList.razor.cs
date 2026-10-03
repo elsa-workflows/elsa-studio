@@ -13,7 +13,6 @@ using Elsa.Studio.Workflows.Domain.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Logging;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Components.WorkflowDefinitionList;
@@ -40,7 +39,7 @@ public partial class WorkflowDefinitionList
     [Inject] private ICreateWorkflowDialogComponentProvider CreateWorkflowDialogComponentProvider { get; set; } = null!;
     [Inject] private IWorkflowCloningDialogService WorkflowCloningService { get; set; } = null!;
     [Inject] private IWorkflowExportDialogService WorkflowExportDialogService { get; set; } = null!;
-    [Inject] private ILogger<WorkflowDefinitionList> Logger { get; set; } = default!;
+    [Inject] private IBpmnImportUiService BpmnImportUiService { get; set; } = null!;
 
     private string SearchTerm { get; set; } = string.Empty;
     private bool IsReadOnlyMode { get; set; }
@@ -72,27 +71,28 @@ public partial class WorkflowDefinitionList
         };
 
         var latestWorkflowDefinitionsResponse = await WorkflowDefinitionService.ListAsync(request, VersionOptions.Latest, cancellationToken);
-        IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l => l.Rel == "bulk-publish") ?? 0) == 0;
         if (latestWorkflowDefinitionsResponse is null)
-            return new TableData<WorkflowDefinitionRow> { TotalItems = 0, Items = Array.Empty<WorkflowDefinitionRow>() };
+            return new TableData<WorkflowDefinitionRow> { TotalItems = 0, Items = [] };
 
-        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitionsResponse.Items.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
+        var latestWorkflowDefinitions = latestWorkflowDefinitionsResponse.Items;
+        IsReadOnlyMode = (latestWorkflowDefinitionsResponse?.Links?.Count(l => l.Rel == "bulk-publish") ?? 0) == 0;
+        var unpublishedWorkflowDefinitionIds = latestWorkflowDefinitions.Where(x => !x.IsPublished).Select(x => x.DefinitionId).ToList();
 
         var publishedWorkflowDefinitions = await WorkflowDefinitionService.ListAsync(new ListWorkflowDefinitionsRequest
         {
             DefinitionIds = unpublishedWorkflowDefinitionIds,
         }, VersionOptions.Published);
 
-        _totalCount = latestWorkflowDefinitionsResponse.TotalCount;
+        _totalCount = latestWorkflowDefinitionsResponse!.TotalCount;
 
-        var workflowDefinitionRows = latestWorkflowDefinitionsResponse.Items
+        var workflowDefinitionRows = latestWorkflowDefinitions
             .Select(definition =>
             {
                 var latestVersionNumber = definition.Version;
                 var isPublished = definition.IsPublished;
                 var publishedVersion = isPublished
                     ? definition
-                    : publishedWorkflowDefinitions?.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
+                    : publishedWorkflowDefinitions.Items.FirstOrDefault(x => x.DefinitionId == definition.DefinitionId);
                 var publishedVersionNumber = publishedVersion?.Version;
 
                 return new WorkflowDefinitionRow(
@@ -178,11 +178,11 @@ public partial class WorkflowDefinitionList
         var dialogInstance = await DialogService.ShowAsync(dialogComponentType, Localizer["New workflow"], parameters, options);
         var dialogResult = await dialogInstance.Result;
 
-        if (dialogResult is { Canceled: false, Data: Result<WorkflowDefinition, ValidationErrors> result })
-        {
-            await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
-            result.OnFailed(errors => UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors.Errors)));
-        }
+        if (dialogResult?.Canceled != false || dialogResult.Data is not Result<WorkflowDefinition, ValidationErrors> result)
+            return;
+
+        await result.OnSuccessAsync(definition => EditAsync(definition.DefinitionId));
+        result.OnFailed(errors => UserMessageService.ShowSnackbarTextMessage(string.Join(Environment.NewLine, errors.Errors)));
     }
 
     private async Task OnDuplicateWorkflowClicked(WorkflowDefinitionRow workflowDefinitionRow)
@@ -230,7 +230,7 @@ public partial class WorkflowDefinitionList
         var definitionId = workflowDefinitionRow!.DefinitionId;
         var response = await WorkflowDefinitionService.ExecuteAsync(definitionId, request);
 
-        if (response?.CannotStart != false)
+        if (response.CannotStart)
         {
             UserMessageService.ShowSnackbarTextMessage(Localizer["The workflow cannot be started"], Severity.Error);
             return;
@@ -324,7 +324,6 @@ public partial class WorkflowDefinitionList
             UserMessageService.ShowSnackbarTextMessage(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
-                options.VisibleStateDuration = 3000;
             });
         }
 
@@ -395,23 +394,77 @@ public partial class WorkflowDefinitionList
         return DomAccessor.ClickElementAsync("#workflow-file-upload-button-wrapper input[type=file]");
     }
 
+    private Task OnImportBpmnClicked()
+    {
+        return DomAccessor.ClickElementAsync("#workflow-bpmn-file-upload-button-wrapper input[type=file]");
+    }
+
+    private async Task OnBpmnFilesSelected(IReadOnlyList<IBrowserFile> files)
+    {
+        if (files.Count == 0)
+            return;
+
+        var result = await BpmnImportUiService.ImportFileAsync(files[0], definitionId: null);
+
+        // A null result means the user cancelled the findings dialog before anything was imported; there is
+        // nothing to report or reload.
+        if (result == null)
+            return;
+
+        if (result.IsSuccess && result.WorkflowDefinition is { } workflowDefinition)
+        {
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Workflow imported successfully."], Severity.Success, options => { options.SnackbarVariant = Variant.Filled; });
+            await EditAsync(workflowDefinition.DefinitionId);
+        }
+        else if (result.Failure is { } failure && failure.FailureType != WorkflowImportFailureType.CapabilityRefusal)
+        {
+            // A capability refusal was already reported in its own dialog by BpmnImportUiService; a snackbar here
+            // would just repeat it.
+            UserMessageService.ShowSnackbarTextMessage(Localizer["Failed to import BPMN document. Reason: {0}", failure.ErrorMessage], Severity.Error, options =>
+            {
+                options.SnackbarVariant = Variant.Filled;
+                options.VisibleStateDuration = 10000;
+            });
+        }
+
+        Reload();
+    }
+
     private async Task OnFilesSelected(IReadOnlyList<IBrowserFile> files)
     {
-        var results = (await WorkflowDefinitionImporter.ImportFilesAsync(files)).ToList();
-        var successfulResultCount = results.Count(x => x.IsSuccess);
-        var failedResultCount = results.Count(x => !x.IsSuccess);
+        // A .bpmn file dropped on the generic (JSON/ZIP) picker cannot be parsed as either, so it is routed through
+        // the same interactive BPMN import flow the dedicated "Import BPMN" button uses instead of silently
+        // producing zero results.
+        var bpmnBatch = await BpmnImportUiService.ImportBpmnFilesAsync(files, definitionId: null);
+
+        var results = new List<WorkflowImportResult>(bpmnBatch.Results);
+
+        if (bpmnBatch.OtherFiles.Count > 0)
+            results.AddRange(await WorkflowDefinitionImporter.ImportFilesAsync(bpmnBatch.OtherFiles));
+
+        var reportableResults = BpmnImportBatch.ReportableResults(results);
+
+        if (BpmnImportBatch.AllReported(results))
+        {
+            // Every result was a capability refusal, each already explained in its own dialog; nothing left to summarize.
+            Reload();
+            return;
+        }
+
+        var successfulResultCount = reportableResults.Count(x => x.IsSuccess);
+        var failedResultCount = reportableResults.Count(x => !x.IsSuccess);
         var successfulWorkflowsTerm = successfulResultCount == 1 ? "workflow" : "workflows";
         var failedWorkflowsTerm = failedResultCount == 1 ? Localizer["workflow"] : Localizer["workflows"];
-        var reasons = string.Join(", ", results.Where(x => x.Failure != null).Select(x => x.Failure!.ErrorMessage));
-        var message = results.Count == 0 ? Localizer["No workflows found to import."] :
+        var reasons = string.Join(", ", reportableResults.Where(x => x.Failure != null).Select(x => x.Failure!.ErrorMessage));
+        var message = reportableResults.Count == 0 ? Localizer["No workflows found to import."] :
             successfulResultCount > 0 && failedResultCount == 0 ? Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] :
             successfulResultCount == 0 && failedResultCount > 0 ? Localizer["Failed to import {0} {1}. Reason: {2}", failedResultCount, failedWorkflowsTerm, reasons] : Localizer["{0} {1} imported successfully.", successfulResultCount, successfulWorkflowsTerm] + " " + Localizer["Failed to import {0} {1}. Reasons: {2}", failedResultCount, failedWorkflowsTerm, reasons];
-        var severity = results.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
+        var severity = reportableResults.Count == 0 ? Severity.Info : successfulResultCount > 0 && failedResultCount > 0 ? Severity.Warning : failedResultCount == 0 ? Severity.Success : Severity.Error;
         UserMessageService.ShowSnackbarTextMessage(message, severity, options =>
         {
             options.SnackbarVariant = Variant.Filled;
             options.CloseAfterNavigation = failedResultCount > 0;
-            options.VisibleStateDuration = failedResultCount > 0 ? 10000 : 3000;
+            options.VisibleStateDuration = failedResultCount > 0 ? 10000 : 5000;
         });
         Reload();
     }
@@ -445,7 +498,6 @@ public partial class WorkflowDefinitionList
             UserMessageService.ShowSnackbarTextMessage(message, Severity.Info, options =>
             {
                 options.SnackbarVariant = Variant.Filled;
-                options.VisibleStateDuration = 3000;
             });
         }
 

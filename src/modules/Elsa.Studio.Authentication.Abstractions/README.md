@@ -4,10 +4,18 @@ Shared abstractions for authentication providers in Elsa Studio.
 
 ## Overview
 
-This package provides common interfaces that can be shared across different authentication provider implementations. It contains two key abstractions:
+This package provides common interfaces that can be shared across different authentication provider implementations. In addition to SignalR and unauthorized-component contracts, it defines the provider-neutral login UI seam:
 
-1. **IHttpConnectionOptionsConfigurator** - For configuring SignalR connections with authentication
-2. **UnauthorizedComponentProvider<TComponent>** - A generic component provider for rendering unauthorized UI
+1. **ILoginMethodCatalog** - Lists safe login-method presentation metadata.
+2. **ILoginMethodComponentProvider** - Maps a method kind to a typed Blazor component.
+3. **ILoginMethodIconProvider** - Contributes trusted local SVG icons.
+4. **IHttpConnectionOptionsConfigurator** - Configures SignalR authentication.
+5. **UnauthorizedComponentProvider<TComponent>** - Renders provider-specific unauthorized UI.
+
+Catalogs can identify a preferred method, but preference is visual metadata only. The shared
+authentication shell always waits for an explicit user action. Provider modules reference this
+abstractions package; the application composition root references and registers
+`Elsa.Studio.Authentication.UI`.
 
 ## Purpose
 

@@ -36,7 +36,7 @@ public class ActivityTreeItem : TreeItemData<string>
     /// <summary>
     /// The activity descriptor
     /// </summary>
-    public ActivityDescriptor? ActivityDescriptor { get; set; }
+    public ActivityDescriptor ActivityDescriptor { get; set; } = null!;
 
     /// <summary>
     /// The mutable list backing the <see cref="TreeItemData{T}.Children"/> property.

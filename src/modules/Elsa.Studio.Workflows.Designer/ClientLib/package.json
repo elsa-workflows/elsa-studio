@@ -8,6 +8,7 @@
     "@antv/layout": "^0.3.25",
     "@antv/x6": "^2.18.1",
     "@antv/x6-plugin-clipboard": "^2.1.6",
+    "@antv/x6-plugin-export": "2.1.6",
     "@antv/x6-plugin-history": "^2.2.4",
     "@antv/x6-plugin-keyboard": "^2.2.3",
     "@antv/x6-plugin-scroller": "^2.0.10",
@@ -26,13 +27,19 @@
     "@types/react-dom": "^18.3.1",
     "copy-webpack-plugin": "^13.0.1",
     "css-loader": "^7.1.2",
+    "jsdom": "30.0.1",
+    "json-schema-to-typescript": "16.0.0",
     "style-loader": "^4.0.0",
     "ts-loader": "^9.5.4",
     "typescript": "^5.8.3",
+    "vitest": "3.2.7",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1"
   },
   "scripts": {
-    "build": "webpack"
+    "generate:bpmn-types": "node scripts/generate-bpmn-types.js",
+    "check:generated": "node scripts/generate-bpmn-types.js --check",
+    "build": "npm run generate:bpmn-types && webpack",
+    "test": "vitest run --typecheck"
   }
 }

@@ -1,11 +1,15 @@
 using System.Text.Json.Nodes;
 using Elsa.Api.Client.Extensions;
+using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Models;
+using Elsa.Api.Client.Resources.WorkflowInstances.Requests;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Domain.Contexts;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Extensions;
 using Elsa.Studio.Workflows.DiagramDesigners;
 using Elsa.Studio.Workflows.Domain.Models;
+using Elsa.Studio.Workflows.Domain.Models.Bpmn;
 using Elsa.Studio.Workflows.Extensions;
 using Elsa.Studio.Workflows.Models;
 using Elsa.Studio.Workflows.Shared.Args;
@@ -15,6 +19,7 @@ using Elsa.Studio.Workflows.UI.Contracts;
 using Elsa.Studio.Workflows.UI.Models;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 using MudBlazor;
 
 namespace Elsa.Studio.Workflows.Shared.Components;
@@ -24,11 +29,28 @@ public partial class DiagramDesignerWrapper
 {
     private const string SelfDesignerPortName = "__self";
     private IDiagramDesigner? _diagramDesigner;
+    private readonly object _loadActivityLock = new();
+    private Task _loadActivityTask = Task.CompletedTask;
     private Stack<ActivityPathSegment> _pathSegments = new();
     private JsonObject? _currentContainerActivity;
     private List<BreadcrumbItem> _breadcrumbItems = new();
     private IDictionary<string, ActivityStats> _activityStats =
         new Dictionary<string, ActivityStats>();
+    private readonly Dictionary<string, BpmnElementStats> _elementStats = new();
+    private string? _elementStatsInstanceId;
+    private HashSet<string> _elementStatsBpmnProcessActivityIds = new();
+    private int _elementStatsHighWaterMark;
+
+    /// <summary>
+    /// The most journal pages a single <see cref="RefreshElementStatsAsync"/> tick will fetch, at 200 records a
+    /// page (see <c>pageSize</c> in <see cref="FetchElementStatsAsync"/>): 50 pages bounds one tick to 10,000
+    /// records. A backlog larger than that -- a first load of a long-running instance, or a burst built up while
+    /// the tab was backgrounded -- is not truncated, only spread across refreshes: the high-water mark advances by
+    /// whatever was actually fetched, so the next tick picks up exactly where this one left off. Settable (rather
+    /// than a plain <c>const</c>) only so a test can lower it to exercise the cap without paging 10,000 records.
+    /// </summary>
+    internal int ElementStatsMaxPagesPerRefresh { get; set; } = 50;
+
     private ActivityGraph _activityGraph = null!;
     private IDictionary<string, ActivityNode> _indexedActivityNodes =
         new Dictionary<string, ActivityNode>();
@@ -43,6 +65,11 @@ public partial class DiagramDesignerWrapper
     /// The root activity to display.
     [Parameter]
     public JsonObject Activity { get; set; } = null!;
+
+    /// The workflow definition that the displayed activity belongs to, if known. Used, for example, to propose a
+    /// file name for diagram exports.
+    [Parameter]
+    public WorkflowDefinition? WorkflowDefinition { get; set; }
 
     /// Whether the designer is read-only.
     [Parameter]
@@ -78,6 +105,12 @@ public partial class DiagramDesignerWrapper
     private IDiagramDesignerService DiagramDesignerService { get; set; } = null!;
 
     [Inject]
+    private IDialogService DialogService { get; set; } = null!;
+
+    [Inject]
+    private IWorkflowRootActivityTemplateProvider WorkflowRootActivityTemplateProvider { get; set; } = null!;
+
+    [Inject]
     private IActivityDisplaySettingsRegistry ActivityDisplaySettingsRegistry { get; set; } = null!;
 
     [Inject]
@@ -85,6 +118,9 @@ public partial class DiagramDesignerWrapper
 
     [Inject]
     private IActivityRegistry ActivityRegistry { get; set; } = null!;
+
+    [Inject]
+    private ILogger<DiagramDesignerWrapper> Logger { get; set; } = null!;
 
     [Inject]
     private IIdentityGenerator IdentityGenerator { get; set; } = null!;
@@ -97,6 +133,9 @@ public partial class DiagramDesignerWrapper
 
     [Inject]
     private IWorkflowDefinitionService WorkflowDefinitionService { get; set; } = null!;
+
+    [Inject]
+    private IWorkflowInstanceService WorkflowInstanceService { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
@@ -189,6 +228,92 @@ public partial class DiagramDesignerWrapper
         await _diagramDesigner!.UpdateActivityStatsAsync(activityId, stats);
     }
 
+    /// <summary>
+    /// Refreshes the element-keyed BPMN instance overlay (gateways, events and sequence flows -- anything without
+    /// an Elsa activity id) from the workflow instance's journal, and pushes it to the current diagram designer.
+    /// </summary>
+    /// <remarks>
+    /// A no-op when there is no workflow instance to read from, or the current designer does not accept an
+    /// element-keyed overlay (<see cref="IBpmnElementStatsSink"/>) -- fetching and folding the journal for a
+    /// flowchart or state machine instance would be wasted work. Called on the same cadence
+    /// <see cref="Components.WorkflowInstanceViewer.Components.WorkflowInstanceDesigner"/> already refreshes
+    /// <see cref="ActivityStats"/> on, so the two overlays stay in step.
+    /// </remarks>
+    internal virtual async Task RefreshElementStatsAsync()
+    {
+        if (WorkflowInstanceId == null || _diagramDesigner is not IBpmnElementStatsSink sink)
+            return;
+
+        var elementStats = await FetchElementStatsAsync(WorkflowInstanceId);
+        await sink.UpdateElementStatsAsync(elementStats);
+    }
+
+    /// <summary>
+    /// Reads the BPMN diagnostics projected onto the journal of every <c>Elsa.BpmnProcess</c> scope anywhere in
+    /// the workflow (not merely the currently displayed container: a nested scope's diagnostics land on that
+    /// scope's own activity, and BPMN element and flow ids are unique across the whole document), and folds them
+    /// into an element-keyed stats map.
+    /// </summary>
+    /// <remarks>
+    /// Incremental: <see cref="_elementStatsHighWaterMark"/> is the number of matching journal records already
+    /// folded into <see cref="_elementStats"/>, so a tick only ever fetches the records that arrived since the
+    /// previous one, rather than re-fetching and re-folding the whole journal from the start every time. This is
+    /// only safe because the journal is append-only in the order the API returns it (see the <c>Sequence</c> on
+    /// <see cref="WorkflowExecutionLogRecord"/>): the high-water mark is a plain count of already-folded records,
+    /// not an id or timestamp, because <see cref="JournalFilter"/> has no way to filter by either. The map and
+    /// mark are reset whenever the displayed instance or the set of <c>Elsa.BpmnProcess</c> scope activity ids
+    /// changes, since a high-water mark from a different instance or a different filter has nothing to do with
+    /// the one about to be fetched. A single tick fetches at most <see cref="ElementStatsMaxPagesPerRefresh"/>
+    /// pages, so a backlog larger than that -- a first load, or a burst built up while the tab was backgrounded --
+    /// is folded a page cap's worth at a time across successive refreshes rather than in one unbounded loop.
+    /// </remarks>
+    private async Task<IReadOnlyDictionary<string, BpmnElementStats>> FetchElementStatsAsync(string workflowInstanceId)
+    {
+        var bpmnProcessActivityIds = GetBpmnProcessActivityIds();
+
+        if (bpmnProcessActivityIds.Count == 0)
+            return _elementStats;
+
+        if (workflowInstanceId != _elementStatsInstanceId
+            || !_elementStatsBpmnProcessActivityIds.SetEquals(bpmnProcessActivityIds))
+        {
+            _elementStats.Clear();
+            _elementStatsHighWaterMark = 0;
+            _elementStatsInstanceId = workflowInstanceId;
+            _elementStatsBpmnProcessActivityIds = new HashSet<string>(bpmnProcessActivityIds);
+        }
+
+        var filter = new JournalFilter { ActivityIds = bpmnProcessActivityIds };
+        var entries = new List<WorkflowExecutionLogRecord>();
+        const int pageSize = 200;
+        var skip = _elementStatsHighWaterMark;
+
+        for (var page = 0; page < ElementStatsMaxPagesPerRefresh; page++)
+        {
+            var response = await WorkflowInstanceService.GetJournalAsync(workflowInstanceId, filter, skip, pageSize);
+            entries.AddRange(response.Items);
+            skip += response.Items.Count;
+
+            if (response.Items.Count < pageSize)
+                break;
+        }
+
+        _elementStatsHighWaterMark = skip;
+        BpmnElementStatsProjector.Fold(entries, _elementStats);
+
+        return _elementStats;
+    }
+
+    /// <summary>
+    /// Every <c>Elsa.BpmnProcess</c> activity's own id, anywhere in the whole workflow -- the outermost scope and
+    /// every nested one -- since <c>BpmnScopeHost</c> only ever writes a diagnostic onto the scope's own activity.
+    /// </summary>
+    private ICollection<string> GetBpmnProcessActivityIds() =>
+        _activityGraph.ActivityNodeLookup.Values
+            .Where(node => node.Activity.GetTypeName() == BpmnProcessConstants.ActivityTypeName)
+            .Select(node => node.Activity.GetId())
+            .ToList();
+
     /// Reads the activity from the designer.
     public async Task<JsonObject> ReadActivityAsync()
     {
@@ -215,7 +340,48 @@ public partial class DiagramDesignerWrapper
 
     /// Loads the specified activity into the designer.
     /// <param name="activity">The activity to load.</param>
-    public async Task LoadActivityAsync(JsonObject activity)
+    public Task LoadActivityAsync(JsonObject activity)
+    {
+        Task previousLoad;
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        lock (_loadActivityLock)
+        {
+            previousLoad = _loadActivityTask;
+            _loadActivityTask = completion.Task;
+        }
+
+        _ = RunActivityLoadAsync(previousLoad, activity, completion);
+        return completion.Task;
+    }
+
+    private async Task RunActivityLoadAsync(Task previousLoad, JsonObject activity, TaskCompletionSource completion)
+    {
+        try
+        {
+            try
+            {
+                await previousLoad;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug(ex, "A previous diagram load failed; continuing with the newer load.");
+            }
+
+            await LoadActivityCoreAsync(activity);
+            completion.TrySetResult();
+        }
+        catch (OperationCanceledException ex)
+        {
+            completion.TrySetCanceled(ex.CancellationToken);
+        }
+        catch (Exception ex)
+        {
+            completion.TrySetException(ex);
+        }
+    }
+
+    private async Task LoadActivityCoreAsync(JsonObject activity)
     {
         Activity = activity;
         _diagramDesigner = DiagramDesignerService.GetDiagramDesigner(activity);
@@ -353,6 +519,14 @@ public partial class DiagramDesignerWrapper
 
     private JsonObject? GetEmbeddedActivity(JsonObject activity, string portName)
     {
+        // A container's own collection of activities (e.g. a flowchart's or a BPMN process's "Activities"
+        // property) is reported as a path segment port by elsa-core's path-segments endpoint, but it holds the
+        // container's children directly on the container's own JSON rather than as a single embedded activity.
+        // Resolving it as an ordinary named port would call into a port provider that never declares such a port
+        // for these containers, so the container is its own "embedded activity" for that port instead.
+        if (IsCollectionPort(activity, portName))
+            return activity;
+
         var activityTypeName = activity.GetTypeName();
         var activityVersion = activity.GetVersion();
         var activityDescriptor = ActivityRegistry.Find(activityTypeName, activityVersion)!;
@@ -362,6 +536,11 @@ public partial class DiagramDesignerWrapper
 
         return activityInPort;
     }
+
+    /// Returns true if <paramref name="portName"/> names a collection property on <paramref name="activity"/>
+    /// (such as a container's own list of child activities) rather than a single embedded activity.
+    private static bool IsCollectionPort(JsonObject activity, string portName) =>
+        activity[portName.Camelize()] is JsonArray;
 
     private async Task UpdateBreadcrumbItemsAsync()
     {
@@ -385,6 +564,8 @@ public partial class DiagramDesignerWrapper
                 Uncompleted = x.UncompletedCount,
                 Metadata = x.Metadata
             });
+
+            await RefreshElementStatsAsync();
         }
     }
 
@@ -426,12 +607,17 @@ public partial class DiagramDesignerWrapper
                 var portProviderContext = new PortProviderContext(activityDescriptor, activity);
                 var portProvider = ActivityPortService.GetProvider(portProviderContext);
                 var ports = portProvider.GetPorts(portProviderContext);
-                var embeddedPort = ports.First(x => x.Name == segment.PortName);
-                breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName ?? embeddedPort.Name}";
+
+                // A container's own collection port (e.g. "Activities") never appears among a descriptor's declared
+                // ports, so there is nothing to suffix the breadcrumb with; fall back to the activity's own display
+                // name rather than throwing.
+                var embeddedPort = ports.FirstOrDefault(x => x.Name == segment.PortName);
+                if (embeddedPort != null)
+                    breadcrumbDisplayText = $"{activityDisplayText}: {embeddedPort.DisplayName ?? embeddedPort.Name}";
             }
 
             var activityBreadcrumbItem = new BreadcrumbItem(
-                breadcrumbDisplayText,
+                breadcrumbDisplayText ?? string.Empty,
                 $"#{activity.GetId()}",
                 disabled,
                 displaySettings.Icon
@@ -462,7 +648,10 @@ public partial class DiagramDesignerWrapper
             EventCallback.Factory.Create<JsonObject>(this, OnActivityDoubleClick),
             EventCallback.Factory.Create(this, OnGraphUpdated),
             IsReadOnly,
-            _activityStats));
+            _activityStats)
+        {
+            WorkflowDefinition = WorkflowDefinition
+        });
     }
 
     private async Task OnActivitySelected(JsonObject activity)
@@ -486,7 +675,7 @@ public partial class DiagramDesignerWrapper
             return;
         }
 
-        if (!IsDesignerActivity(activity))
+        if (!HasDiagramDesigner(activity))
             return;
 
         var segment = new ActivityPathSegment(
@@ -549,46 +738,28 @@ public partial class DiagramDesignerWrapper
 
         if (embeddedActivity != null)
         {
-            var embeddedActivityTypeName = embeddedActivity.GetTypeName();
-
-            // If the embedded activity has no designer support, then open it in the activity properties editor by raising the ActivitySelected event.
-            if (
-                embeddedActivityTypeName != "Elsa.Flowchart"
-                && embeddedActivityTypeName != "Elsa.StateMachine"
-                && embeddedActivityTypeName != "Elsa.Workflow"
-            )
+            if (!HasDiagramDesigner(embeddedActivity))
             {
                 if (ActivitySelected.HasDelegate)
                     await ActivitySelected.InvokeAsync(embeddedActivity);
                 return;
             }
-
-            // If the embedded activity type is a flowchart, state machine, or workflow, we can display it in the designer.
         }
         else
         {
-            if (!IsReadOnly)
-            {
-                var embeddedActivityId = IdentityGenerator.GenerateId();
-                // Create a flowchart and embed it into the activity.
-                embeddedActivity = new(new Dictionary<string, JsonNode?>
-                {
-                    ["id"] = embeddedActivityId,
-                    ["nodeId"] = $"{activity.GetNodeId()}:{embeddedActivityId}",
-                    ["type"] = "Elsa.Flowchart",
-                    ["version"] = 1,
-                    ["name"] = "Flowchart1",
-                });
-
-                portProvider.AssignPort(args.PortName, embeddedActivity, new(activityDescriptor, activity));
-
-                // Update the graph in the designer.
-                await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
-            }
-            else
-            {
+            if (IsReadOnly)
                 return;
-            }
+
+            var template = await SelectRootActivityTemplateAsync(portProvider, portProviderContext, portName);
+            if (template == null)
+                return;
+
+            embeddedActivity = template.CreateRoot(IdentityGenerator);
+            embeddedActivity["nodeId"] = $"{activity.GetNodeId()}:{embeddedActivity.GetId()}";
+            portProvider.AssignPort(args.PortName, embeddedActivity, portProviderContext);
+
+            // Update the graph only after the user confirms the branch type.
+            await _diagramDesigner!.UpdateActivityAsync(activity.GetId(), activity);
         }
 
         // Create a new path segment of the container activity and push it onto the stack.
@@ -666,8 +837,43 @@ public partial class DiagramDesignerWrapper
 
     private static bool IsSelfDesignerSegment(ActivityPathSegment segment) => segment.PortName == SelfDesignerPortName;
 
-    private static bool IsDesignerActivity(JsonObject activity) =>
-        activity.GetTypeName() is "Elsa.Flowchart" or "Elsa.StateMachine";
+    private bool HasDiagramDesigner(JsonObject activity)
+    {
+        var designerActivity = activity.GetTypeName() == "Elsa.Workflow" ? activity.GetRoot() : activity;
+        return designerActivity != null && DiagramDesignerService.HasDiagramDesigner(designerActivity);
+    }
+
+    private async Task<WorkflowRootActivityTemplate?> SelectRootActivityTemplateAsync(
+        IActivityPortProvider portProvider,
+        PortProviderContext portProviderContext,
+        string portName)
+    {
+        var currentContainerType = GetCurrentContainerActivityOrRoot().GetTypeName();
+        var selectedTemplateKey = WorkflowRootActivityTemplateProvider.Find(currentContainerType)?.Key
+                                  ?? WorkflowRootActivityTemplateProvider.GetDefault().Key;
+        var portDisplayName = portProvider.GetPorts(portProviderContext)
+            .FirstOrDefault(x => x.Name == portName)?.DisplayName ?? portName.Humanize();
+        var parameters = new DialogParameters<SelectWorkflowRootActivityDialog>
+        {
+            { x => x.SelectedTemplateKey, selectedTemplateKey }
+        };
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        };
+        var dialog = await DialogService.ShowAsync<SelectWorkflowRootActivityDialog>(
+            Localizer["Create {0} branch", portDisplayName],
+            parameters,
+            options);
+        var result = await dialog.Result;
+
+        return result is { Canceled: false, Data: string templateKey }
+            ? WorkflowRootActivityTemplateProvider.Find(templateKey)
+            : null;
+    }
 
     private static void ReplaceJsonObjectContents(JsonObject target, JsonObject source)
     {

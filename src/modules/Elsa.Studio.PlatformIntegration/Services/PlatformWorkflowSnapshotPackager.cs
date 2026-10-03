@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Elsa.Api.Client.Resources.WorkflowDefinitions.Models;
@@ -22,21 +23,22 @@ internal sealed partial class PlatformWorkflowSnapshotPackager(
         ValidateWorkflowDefinition(workflowDefinition);
         ValidateOptions(options);
 
-        var workflowDefinitionJson = JsonSerializer.Serialize(workflowDefinition, WorkflowJsonOptions);
         var definitionId = workflowDefinition.DefinitionId!.Trim();
         var displayName = workflowDefinition.Name!.Trim();
-        var contentDigest = ComputeDigest(workflowDefinitionJson);
+        var workflowDefinitionJson = JsonSerializer.Serialize(workflowDefinition, WorkflowJsonOptions);
+        var recipeJson = BuildRecipeJson(workflowDefinition, workflowDefinitionJson);
+        var contentDigest = ComputeDigest(recipeJson);
         var payloadReference = new PlatformArtifactPayloadReference(
             options.PayloadProvider.Trim(),
             BuildPayloadUri(options.PayloadUriScheme, definitionId, contentDigest.Value),
-            "application/vnd.elsa.workflow-definition+json",
-            Encoding.UTF8.GetByteCount(workflowDefinitionJson),
+            "application/vnd.elsa.loom.recipe+json",
+            Encoding.UTF8.GetByteCount(recipeJson),
             contentDigest);
 
         var envelope = new PlatformArtifactEnvelope(
             BuildArtifactId(definitionId, contentDigest.Value),
             PlatformArtifactEnvelopeConstants.EnvelopeVersion,
-            PlatformArtifactEnvelopeConstants.ElsaWorkflowDefinitionArtifactType,
+            PlatformArtifactEnvelopeConstants.ElsaLoomRecipeArtifactType,
             options.ArtifactSchemaVersion.Trim(),
             contentDigest,
             null,
@@ -55,7 +57,7 @@ internal sealed partial class PlatformWorkflowSnapshotPackager(
                 BuildWorkflowSource(definitionId)),
             [
                 new PlatformArtifactCompatibilityHint(
-                    PlatformArtifactEnvelopeConstants.ElsaWorkflowDefinitionArtifactType,
+                    PlatformArtifactEnvelopeConstants.ElsaLoomRecipeArtifactType,
                     "elsa-workflows",
                     TrimToNull(options.RuntimeVersionRange),
                     options.RequiredCapabilities
@@ -68,7 +70,7 @@ internal sealed partial class PlatformWorkflowSnapshotPackager(
             []);
 
         _validator.Validate(envelope);
-        return new PlatformWorkflowSubmitPackage(envelope, workflowDefinitionJson, (packagedAt ?? DateTimeOffset.UtcNow).ToUniversalTime());
+        return new PlatformWorkflowSubmitPackage(envelope, recipeJson, (packagedAt ?? DateTimeOffset.UtcNow).ToUniversalTime());
     }
 
     private static void ValidateWorkflowDefinition(WorkflowDefinition workflowDefinition)
@@ -103,11 +105,37 @@ internal sealed partial class PlatformWorkflowSnapshotPackager(
         return new PlatformArtifactDigest("sha256", Convert.ToHexString(hash).ToLowerInvariant());
     }
 
+    private static string BuildRecipeJson(WorkflowDefinition workflowDefinition, string workflowDefinitionJson)
+    {
+        var workflowDefinitionNode = JsonNode.Parse(workflowDefinitionJson)
+            ?? throw new InvalidOperationException("Workflow definition snapshot is not valid JSON.");
+        var definitionId = workflowDefinition.DefinitionId!.Trim();
+        var recipe = new JsonObject
+        {
+            ["schemaVersion"] = "1.0",
+            ["id"] = definitionId,
+            ["name"] = workflowDefinition.Name!.Trim(),
+            ["version"] = workflowDefinition.Version.ToString(CultureInfo.InvariantCulture),
+            ["steps"] = new JsonArray
+            {
+                new JsonObject
+                {
+                    ["id"] = $"upsert-{SafeIdentitySegment(definitionId)}",
+                    ["type"] = "workflowDefinition.upsert",
+                    ["publish"] = true,
+                    ["payload"] = workflowDefinitionNode
+                }
+            }
+        };
+
+        return recipe.ToJsonString(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+    }
+
     private static string BuildArtifactId(string workflowDefinitionId, string digest) =>
-        $"elsa.workflow-definition:{SafeIdentitySegment(workflowDefinitionId)}:{digest}";
+        $"elsa.loom.recipe:{SafeIdentitySegment(workflowDefinitionId)}:{digest}";
 
     private static string BuildPayloadUri(string scheme, string workflowDefinitionId, string digest) =>
-        $"{scheme.Trim()}://workflows/{Uri.EscapeDataString(workflowDefinitionId.Trim())}/snapshots/{digest}";
+        $"{scheme.Trim()}://loom-recipes/{Uri.EscapeDataString(workflowDefinitionId.Trim())}/snapshots/{digest}";
 
     private static string BuildWorkflowSource(string workflowDefinitionId) =>
         $"studio://workflows/{Uri.EscapeDataString(workflowDefinitionId.Trim())}";

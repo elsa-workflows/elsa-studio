@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>Elsa Studio 3.6</title>
+    <!-- Keep this title in sync with ToolVersion.cs. -->
+    <title>Elsa Studio 3.10</title>
     <base href="/"/>
     <link rel="apple-touch-icon" sizes="180x180" href="_content/Elsa.Studio.Shell/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="_content/Elsa.Studio.Shell/favicon-32x32.png">
@@ -14,6 +15,7 @@
     <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
     <link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet" >
     <link href="_content/Elsa.Studio.Shell/css/shell.css" rel="stylesheet">
+    <link href="Elsa.Studio.Host.Wasm.styles.css" rel="stylesheet">
     <link href="_content/Elsa.Studio.Diagnostics.StructuredLogs/structuredLogs.css" rel="stylesheet">
     <link href="_content/Elsa.Studio.Diagnostics.ConsoleLogs/consoleLogs.css" rel="stylesheet">
     <link href="_content/Elsa.Studio.Diagnostics.OpenTelemetry/openTelemetry.css" rel="stylesheet">
@@ -37,6 +39,7 @@
 <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 <script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
 <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+<script src="_content/Elsa.Studio.ExternalAuthentication.BlazorWasm/external-authentication.js"></script>
 
 <!-- Required for Microsoft.AspNetCore.Components.WebAssembly.Authentication (RemoteAuthenticatorView/RemoteAuthenticationService). -->
 <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>

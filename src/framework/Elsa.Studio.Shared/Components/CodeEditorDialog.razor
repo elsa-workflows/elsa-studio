@@ -7,7 +7,7 @@
     }
 </style>
 
-<MudDialog>
+<MudDialog DialogActions="@ExplicitDialogActions">
     <TitleContent>
         <MudToolBar Dense="true" Gutters="false">
             <MudStack Spacing="0">
@@ -24,7 +24,13 @@
         </MudToolBar>
     </TitleContent>
     <DialogContent>
-        <MudPaper Height="655px" Width="100%" Elevation="0">
+        @if (!string.IsNullOrWhiteSpace(_validationError))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Dense="true" Class="mb-3" data-testid="code-editor-validation-error">
+                @_validationError
+            </MudAlert>
+        }
+        <MudPaper Height="@EditorHeight" Width="100%" Elevation="0">
             <StandaloneCodeEditor @ref="_monacoEditor"
                                   Id="@_monacoEditorId"
                                   ConstructionOptions="ConfigureMonacoEditor"
@@ -34,3 +40,17 @@
         </MudPaper>
     </DialogContent>
 </MudDialog>
+
+@code {
+    private RenderFragment? ExplicitDialogActions => RequireExplicitApply
+        ? @<text>
+              <MudButton OnClick="Cancel">@(IsReadOnly ? Localizer["Close"] : Localizer["Cancel"])</MudButton>
+              @if (!IsReadOnly)
+              {
+                  <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Apply" data-testid="code-editor-apply">
+                      @Localizer["Apply"]
+                  </MudButton>
+              }
+          </text>
+        : null;
+}

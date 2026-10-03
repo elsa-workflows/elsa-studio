@@ -96,9 +96,6 @@ public partial class OutputConverterSettingsEditor
             var description = propertySchema.TryGetProperty("description", out var descriptionElement) ? descriptionElement.GetString() : null;
             var field = new SettingsField(property.Name, label ?? property.Name, description ?? string.Empty, fieldType ?? "string", options, required.Contains(property.Name));
             _fields.Add(field);
-
-            if (!_settings.ContainsKey(property.Name) && propertySchema.TryGetProperty("default", out var defaultValue))
-                _settings[property.Name] = JsonNode.Parse(defaultValue.GetRawText());
         }
     }
 

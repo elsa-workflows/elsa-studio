@@ -2,12 +2,15 @@ using Elsa.Studio.ActivityPortProviders.Extensions;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.DomInterop.Extensions;
 using Elsa.Studio.Extensions;
+using Elsa.Studio.Models;
 using Elsa.Studio.UIHints.Extensions;
 using Elsa.Studio.Workflows.ActivityPickers.Accordion;
+using Elsa.Studio.Workflows.Client;
 using Elsa.Studio.Workflows.Components.WorkflowDefinitionEditor.Components.Models;
 using Elsa.Studio.Workflows.Components.WorkflowInstanceList.Models;
 using Elsa.Studio.Workflows.Contracts;
 using Elsa.Studio.Workflows.Designer.Extensions;
+using Elsa.Studio.Workflows.DiagramDesigners.Bpmn;
 using Elsa.Studio.Workflows.DiagramDesigners.Fallback;
 using Elsa.Studio.Workflows.DiagramDesigners.Flowcharts;
 using Elsa.Studio.Workflows.DiagramDesigners.Sequences;
@@ -37,6 +40,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<IWorkflowInstanceObserverFactory, WorkflowInstanceObserverFactory>()
             .AddScoped<IWorkflowCloningDialogService, WorkflowCloningDialogService>()
             .AddScoped<IWorkflowExportDialogService, WorkflowExportDialogService>()
+            .AddScoped<IBpmnImportUiService, BpmnImportUiService>()
             .AddDefaultUIHintHandlers()
             .AddDefaultActivityPortProviders()
             .AddWorkflowsCore()
@@ -50,7 +54,8 @@ public static class ServiceCollectionExtensions
             .AddDiagramDesignerProvider<FallbackDesignerProvider>()
             .AddDiagramDesignerProvider<StateMachineDiagramDesignerProvider>()
             .AddDiagramDesignerProvider<FlowchartDiagramDesignerProvider>()
-            .AddDiagramDesignerProvider<SequenceDiagramDesignerProvider>();
+            .AddDiagramDesignerProvider<SequenceDiagramDesignerProvider>()
+            .AddDiagramDesignerProvider<BpmnDiagramDesignerProvider>();
 
         services.AddNotificationHandler<RefreshActivityRegistry>();
         services.AddScoped<IWidget, WorkflowDefinitionMetadataWidget>();
@@ -71,5 +76,15 @@ public static class ServiceCollectionExtensions
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Adds the workflows module with remote backend BPMN interchange API support.
+    /// </summary>
+    public static IServiceCollection AddWorkflowsModule(this IServiceCollection services, BackendApiConfig backendApiConfig)
+    {
+        return services
+            .AddWorkflowsModule()
+            .AddRemoteApi<IBpmnInterchangeApi>(backendApiConfig);
     }
 }

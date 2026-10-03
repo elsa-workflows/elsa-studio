@@ -2,7 +2,7 @@
 
 Status: Approved baseline
 
-Last updated: 2026-08-01
+Last updated: 2026-09-01
 
 ## Direction
 
@@ -250,6 +250,54 @@ findings, and diagnostics.
 - Dashboard-like card grids for ordinary settings: use one primary form and only
   the supporting surfaces needed for context.
 - One-off CSS for spacing: use MudBlazor spacing and responsive utilities first.
+
+## StateMachine Authoring Pattern
+
+Use a lifecycle story instead of exposing serialized definitions as the primary
+editing surface.
+
+- State inspectors read top-to-bottom as `ON ENTRY → ACTIVE → ON EXIT`.
+- Transition inspectors read top-to-bottom as `WHEN → ONLY IF → THEN → TO`.
+- Activity slots use one shared semantic card for empty, configured, malformed,
+  and read-only states. Raw JSON is repair evidence under “View definition,”
+  never the default editor.
+- Empty slots explain execution behavior and offer one direct add action plus
+  drag-and-drop. Configured slots offer Open, Replace, and Clear.
+- Preserve unknown or malformed definitions until the author explicitly
+  replaces or clears them.
+- Keep destructive state/transition actions separated below details and
+  validation.
+- Show state status without relying on color: Initial, Current, and Terminal
+  remain textual badges.
+
+### Contextual activity picker
+
+- Open a wide command-palette dialog whose title names the destination slot.
+- Reinforce execution context with `WHEN`, `THEN`, `ON ENTRY`, or `ON EXIT` and
+  one short timing explanation.
+- Keep search sticky and search name, type, category, and description.
+- Use compact Suggested, Recent, All, and category filters with result counts.
+- Selecting a row updates a details pane; it must not mutate the workflow.
+  Commit only through the explicit Add action, Enter, or deliberate double
+  activation.
+- Recommend Sequence for action and lifecycle slots as the multi-activity
+  composition path, but do not present it as a separate oversized billboard.
+- On narrow screens, collapse filters to a horizontal strip, stack details
+  below results, and retain keyboard-accessible native buttons.
+
+## Diagnostics Content
+
+- Diagnostics should contain actionable information only: what failed or is at
+  risk, why it happened, and what the operator can do next.
+- Status summaries and diagnostic details must use the same authoritative
+  result. Never show a valid/invalid badge that the Diagnostics view cannot
+  explain.
+- Omit implementation metadata such as management-contract and backend versions
+  unless it directly affects compatibility or the recommended action. Put
+  support-only metadata behind progressive disclosure or in an export.
+- Keep successful results concise. Show correlation identifiers and other
+  troubleshooting metadata as secondary, copyable details rather than primary
+  content.
 
 ## Review Checklist
 

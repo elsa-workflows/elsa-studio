@@ -1,5 +1,6 @@
-<!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan:
-specs/009-weaver-copilot-ui/plan.md
-<!-- SPECKIT END -->
+# Repository instructions
+
+Keep repository-wide guidance feature-neutral. Feature-specific requirements,
+plans, and tasks belong under their feature directory in `specs/`.
+
+Before opening a PR, read `.github/reviewers.md`: Greptile is required (re-request with `@greptileai` after each push), and request at most one additional advisory reviewer from the list once the PR is open.

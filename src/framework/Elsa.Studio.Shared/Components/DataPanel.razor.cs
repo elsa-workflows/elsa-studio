@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Text.Json;
 using Elsa.Studio.Components.DataPanelRenderers;
 using Elsa.Studio.DomInterop.Contracts;
 using Elsa.Studio.Localization;
+using Elsa.Studio.Localization.Time;
 using Elsa.Studio.Models;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -50,6 +50,7 @@ public partial class DataPanel : ComponentBase
     [Inject] private IClipboard Clipboard { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private ITimeFormatter TimeFormatter { get; set; } = null!;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -121,17 +122,20 @@ public partial class DataPanel : ComponentBase
 
     private string FormatTimestamp(object value, string? formatString)
     {
-        return value switch
-        {
-            DateTime dt => string.IsNullOrWhiteSpace(formatString)
-                ? dt.ToLocalTime().ToString(CultureInfo.CurrentUICulture)
-                : dt.ToLocalTime().ToString(formatString, CultureInfo.CurrentUICulture),
-            DateTimeOffset dto => string.IsNullOrWhiteSpace(formatString)
-                ? dto.ToLocalTime().ToString(CultureInfo.CurrentUICulture)
-                : dto.ToLocalTime().ToString(formatString, CultureInfo.CurrentUICulture),
-            _ => value.ToString() ?? string.Empty
-        };
+        var timestamp = GetTimestampValue(value);
+        return timestamp == null
+            ? value.ToString() ?? string.Empty
+            : TimeFormatter.Format(timestamp, string.IsNullOrWhiteSpace(formatString) ? "G" : formatString);
     }
+
+    internal static DateTimeOffset? GetTimestampValue(object value) => value switch
+    {
+        // Values without a kind follow the same UTC convention as the timestamp renderer.
+        DateTime { Kind: DateTimeKind.Unspecified } dt => new DateTimeOffset(dt, TimeSpan.Zero),
+        DateTime dt => new DateTimeOffset(dt),
+        DateTimeOffset dto => dto,
+        _ => null
+    };
 
     private string FormatNumber(object value)
     {

@@ -1,4 +1,5 @@
 using Elsa.Studio.Contracts;
+using Elsa.Studio.Extensions;
 using Elsa.Studio.Localization;
 using Elsa.Studio.Models;
 using MudBlazor;
@@ -8,22 +9,24 @@ namespace Elsa.Studio.Labels.Menu;
 /// <summary>
 /// Provides the menu items for the Labels module.
 /// </summary>
-public class LabelsMenu(ILocalizer localizer) : IMenuProvider
+public class LabelsMenu(ILocalizer localizer, IRemoteFeatureProvider remoteFeatureProvider) : IMenuProvider
 {
     /// <inheritdoc />
-    public ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IEnumerable<MenuItem>> GetMenuItemsAsync(CancellationToken cancellationToken = default)
     {
-        var menuItems = new List<MenuItem>
-        {
-            new()
+        if (!await remoteFeatureProvider.IsEnabledOrDefaultAsync(Feature.RemoteFeatureName, cancellationToken))
+            return [];
+
+        return
+        [
+            new MenuItem
             {
                 Icon = Icons.Material.Filled.Label,
                 Href = "Labels",
                 Text = localizer["Labels"],
-                GroupName = MenuItemGroups.Settings.Name
+                GroupName = MenuItemGroups.Administration.Name,
+                Order = 200
             }
-        };
-
-        return new ValueTask<IEnumerable<MenuItem>>(menuItems);
+        ];
     }
 }

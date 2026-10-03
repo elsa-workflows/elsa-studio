@@ -1,16 +1,17 @@
 using Elsa.Studio.Authentication.ElsaIdentity.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.ElsaIdentity.HttpMessageHandlers;
 using Elsa.Studio.Authentication.ElsaIdentity.UI.Extensions;
+using Elsa.Studio.Authentication.UI.Extensions;
+using Elsa.Studio.Authentication.UI.Options;
+using Elsa.Studio.Authentication.Themes.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.BlazorServer.Extensions;
 using Elsa.Studio.Authentication.OpenIdConnect.HttpMessageHandlers;
-using Elsa.Studio.Branding;
 using Elsa.Studio.Contracts;
 using Elsa.Studio.Core.BlazorServer.Extensions;
 using Elsa.Studio.AI.Extensions;
 using Elsa.Studio.Alterations.Extensions;
 using Elsa.Studio.Dashboard.Extensions;
 using Elsa.Studio.Extensions;
-using Elsa.Studio.Host.Server;
 using Elsa.Studio.Localization.BlazorServer.Extensions;
 using Elsa.Studio.Localization.Models;
 using Elsa.Studio.Localization.Options;
@@ -18,25 +19,37 @@ using Elsa.Studio.Login.BlazorServer.Extensions;
 using Elsa.Studio.Login.Extensions;
 using Elsa.Studio.Login.HttpMessageHandlers;
 using Elsa.Studio.Models;
+using Elsa.Studio.Options;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.ConsoleLogs.Extensions;
 using Elsa.Studio.Diagnostics.OpenTelemetry.Extensions;
+using Elsa.Studio.Diagnostics.OpenTelemetry.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Dashboard.Extensions;
 using Elsa.Studio.Diagnostics.StructuredLogs.Extensions;
 using Elsa.Studio.Secrets.Extensions;
-using Elsa.Studio.UserTasks.Extensions;
+using Elsa.Studio.Security.Extensions;
+using Elsa.Studio.Settings.Extensions;
 using Elsa.Studio.Shell.Extensions;
 using Elsa.Studio.Translations;
+using Elsa.Studio.UserTasks.Extensions;
 using Elsa.Studio.Workflows.ActivityPickers.Treeview;
 using Elsa.Studio.Workflows.Dashboard.Extensions;
 using Elsa.Studio.Workflows.Designer.Extensions;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Extensions;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Elsa.Studio.ExternalAuthentication.BlazorServer.Extensions;
+using Elsa.Studio.ExternalAuthentication.BlazorServer.HttpMessageHandlers;
+using Elsa.Studio.ExternalAuthentication.Extensions;
+using Elsa.Studio.Authentication.Abstractions.Models;
+using Microsoft.Extensions.Options;
 
 // Build the host.
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
+
+// Per-developer overrides (auth provider, client secrets, backend URL, ...) belong here, not in appsettings.json.
+// The file is git-ignored, so the shipped defaults stay runnable out of the box.
+configuration.AddJsonFile("appsettings.Local.json", true, true);
 
 // Register Razor services.
 builder.Services.AddRazorPages();
@@ -53,10 +66,13 @@ builder.Services.AddServerSideBlazor(options =>
 });
 
 // Choose authentication provider.
-// Supported values: "OpenIdConnect" or "ElsaIdentity" (default).
+// Supported values: "OpenIdConnect", "ElsaIdentity" (default), "ElsaLogin", or "ExternalAuthentication".
 var authProvider = configuration["Authentication:Provider"];
 if (string.IsNullOrWhiteSpace(authProvider))
     authProvider = "ElsaIdentity";
+if (!Enum.TryParse<StudioAuthenticationProvider>(authProvider, true, out var selectedAuthProvider))
+    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect', 'ElsaIdentity', 'ElsaLogin', and 'ExternalAuthentication'.");
+builder.Services.AddStudioAuthenticationMode(options => options.Provider = selectedAuthProvider);
 
 Type authenticationHandler;
 
@@ -87,9 +103,16 @@ else if (authProvider.Equals("ElsaLogin", StringComparison.OrdinalIgnoreCase))
     builder.Services.AddLoginModule().UseElsaIdentity();
     authenticationHandler = typeof(AuthenticatingApiHttpMessageHandler);
 }
+else if (authProvider.Equals("ExternalAuthentication", StringComparison.OrdinalIgnoreCase))
+{
+    // Elsa-owned broker. Server is a confidential client; its client secret remains deployment configuration.
+    builder.Services.AddExternalAuthenticationBroker(options =>
+        configuration.GetSection("Authentication:ExternalAuthentication").Bind(options));
+    authenticationHandler = typeof(ExternalAuthenticationAuthenticatingApiHttpMessageHandler);
+}
 else
 {
-    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect' and 'ElsaIdentity'.");
+    throw new InvalidOperationException($"Unsupported Authentication:Provider value '{authProvider}'. Supported values are 'OpenIdConnect', 'ElsaIdentity', 'ElsaLogin', and 'ExternalAuthentication'.");
 }
 
 // Register shell services and modules.
@@ -117,17 +140,31 @@ var localizationConfig = new LocalizationConfig
     }
 };
 
-builder.Services.AddScoped<IBrandingProvider, StudioBrandingProvider>();
-builder.Services.AddCore().Replace(new(typeof(IBrandingProvider), typeof(StudioBrandingProvider), ServiceLifetime.Scoped));
+builder.Services
+    .AddCore(options => configuration.GetSection(StudioThemeOptions.SectionName).Bind(options));
 builder.Services.AddShell(options => configuration.GetSection("Shell").Bind(options));
+if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
+{
+    builder.Services
+        .AddAuthenticationUI(configuration.GetSection(LoginThemeOptions.SectionName))
+        .AddElsaStudioLoginThemes();
+}
 builder.Services.AddRemoteBackend(backendApiConfig);
+// Optional: multi-environment switching. Requires Elsa.Studio.Environments and a backend /environments API.
+// builder.Services.AddEnvironmentsModule(backendApiConfig);
+builder.Services.AddSettingsModule();
+builder.Services.AddSecurityModule(backendApiConfig);
+
+// Management UI remains backend-feature-gated. Broker sign-in is active only when selected above.
+builder.Services.AddExternalAuthenticationModule(backendApiConfig);
 
 builder.Services.AddDashboardModule(backendApiConfig);
 builder.Services.AddWeaverModule(backendApiConfig);
-builder.Services.AddWorkflowsModule();
+builder.Services.AddWorkflowsModule(backendApiConfig);
 builder.Services.AddWorkflowsDashboardModule();
 builder.Services.AddAlterationsModule();
 builder.Services.AddOpenTelemetryDiagnosticsModule(backendApiConfig);
+builder.Services.AddOpenTelemetryDashboardModule();
 builder.Services.AddConsoleLogsModule(backendApiConfig);
 builder.Services.AddConsoleLogsDashboardModule();
 builder.Services.AddStructuredLogsModule(backendApiConfig);
@@ -166,6 +203,9 @@ builder.Services.AddSignalR(options =>
 
 // Build the application.
 var app = builder.Build();
+
+if (selectedAuthProvider != StudioAuthenticationProvider.ElsaLogin)
+    _ = app.Services.GetRequiredService<IOptions<LoginThemeOptions>>().Value;
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

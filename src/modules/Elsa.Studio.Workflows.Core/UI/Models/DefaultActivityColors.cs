@@ -57,4 +57,8 @@ public static class DefaultActivityColors
     /// Gets or sets the diagnostics.
     /// </summary>
     public static string Diagnostics { get; set; } = "#ec407a";
+    /// <summary>
+    /// Gets or sets the BPMN colour, used by an <c>Elsa.BpmnProcess</c> scope wherever it is composed.
+    /// </summary>
+    public static string Bpmn { get; set; } = "#7c3aed";
 }

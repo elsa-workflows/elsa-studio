@@ -27,7 +27,7 @@
                      Variant="Variant.Filled"
                      Dense="true">
                 <MudMenuItem Icon="@Icons.Material.Outlined.Refresh"
-                             OnClick="ReloadTableAsync">
+                             OnClick="@(() => { _table?.ReloadServerData(); })">
                     @Localizer["Refresh"]
                 </MudMenuItem>
                 <MudMenuItem Icon="@(_polling ? Icons.Material.Outlined.PauseCircle : Icons.Material.Outlined.Autorenew)"
@@ -113,7 +113,7 @@
         if (!_polling) return;
         _pollingTimer = new Timer(_ =>
         {
-            _ = InvokeAsync(ReloadTableAsync);
+            _ = InvokeAsync(() => { _table?.ReloadServerData(); });
         }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
     }
 
@@ -132,10 +132,8 @@
     private void OnSearchChanged(string value)
     {
         _searchTerm = value;
-        _ = ReloadTableAsync();
+        _table?.ReloadServerData();
     }
-
-    private Task ReloadTableAsync() => _table?.ReloadServerData() ?? Task.CompletedTask;
 
     public void Dispose() => StopPolling();
 
@@ -155,9 +153,6 @@
             };
 
             var response = await WorkflowInstanceService.ListAsync(request, ct);
-            if (response is null)
-                return new TableData<WorkflowInstanceSummary> { Items = [], TotalItems = 0 };
-
             return new TableData<WorkflowInstanceSummary>
             {
                 Items = response.Items,

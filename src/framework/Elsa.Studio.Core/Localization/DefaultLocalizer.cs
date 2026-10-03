@@ -6,7 +6,7 @@ namespace Elsa.Studio.Localization;
 public class DefaultLocalizer(ILocalizationProvider provider) : ILocalizer
 {
     /// <inheritdoc />
-    public LocalizedString this[string key]
+    public LocalizedString this[string? key]
     {
         get
         {
@@ -32,7 +32,7 @@ public class DefaultLocalizer(ILocalizationProvider provider) : ILocalizer
     /// <param name="key">The key of the localized string.</param>
     /// <param name="arguments">The arguments to format the localized string with.</param>
     /// <returns>The localized string formatted with the provided arguments.</returns>
-    public LocalizedString this[string key, params object[] arguments]
+    public LocalizedString this[string? key, params object[] arguments]
     {
         get
         {

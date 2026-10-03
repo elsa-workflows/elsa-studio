@@ -18,7 +18,13 @@ public static class MenuItemGroups
     public static readonly MenuItemGroup Diagnostics = new("diagnostics", "Diagnostics", 100f);
 
     /// <summary>
-    /// Gets the settings menu item group for configuration and administrative features.
+    /// Gets the administration menu item group for system-wide management features.
     /// </summary>
-    public static readonly MenuItemGroup Settings = new("security", "Settings", 1000f);
+    public static readonly MenuItemGroup Administration = new("security", "Administration", 1000f);
+
+    /// <summary>
+    /// Gets the administration menu item group.
+    /// </summary>
+    [Obsolete("Use Administration instead.")]
+    public static readonly MenuItemGroup Settings = Administration;
 }

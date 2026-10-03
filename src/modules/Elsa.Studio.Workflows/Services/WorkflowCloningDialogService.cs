@@ -57,13 +57,11 @@ public class WorkflowCloningDialogService(
             return null;
         }
 
-        if (dialogResult.Data is not WorkflowMetadataModel newWorkflowModel)
-            return null;
-
+        var newWorkflowModel = (WorkflowMetadataModel?)dialogResult.Data;
         var newDefinition = new WorkflowDefinition
         {
-            Name = newWorkflowModel.Name ?? newWorkflowName,
-            Description = newWorkflowModel.Description,
+            Name = newWorkflowModel?.Name ?? newWorkflowName,
+            Description = newWorkflowModel?.Description,
             Root = workflowDefinition.Root,
             Inputs = workflowDefinition.Inputs,
             Outputs = workflowDefinition.Outputs,

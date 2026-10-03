@@ -5,6 +5,7 @@ using Elsa.Api.Client.Resources.ActivityDescriptors.Enums;
 using Elsa.Api.Client.Resources.ActivityDescriptors.Models;
 using Elsa.Api.Client.Shared.Models;
 using Elsa.Studio.Workflows.Designer.Components;
+using Elsa.Studio.Workflows.Designer.Models;
 using Elsa.Studio.Workflows.Designer.Options;
 using Elsa.Studio.Workflows.Domain.Contracts;
 using Elsa.Studio.Workflows.Domain.Models;
@@ -169,6 +170,22 @@ public partial class FlowchartDesignerWrapper
     {
         if (ReactDesigner is not null) await ReactDesigner.CenterContentAsync();
         else if (Designer is not null) await Designer.CenterContentAsync();
+    }
+
+    /// <summary>
+    /// Exports the flowchart as an image and lets the browser download it.
+    /// </summary>
+    /// <param name="options">The export options.</param>
+    /// <exception cref="NotSupportedException">
+    /// Thrown when the X6 designer is not the rendered designer, which is the case while the React Flow renderer is
+    /// enabled. Failing here is deliberate: silently doing nothing would look like a download that never arrived.
+    /// </exception>
+    public async Task ExportGraphAsync(ExportGraphOptions options)
+    {
+        if (Designer is null)
+            throw new NotSupportedException("Exporting the flowchart as an image is only supported by the X6 designer.");
+
+        await Designer.ExportGraphAsync(options);
     }
 
     /// <summary>

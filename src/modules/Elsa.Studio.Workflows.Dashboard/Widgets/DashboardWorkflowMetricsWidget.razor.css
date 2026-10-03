@@ -1,12 +1,15 @@
 .dashboard-operational-health {
     margin-bottom: 8px;
-    padding: 16px;
     border-radius: 8px;
     background: var(--mud-palette-surface);
 }
 
+.dashboard-operational-health-content {
+    padding: 24px;
+}
+
 .dashboard-operational-health-heading {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .dashboard-operational-health-metrics {
@@ -16,7 +19,7 @@
 
 .dashboard-operational-health-metric {
     min-width: 0;
-    padding: 0 12px;
+    padding: 4px 16px;
     border-inline-start: 1px solid var(--mud-palette-lines-default);
 }
 
@@ -43,7 +46,7 @@
 
 .dashboard-operational-health-value {
     line-height: 1.1;
-    margin-top: 4px;
+    margin-top: 8px;
 }
 
 .dashboard-operational-health-caption {
@@ -56,7 +59,7 @@
     }
 
     .dashboard-operational-health-metric {
-        padding: 12px;
+        padding: 16px;
         border-top: 1px solid var(--mud-palette-lines-default);
     }
 
@@ -81,16 +84,16 @@
     }
 
     .dashboard-operational-health-metric:nth-child(3n + 1) {
-        padding-inline-start: 12px;
+        padding-inline-start: 16px;
         border-inline-start: 1px solid var(--mud-palette-lines-default);
     }
 
     .dashboard-operational-health-metric:nth-child(3n) {
-        padding-inline-end: 12px;
+        padding-inline-end: 16px;
     }
 
     .dashboard-operational-health-metric:nth-child(-n + 3) {
-        padding-top: 12px;
+        padding-top: 16px;
         border-top: 1px solid var(--mud-palette-lines-default);
     }
 
@@ -110,18 +113,22 @@
 }
 
 @media (max-width: 599px) {
+    .dashboard-operational-health-content {
+        padding: 16px;
+    }
+
     .dashboard-operational-health-metrics {
         grid-template-columns: minmax(0, 1fr);
     }
 
     .dashboard-operational-health-metric,
     .dashboard-operational-health-metric:nth-child(3n + 1) {
-        padding: 12px 0;
+        padding: 16px 0;
         border-inline-start: 0;
     }
 
     .dashboard-operational-health-metric:nth-child(-n + 2) {
-        padding-top: 12px;
+        padding-top: 16px;
         border-top: 1px solid var(--mud-palette-lines-default);
     }
 

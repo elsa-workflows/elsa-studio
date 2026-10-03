@@ -17,8 +17,7 @@ public class AuthenticationController : Controller
     [HttpGet("login")]
     public IActionResult Login([FromQuery] string? returnUrl = null)
     {
-        returnUrl = string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl;
-        return Challenge(new AuthenticationProperties { RedirectUri = returnUrl }, OpenIdConnectDefaults.AuthenticationScheme);
+        return Challenge(new AuthenticationProperties { RedirectUri = NormalizeReturnUrl(returnUrl) }, OpenIdConnectDefaults.AuthenticationScheme);
     }
 
     /// <summary>
@@ -27,12 +26,22 @@ public class AuthenticationController : Controller
     [HttpGet("logout")]
     public IActionResult Logout([FromQuery] string? returnUrl = null)
     {
-        returnUrl = string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl;
-
         return SignOut(
-            new AuthenticationProperties { RedirectUri = returnUrl },
+            new AuthenticationProperties { RedirectUri = NormalizeReturnUrl(returnUrl) },
             CookieAuthenticationDefaults.AuthenticationScheme,
             OpenIdConnectDefaults.AuthenticationScheme);
     }
-}
 
+    private static string NormalizeReturnUrl(string? candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate) ||
+            !candidate.StartsWith("/", StringComparison.Ordinal) ||
+            candidate.StartsWith("//", StringComparison.Ordinal) ||
+            candidate.StartsWith("/\\", StringComparison.Ordinal))
+        {
+            return "/";
+        }
+
+        return Uri.TryCreate(candidate, UriKind.Relative, out _) ? candidate : "/";
+    }
+}
