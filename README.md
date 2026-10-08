@@ -1,5 +1,7 @@
 # Elsa Studio
 
+> New Studio development now lives in [Elsa Core's `studio/` directory](https://github.com/elsa-workflows/elsa-core/tree/main/studio). Open new-development [issues](https://github.com/elsa-workflows/elsa-core/issues/new/choose) and [pull requests](https://github.com/elsa-workflows/elsa-core/pulls) in Core and follow its [contribution guide](https://github.com/elsa-workflows/elsa-core/blob/main/CONTRIBUTING.md). Existing 3.8/3.9 maintenance procedures and release branches are unchanged by this notice. Original issues, PRs and contributor history remain here; see the [source handoff register](https://github.com/elsa-workflows/elsa-core/blob/main/docs/integration-program/source-handoff-register.json).
+
 <a href="./artwork/screenshot-1.png" target="_blank">
   <p align="center">
     <img src="./artwork/screenshot-1.png" alt="Elsa Studio workflow designer">

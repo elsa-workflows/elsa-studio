@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing to Elsa.
 
+For new Studio development, contribute in [Elsa Core's `studio/` directory](https://github.com/elsa-workflows/elsa-core/tree/main/studio) using the [Core contribution guide](https://github.com/elsa-workflows/elsa-core/blob/main/CONTRIBUTING.md). Keep original issue/PR links and contributor attribution when continuing work there; the [handoff register](https://github.com/elsa-workflows/elsa-core/blob/main/docs/integration-program/source-handoff-register.json) preserves source references. Existing 3.8/3.9 maintenance procedures and release branches are unchanged by this notice.
+
 We value clarity, discipline, and maintainability in our codebase. Well-scoped pull requests and high-quality bug reports help us maintain velocity without sacrificing quality.
 
 Whether you're:
@@ -19,7 +21,7 @@ Whether you're:
 
 Elsa follows **Trunk Based Development**.
 
-All changes happen through Pull Requests targeting the `main` branch.
+For work targeting this repository's `main` branch, follow these steps:
 
 1. Fork the repository and create your branch from `main`.
 2. If you've added code that should be tested, add tests.
@@ -81,7 +83,7 @@ If a change is large, consider splitting it into incremental PRs.
 
 ## Reporting Bugs
 
-We use GitHub Issues to track bugs and feature requests.
+Use [Core issues](https://github.com/elsa-workflows/elsa-core/issues/new/choose) for new Studio development. Existing 3.8/3.9 maintenance reporting procedures are unchanged by this notice.
 
 When reporting a bug, please include:
 
